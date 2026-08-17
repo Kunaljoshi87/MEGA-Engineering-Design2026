@@ -1,0 +1,2549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="color-scheme" content="light" />
+  <title>MEGA Engineering - Engineering Design Control</title>
+
+  <!--
+    ZOHO CREATOR JS API V2 SDK
+    Official CDN for Creator widgets.
+    IMPORTANT: JS API v2 does NOT use ZOHO.CREATOR.init().
+  -->
+  <script src="https://static.zohocdn.com/creator/widgets/version/2.0/widgetsdk-min.js"></script>
+
+  <style>
+    /* ======================================================================
+       1. DESIGN TOKENS / BRAND COLORS
+       ====================================================================== */
+    :root {
+      --brand: #c92f73;
+      --brand-dark: #a71f5b;
+      --brand-soft: #fbeaf2;
+      --ink: #19212b;
+      --muted: #677484;
+      --line: #e5e9ef;
+      --panel: #ffffff;
+      --surface: #f7f8fb;
+      --success: #18864b;
+      --warning: #a46800;
+      --danger: #c43737;
+      --info: #2869b2;
+      --shadow: 0 8px 24px rgba(23, 35, 52, 0.08);
+      --radius: 14px;
+    }
+
+    /* ======================================================================
+       2. BASE / RESET
+       ====================================================================== */
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; background: var(--surface); color: var(--ink); }
+    body { font-family: Inter, "Segoe UI", Arial, sans-serif; font-size: 14px; }
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
+    a { color: inherit; }
+    .hidden { display: none !important; }
+
+    /* ======================================================================
+       3. APP SHELL
+       ====================================================================== */
+    .app-shell { min-height: 100vh; }
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: linear-gradient(135deg, var(--brand), var(--brand-dark));
+      color: #fff;
+      padding: 14px 18px;
+      box-shadow: 0 4px 14px rgba(92, 20, 55, 0.18);
+    }
+    .topbar-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .brand-block { min-width: 245px; flex: 1; }
+    .brand-kicker { font-size: 11px; opacity: 0.8; letter-spacing: 0.12em; font-weight: 700; }
+    .brand-title { margin: 2px 0 0; font-size: 20px; font-weight: 750; }
+    .session-pill {
+      background: rgba(255,255,255,0.14);
+      border: 1px solid rgba(255,255,255,0.26);
+      border-radius: 999px;
+      padding: 7px 11px;
+      font-size: 12px;
+      max-width: 280px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .content { padding: 16px; max-width: 1800px; margin: 0 auto; }
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    /* ======================================================================
+       4. FILTER BAR
+       ====================================================================== */
+    .filter-bar {
+      padding: 14px;
+      display: grid;
+      grid-template-columns: minmax(220px, 1.1fr) minmax(220px, 1fr) minmax(220px, 1fr) auto auto;
+      gap: 10px;
+      align-items: end;
+      margin-bottom: 14px;
+    }
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    .field label { font-size: 12px; font-weight: 700; color: #3c4652; }
+    .field input, .field select, .field textarea {
+      width: 100%;
+      border: 1px solid #cfd6df;
+      border-radius: 9px;
+      background: #fff;
+      padding: 9px 10px;
+      min-height: 38px;
+      outline: none;
+      transition: .15s ease;
+    }
+    .field input:focus, .field select:focus, .field textarea:focus {
+      border-color: var(--brand);
+      box-shadow: 0 0 0 3px rgba(201,47,115,0.10);
+    }
+    .field textarea { resize: vertical; min-height: 82px; }
+
+    /* ======================================================================
+       5. BUTTONS
+       ====================================================================== */
+    .btn {
+      border: 1px solid transparent;
+      border-radius: 9px;
+      min-height: 38px;
+      padding: 8px 13px;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      transition: transform .08s ease, box-shadow .15s ease, background .15s ease;
+    }
+    .btn:active { transform: translateY(1px); }
+    .btn-primary { background: var(--brand); color: #fff; }
+    .btn-primary:hover { background: var(--brand-dark); }
+    .btn-secondary { background: #fff; color: var(--ink); border-color: #ccd4de; }
+    .btn-secondary:hover { background: #f5f7f9; }
+    .btn-soft { background: var(--brand-soft); color: var(--brand-dark); border-color: #f5cddd; }
+    .btn-success { background: var(--success); color: #fff; }
+    .btn-warning { background: #f5b83b; color: #4b3200; }
+    .btn-danger { background: var(--danger); color: #fff; }
+    .btn-sm { min-height: 31px; padding: 5px 9px; font-size: 12px; }
+    .btn:disabled { opacity: .48; cursor: not-allowed; }
+
+    /* ======================================================================
+       6. DEPARTMENT CARDS
+       ====================================================================== */
+    .section-heading {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin: 8px 2px 10px;
+    }
+    .section-heading h2 { font-size: 16px; margin: 0; }
+    .section-heading .subtle { color: var(--muted); font-size: 12px; }
+    .dept-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(170px, 1fr));
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .dept-card {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px;
+      min-height: 104px;
+      cursor: pointer;
+      transition: .15s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .dept-card:hover { transform: translateY(-1px); box-shadow: var(--shadow); border-color: #d9b3c5; }
+    .dept-card.active { border: 2px solid var(--brand); background: linear-gradient(180deg, #fff, #fff6fa); }
+    .dept-name { font-weight: 800; margin-bottom: 8px; }
+    .dept-metrics { display: flex; align-items: baseline; gap: 8px; }
+    .dept-progress { font-size: 22px; font-weight: 800; color: var(--brand-dark); }
+    .dept-count { font-size: 11px; color: var(--muted); }
+    .mini-bar { height: 5px; background: #edf0f3; border-radius: 99px; overflow: hidden; margin-top: 9px; }
+    .mini-bar > span { display: block; height: 100%; background: var(--brand); border-radius: 99px; }
+    .dept-overdue { margin-top: 7px; font-size: 11px; color: var(--danger); min-height: 14px; }
+
+    /* ======================================================================
+       7. KPI STRIP
+       ====================================================================== */
+    .kpi-strip {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .kpi { background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
+    .kpi-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .03em; }
+    .kpi-value { font-size: 19px; font-weight: 800; margin-top: 3px; }
+
+    /* ======================================================================
+       8. DEPARTMENT WORKSPACE
+       ====================================================================== */
+    .workspace { display: grid; grid-template-columns: 350px minmax(0, 1fr); gap: 12px; min-height: 560px; }
+    .equipment-panel { padding: 12px; overflow: hidden; }
+    .equipment-panel-head { display: flex; flex-direction: column; gap: 8px; margin-bottom: 9px; }
+    .equipment-panel-title { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .equipment-panel-title h3 { margin: 0; font-size: 15px; }
+    .equipment-list { max-height: 660px; overflow: auto; padding-right: 2px; }
+    .equipment-row {
+      width: 100%;
+      border: 1px solid var(--line);
+      background: #fff;
+      text-align: left;
+      border-radius: 10px;
+      padding: 10px;
+      margin-bottom: 7px;
+      transition: .12s ease;
+    }
+    .equipment-row:hover { border-color: #d8a7be; background: #fff9fc; }
+    .equipment-row.active { border-color: var(--brand); background: var(--brand-soft); }
+    .equipment-tag { font-weight: 800; color: var(--brand-dark); }
+    .equipment-name { font-size: 12px; margin-top: 3px; line-height: 1.35; }
+    .equipment-meta { font-size: 10px; color: var(--muted); margin-top: 5px; }
+
+    .detail-panel { overflow: hidden; min-width: 0; }
+    .detail-hero { padding: 14px 16px; border-bottom: 1px solid var(--line); }
+    .detail-hero-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; }
+    .detail-tag { color: var(--brand-dark); font-weight: 800; font-size: 13px; }
+    .detail-title { font-size: 19px; font-weight: 800; margin-top: 3px; }
+    .detail-subtitle { color: var(--muted); font-size: 12px; margin-top: 4px; }
+
+    .tabs { display: flex; gap: 3px; border-bottom: 1px solid var(--line); padding: 0 12px; overflow-x: auto; }
+    .tab-btn {
+      border: none;
+      background: transparent;
+      padding: 11px 13px;
+      font-weight: 700;
+      color: #5b6571;
+      border-bottom: 3px solid transparent;
+      white-space: nowrap;
+    }
+    .tab-btn.active { color: var(--brand-dark); border-bottom-color: var(--brand); }
+    .tab-body { padding: 14px; min-height: 440px; overflow: auto; }
+
+    /* ======================================================================
+       9. DATA TABLES
+       ====================================================================== */
+    .table-wrap { width: 100%; overflow: auto; border: 1px solid var(--line); border-radius: 10px; }
+    table { width: 100%; border-collapse: collapse; min-width: 820px; }
+    th, td { padding: 9px 10px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+    th { position: sticky; top: 0; z-index: 2; background: #f5f7fa; color: #3b4651; font-size: 11px; text-transform: uppercase; letter-spacing: .02em; }
+    td { font-size: 12px; }
+    tbody tr:hover { background: #fffafd; }
+    .td-title { min-width: 210px; font-weight: 700; }
+    .muted { color: var(--muted); }
+    .nowrap { white-space: nowrap; }
+
+    .status {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 7px;
+      border-radius: 999px;
+      font-size: 10px;
+      font-weight: 800;
+      white-space: nowrap;
+      background: #eef1f5;
+      color: #4c5967;
+    }
+    .status.success { background: #e7f6ee; color: #12663a; }
+    .status.warning { background: #fff4d8; color: #7a5200; }
+    .status.danger { background: #fdeaea; color: #9f2929; }
+    .status.info { background: #e7f1fb; color: #225d99; }
+    .status.brand { background: var(--brand-soft); color: var(--brand-dark); }
+
+    .progress-cell { min-width: 115px; }
+    .progress-line { display: flex; align-items: center; gap: 7px; }
+    .progress-track { flex: 1; height: 6px; border-radius: 99px; background: #edf0f3; overflow: hidden; min-width: 60px; }
+    .progress-track span { display: block; height: 100%; background: var(--brand); }
+
+    /* ======================================================================
+       10. OVERVIEW CARDS
+       ====================================================================== */
+    .info-grid { display: grid; grid-template-columns: repeat(3, minmax(180px, 1fr)); gap: 9px; }
+    .info-card { border: 1px solid var(--line); border-radius: 10px; padding: 10px; background: #fff; }
+    .info-label { color: var(--muted); font-size: 10px; text-transform: uppercase; letter-spacing: .03em; }
+    .info-value { margin-top: 4px; font-weight: 700; line-height: 1.35; word-break: break-word; }
+
+    .empty-state { text-align: center; padding: 44px 18px; color: var(--muted); }
+    .empty-state strong { display: block; color: var(--ink); font-size: 15px; margin-bottom: 5px; }
+
+    /* ======================================================================
+       11. TOOLBARS
+       ====================================================================== */
+    .toolbar { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+    .toolbar-left, .toolbar-right { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+    .toolbar-title { font-weight: 800; }
+
+    /* ======================================================================
+       12. MODAL
+       ====================================================================== */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(12, 18, 27, .52);
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+    }
+    .modal {
+      width: min(1080px, 96vw);
+      max-height: 94vh;
+      overflow: hidden;
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 25px 80px rgba(0,0,0,.25);
+      display: flex;
+      flex-direction: column;
+    }
+    .modal-sm { width: min(760px, 96vw); }
+    .modal-head { display: flex; justify-content: space-between; gap: 14px; align-items: flex-start; padding: 14px 16px; border-bottom: 1px solid var(--line); }
+    .modal-title { font-size: 17px; font-weight: 800; }
+    .modal-subtitle { color: var(--muted); font-size: 11px; margin-top: 3px; }
+    .icon-btn { border: none; background: #f1f3f6; border-radius: 8px; width: 34px; height: 34px; font-size: 19px; }
+    .modal-body { padding: 14px 16px; overflow: auto; }
+    .modal-footer { padding: 12px 16px; border-top: 1px solid var(--line); display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+    .modal-actions { display: flex; gap: 7px; flex-wrap: wrap; }
+    .form-grid { display: grid; grid-template-columns: repeat(3, minmax(170px, 1fr)); gap: 11px; }
+    .span-2 { grid-column: span 2; }
+    .span-3 { grid-column: span 3; }
+    .file-note { color: var(--muted); font-size: 10px; margin-top: 3px; }
+
+    /* ======================================================================
+       13. LOADING + TOASTS
+       ====================================================================== */
+    .loading-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(255,255,255,.76);
+      z-index: 200;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(2px);
+    }
+    .loading-box { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 18px 22px; box-shadow: var(--shadow); display: flex; align-items: center; gap: 11px; }
+    .spinner { width: 21px; height: 21px; border: 3px solid #efd0df; border-top-color: var(--brand); border-radius: 50%; animation: spin .8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .toast-wrap { position: fixed; right: 14px; bottom: 14px; z-index: 300; display: flex; flex-direction: column; gap: 8px; max-width: 420px; }
+    .toast { background: #1f2a36; color: #fff; padding: 10px 12px; border-radius: 9px; box-shadow: var(--shadow); font-size: 12px; }
+    .toast.success { background: #166b3c; }
+    .toast.error { background: #a72e2e; }
+    .toast.warning { background: #855c07; }
+
+    .error-banner { background: #fff1f1; color: #902828; border: 1px solid #f1cccc; border-radius: 9px; padding: 9px 10px; margin-bottom: 10px; font-size: 12px; }
+    .demo-banner { background: #fff5d9; color: #6f5007; border-bottom: 1px solid #e7ce88; padding: 7px 14px; font-size: 12px; text-align: center; }
+
+    /* ======================================================================
+       14. RESPONSIVE BEHAVIOR
+       ====================================================================== */
+    @media (max-width: 1250px) {
+      .dept-grid { grid-template-columns: repeat(3, 1fr); }
+      .kpi-strip { grid-template-columns: repeat(3, 1fr); }
+      .filter-bar { grid-template-columns: 1fr 1fr; }
+      .workspace { grid-template-columns: 300px minmax(0,1fr); }
+    }
+    @media (max-width: 820px) {
+      .content { padding: 10px; }
+      .dept-grid { grid-template-columns: repeat(2, 1fr); }
+      .kpi-strip { grid-template-columns: repeat(2, 1fr); }
+      .workspace { grid-template-columns: 1fr; }
+      .equipment-list { max-height: 300px; }
+      .info-grid { grid-template-columns: 1fr 1fr; }
+      .form-grid { grid-template-columns: 1fr; }
+      .span-2, .span-3 { grid-column: span 1; }
+      .filter-bar { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 520px) {
+      .dept-grid { grid-template-columns: 1fr; }
+      .kpi-strip { grid-template-columns: 1fr 1fr; }
+      .info-grid { grid-template-columns: 1fr; }
+      .topbar { padding: 12px; }
+    }
+  </style>
+</head>
+<body>
+  <div id="demoBanner" class="demo-banner hidden">
+    DEMO MODE: sample data is being used. Remove <strong>?demo=1</strong> when the page is embedded in Zoho Creator.
+  </div>
+
+  <div class="app-shell">
+    <!-- ================================================================
+         TOP HEADER
+         ================================================================ -->
+    <header class="topbar">
+      <div class="topbar-row">
+        <div class="brand-block">
+          <div class="brand-kicker">MEGA ENGINEERING</div>
+          <div class="brand-title">Engineering Design Control</div>
+        </div>
+        <div id="sessionPill" class="session-pill">Connecting to Zoho Creator...</div>
+      </div>
+    </header>
+
+    <main class="content">
+      <!-- ==============================================================
+           PROJECT / GLOBAL FILTERS
+           ============================================================== -->
+      <section class="panel filter-bar">
+        <div class="field">
+          <label for="projectSelect">Project</label>
+          <select id="projectSelect">
+            <option value="">Select project...</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="globalSearch">Search equipment / tag</label>
+          <input id="globalSearch" type="search" placeholder="Example: CL-1501 or Regeneration Column" />
+        </div>
+        <div class="field">
+          <label for="sectionFilter">Plant section</label>
+          <select id="sectionFilter">
+            <option value="">All sections</option>
+          </select>
+        </div>
+        <button id="refreshBtn" class="btn btn-secondary" type="button">↻ Refresh</button>
+        <button id="diagnosticsBtn" class="btn btn-secondary" type="button">⚙ Diagnostics</button>
+      </section>
+
+      <div id="errorBanner" class="error-banner hidden"></div>
+
+      <!-- ==============================================================
+           PROJECT DASHBOARD / DEPARTMENT CARDS
+           ============================================================== -->
+      <div class="section-heading">
+        <div>
+          <h2>Departments</h2>
+          <div id="projectContext" class="subtle">Select a project to begin.</div>
+        </div>
+      </div>
+      <section id="deptGrid" class="dept-grid"></section>
+
+      <!-- ==============================================================
+           PROJECT KPI STRIP
+           ============================================================== -->
+      <section id="kpiStrip" class="kpi-strip hidden"></section>
+
+      <!-- ==============================================================
+           DEPARTMENT WORKSPACE
+           ============================================================== -->
+      <section id="workspace" class="workspace hidden">
+        <aside class="panel equipment-panel">
+          <div class="equipment-panel-head">
+            <div class="equipment-panel-title">
+              <h3 id="equipmentPanelTitle">Project Equipment</h3>
+              <span id="equipmentCount" class="status">0</span>
+            </div>
+            <div class="field">
+              <input id="equipmentSearch" type="search" placeholder="Filter this list..." />
+            </div>
+          </div>
+          <div id="equipmentList" class="equipment-list"></div>
+        </aside>
+
+        <article class="panel detail-panel">
+          <div id="detailHero" class="detail-hero">
+            <div class="empty-state">
+              <strong>Select an equipment tag</strong>
+              Choose a project equipment record from the left side.
+            </div>
+          </div>
+
+          <nav id="detailTabs" class="tabs hidden">
+            <button class="tab-btn active" data-tab="overview" type="button">Overview</button>
+            <button class="tab-btn" data-tab="pds" type="button">PDS</button>
+            <button class="tab-btn" data-tab="bom" type="button">BOM</button>
+            <button class="tab-btn" data-tab="designs" type="button">Designs</button>
+          </nav>
+
+          <div id="tabBody" class="tab-body">
+            <div class="empty-state">
+              <strong>No equipment selected</strong>
+              Project data will appear here.
+            </div>
+          </div>
+        </article>
+      </section>
+    </main>
+  </div>
+
+  <!-- ==================================================================
+       DESIGN EDIT / TRACKING MODAL
+       ================================================================== -->
+  <div id="designModalBackdrop" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="designModalTitle">
+    <div class="modal">
+      <div class="modal-head">
+        <div>
+          <div id="designModalTitle" class="modal-title">Design Tracking</div>
+          <div id="designModalSubtitle" class="modal-subtitle"></div>
+        </div>
+        <button id="closeDesignModalBtn" class="icon-btn" type="button" aria-label="Close">×</button>
+      </div>
+
+      <div class="modal-body">
+        <div id="designModalError" class="error-banner hidden"></div>
+
+        <!-- Record identity is stored in hidden fields inside JavaScript state. -->
+        <div class="form-grid">
+          <div class="field">
+            <label for="designTypeInput">Design Type</label>
+            <input id="designTypeInput" type="text" />
+          </div>
+          <div class="field span-2">
+            <label for="designTitleInput">Design Title</label>
+            <input id="designTitleInput" type="text" />
+          </div>
+
+          <div class="field">
+            <label for="drawingNumberInput">Drawing Number</label>
+            <input id="drawingNumberInput" type="text" placeholder="Example: 20015A-MEC-GA-CL1501-001" />
+          </div>
+          <div class="field">
+            <label for="priorityInput">Priority</label>
+            <select id="priorityInput">
+              <option>Low</option>
+              <option selected>Medium</option>
+              <option>High</option>
+              <option>Critical</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="revisionInput">Revision</label>
+            <input id="revisionInput" type="text" value="R0" />
+          </div>
+
+          <div class="field">
+            <label for="plannedStartInput">Planned Start Date</label>
+            <input id="plannedStartInput" type="date" />
+          </div>
+          <div class="field">
+            <label for="plannedEndInput">Planned End Date</label>
+            <input id="plannedEndInput" type="date" />
+          </div>
+          <div class="field">
+            <label for="forecastEndInput">Forecast End Date</label>
+            <input id="forecastEndInput" type="date" />
+          </div>
+
+          <div class="field">
+            <label for="assignedToInput">Assigned To</label>
+            <select id="assignedToInput"><option value="">Select employee...</option></select>
+          </div>
+          <div class="field">
+            <label for="checkerInput">Checker</label>
+            <select id="checkerInput"><option value="">Select employee...</option></select>
+          </div>
+          <div class="field">
+            <label for="reviewerInput">Reviewer</label>
+            <select id="reviewerInput"><option value="">Select employee...</option></select>
+          </div>
+          <div class="field">
+            <label for="approverInput">Approver</label>
+            <select id="approverInput"><option value="">Select employee...</option></select>
+          </div>
+
+          <div class="field">
+            <label for="statusInput">Status</label>
+            <select id="statusInput"></select>
+          </div>
+          <div class="field">
+            <label for="progressInput">Progress %</label>
+            <input id="progressInput" type="number" min="0" max="100" step="1" value="0" />
+          </div>
+
+          <div class="field span-3">
+            <label for="revisionDescriptionInput">Revision Description</label>
+            <textarea id="revisionDescriptionInput" placeholder="Describe what changed in this revision..."></textarea>
+          </div>
+
+          <div class="field">
+            <label for="drawingFileInput">Drawing File</label>
+            <input id="drawingFileInput" type="file" />
+            <div class="file-note">PDF/DWG/other file. Creator File Upload fields support up to 50 MB.</div>
+          </div>
+          <div class="field">
+            <label for="nativeFileInput">Native File</label>
+            <input id="nativeFileInput" type="file" />
+            <div class="file-note">Native design file, e.g. DWG/DXF/XLSX/ZIP.</div>
+          </div>
+          <div class="field">
+            <label for="supportingFileInput">Supporting File</label>
+            <input id="supportingFileInput" type="file" />
+            <div class="file-note">Calculation, reference, vendor or supporting document.</div>
+          </div>
+
+          <div class="field span-2">
+            <label for="remarksInput">Remarks</label>
+            <textarea id="remarksInput" placeholder="General design remarks..."></textarea>
+          </div>
+          <div class="field">
+            <label for="returnReasonInput">Return / Rejection Reason</label>
+            <textarea id="returnReasonInput" placeholder="Required when design is returned..."></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <div id="workflowActions" class="modal-actions"></div>
+        <div class="modal-actions">
+          <button id="newRevisionBtn" class="btn btn-secondary hidden" type="button">+ New Revision</button>
+          <button id="saveDesignBtn" class="btn btn-primary" type="button">Save</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================================================================
+       DIAGNOSTICS MODAL
+       This is intentionally included because the source report field link
+       names can differ from display labels. It helps an admin troubleshoot.
+       ================================================================== -->
+  <div id="diagnosticsBackdrop" class="modal-backdrop hidden" role="dialog" aria-modal="true">
+    <div class="modal modal-sm">
+      <div class="modal-head">
+        <div>
+          <div class="modal-title">Widget Diagnostics</div>
+          <div class="modal-subtitle">Report discovery, sample field keys and current configuration.</div>
+        </div>
+        <button id="closeDiagnosticsBtn" class="icon-btn" type="button" aria-label="Close">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="toolbar">
+          <div class="toolbar-left"><strong>Configuration check</strong></div>
+          <div class="toolbar-right"><button id="runDiagnosticsBtn" class="btn btn-primary btn-sm" type="button">Run Diagnostics</button></div>
+        </div>
+        <pre id="diagnosticsOutput" style="white-space:pre-wrap;word-break:break-word;background:#f7f8fb;border:1px solid #e2e6eb;border-radius:9px;padding:10px;min-height:260px;font-size:11px;line-height:1.45;"></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading overlay shared by all long Creator API operations. -->
+  <div id="loadingOverlay" class="loading-overlay hidden">
+    <div class="loading-box"><div class="spinner"></div><div id="loadingText">Loading...</div></div>
+  </div>
+
+  <!-- Small non-blocking messages appear here. -->
+  <div id="toastWrap" class="toast-wrap"></div>
+
+  <script>
+    "use strict";
+
+    /* ======================================================================
+       A. MAIN CONFIGURATION
+       ----------------------------------------------------------------------
+       This is the FIRST place to edit if your Creator link names change.
+       The source report link names below came from the URLs supplied for the
+       current MEGA Engineering Creator application.
+       ====================================================================== */
+    const CONFIG = {
+      // Current Creator application link name from the app URL.
+      APP_NAME: "mega-engineering-sales",
+
+      // Existing reports that this widget READS.
+      REPORTS: {
+        projects: "All_Associated_Projects",
+        equipment: "Master_Equipment_List_Subform_Report",
+        pds: "All_Equipment_PDS",
+        bom: "All_Equipment_BOM_Details",
+        employees: "Employ_to_Create_ticket_Report",
+
+        // Leave blank to auto-discover the default report created for Design_Tracking.
+        // If auto-discovery ever fails, put the exact report link name here.
+        // Example: "Design_Tracking_Report"
+        designTracking: ""
+      },
+
+      // New hidden storage form created for the widget.
+      FORMS: {
+        designTracking: "Design_Tracking"
+      },
+
+      // Candidate link names used when auto-discovering the report behind Design_Tracking.
+      DESIGN_TRACKING_REPORT_CANDIDATES: [
+        "Design_Tracking_Report",
+        "All_Design_Tracking",
+        "Design_Tracking"
+      ],
+
+      // Maximum number of cursor batches the fallback loader will read.
+      // 15 x 1000 = 15,000 records maximum for one source report operation.
+      MAX_CURSOR_BATCHES: 15,
+
+      // File Upload field limit documented by Zoho Creator JS API v2.
+      MAX_FILE_BYTES: 50 * 1024 * 1024
+    };
+
+    /* ======================================================================
+       B. EXACT DESIGN_TRACKING FIELD LINK NAMES
+       ----------------------------------------------------------------------
+       These link names match the Design_Tracking form created for this widget.
+       Keeping them in one object prevents spelling errors throughout the code.
+       ====================================================================== */
+    const TRACKING_FIELDS = {
+      projectCode: "Project_Code",
+      projectRecordId: "Project_Record_ID",
+      equipmentRecordId: "Equipment_Record_ID",
+      plantSectionName: "Plant_Section_Name",
+      plantSectionType: "Plant_Section_Type",
+      pdsName: "PDS_Name",
+      pdsRecordId: "PDS_Record_ID",
+      tagNumber: "Tag_Number",
+      equipmentName: "Equipment_Name",
+      equipmentCategory: "Equipment_Category",
+      equipmentType: "Equipment_Type",
+      equipmentDepartment: "Equipment_Department",
+      designDepartment: "Design_Department",
+      designType: "Design_Type",
+      designTitle: "Design_Title",
+      drawingNumber: "Drawing_Number",
+      priority: "Priority",
+      plannedStart: "Planned_Start_Date",
+      plannedEnd: "Planned_End_Date",
+      actualStart: "Actual_Start_Date",
+      forecastEnd: "Forecast_End_Date",
+      actualEnd: "Actual_End_Date",
+      assignedTo: "Assigned_To",
+      assignedEmployeeName: "Assigned_Employee_Name",
+      checker: "Checker",
+      reviewer: "Reviewer",
+      approver: "Approver",
+      status: "Status",
+      progress: "Progress",
+      revision: "Revision",
+      revisionDescription: "Revision_Description",
+      drawingFile: "Drawing_File",
+      nativeFile: "Native_File",
+      supportingFile: "Supporting_File",
+      remarks: "Remarks",
+      returnReason: "Return_Reason",
+      parentDesignId: "Parent_Design_ID",
+      startedBy: "Started_By",
+      completedBy: "Completed_By"
+    };
+
+    /* ======================================================================
+       C. SOURCE FIELD ALIASES
+       ----------------------------------------------------------------------
+       Existing report display labels and actual field link names are often
+       similar but not always identical. The widget tries these aliases when
+       reading existing reports. If a source field is not detected, open the
+       Diagnostics panel, inspect the sample keys, and add the real link name
+       to the relevant alias list below.
+       ====================================================================== */
+    const FIELD_ALIASES = {
+      projects: {
+        id: ["ID"],
+        code: ["Project_Code", "Project_Code1", "ProjectCode", "Project"],
+        customer: ["Customer_Name", "Customer", "Client_Name", "Client"],
+        description: ["Project_Description", "Description", "Project_Desc"],
+        country: ["Country", "Country1"]
+      },
+      equipment: {
+        id: ["ID"],
+        projectCode: ["Project_Code", "Project_Code1", "Project", "Project_Code_Lookup", "Project_Details"],
+        pdsName: ["PDS_Name", "PDS_Name1", "PDS", "PDS_Type"],
+        tag: ["Tag_Number", "Tag_No", "Tag_Number1", "Equipment_Tag"],
+        name: ["Equipment_Name", "Equipment_Name1", "Equipment", "Name"],
+        groupCode: ["Group_Code", "Group_Code1", "Group"],
+        department: ["Department_Code", "Department_Code1", "Department"],
+        category: ["Equipment_Category", "Equipment_Category1", "Category"],
+        type: ["Equipment_Type", "Equipment_Type1", "Type"],
+        subtype: ["Equipment_Subtype", "Equipment_Sub_Type", "Subtype"],
+        plantSection: ["Plant_Section_Name", "Plant_Section", "Section_Name", "Plant_Section_Name1"],
+        plantType: ["Plant_Section_Type", "Section_Type", "Plant_Section_Type1"],
+        sectionRef: ["Section_Ref", "Section_Reference"]
+      },
+      pds: {
+        id: ["ID"],
+        projectCode: ["Project_Code", "Project_Code1", "Project"],
+        masterEquipmentId: ["Master_Equipments_Report_ID", "Master_Equipment_Report_ID", "Master_Equipment_ID"],
+        pdsName: ["PDS_Name", "PDS_Name1", "PDS"],
+        tag: ["Tag_Number", "Tag_No", "Equipment_Tag"],
+        name: ["Equipment_Name", "Equipment_Name1", "Equipment"],
+        plantSection: ["Plant_Section_Name", "Plant_Section", "Section_Name"],
+        plantType: ["Plant_Section_Type", "Section_Type"],
+        groupCode: ["Group_Code", "Group"],
+        department: ["Department_Code", "Department"],
+        category: ["Equipment_Category", "Category"],
+        type: ["Equipment_Type", "Type"],
+        subtype: ["Equipment_Subtype", "Subtype"],
+        status: ["Equipment_PDS_Status", "PDS_Status", "Status"],
+        sectionRef: ["Section_Ref", "Section_Reference"],
+        approver: ["Approver_User", "Approver", "Approved_By"],
+        approvedTime: ["Approved_Time", "Approval_Time", "Approved_Date"]
+      },
+      bom: {
+        id: ["ID"],
+        projectCode: ["Project_Code", "Project_Code1", "Project"],
+        masterEquipmentId: ["Master_Equipments_Report_ID", "Master_Equipment_Report_ID", "Master_Equipment_ID"],
+        tag: ["Tag_Number", "Tag_No", "Equipment_Tag"],
+        name: ["Equipment_Name", "Equipment"],
+        location: ["Location_Name", "Location"],
+        indent: ["Indent_No", "Indent_Number"],
+        priority: ["Priority"],
+        itemName: ["Item_Name", "Item"],
+        generalStandard: ["General_Standard", "Standard"],
+        mocStandard: ["MOC_Standard", "Material_Standard"],
+        mocGrade: ["MOC_Grade", "Grade"],
+        itemUnit: ["Item_Unit", "Unit"],
+        itemSize: ["Item_Size", "Size"],
+        itemType: ["Item_Type", "Type"],
+        itemSubtype: ["Item_Subtype", "Subtype"],
+        dimensionalStandard: ["Dimensional_Standard"],
+        itemFinish: ["Item_Finish", "Finish"],
+        specialSpecs: ["Special_Specs", "Special_Specification"],
+        thickness: ["Thickness"],
+        quantity: ["Quantity", "Qty"],
+        remainingQty: ["Remaining_Qty", "Balance_Qty"],
+        finishLength: ["Finish_Length"],
+        rawLength: ["Raw_Length"],
+        finishWeight: ["Finish_Weight"],
+        rawWeight: ["Raw_Weight"]
+      },
+      employees: {
+        id: ["ID"],
+        name: ["Employee_Name", "Name", "Employee"],
+        email: ["Email", "Employee_Email"],
+        supportEmail: ["Support_Email"],
+        department: ["Department", "Department_Name"]
+      }
+    };
+
+    /* ======================================================================
+       D. DEPARTMENT DESIGN LIBRARY
+       ----------------------------------------------------------------------
+       Phase 1 intentionally keeps this configuration inside the widget rather
+       than creating extra Creator master forms. Add/remove design types here.
+       A project user can also create a Custom Design from the widget.
+       ====================================================================== */
+    const DEPARTMENT_LIBRARY = {
+      "Process": [
+        "Design Basis",
+        "Block Flow Diagram (BFD)",
+        "Process Flow Diagram (PFD)",
+        "Utility Flow Diagram (UFD)",
+        "Heat & Material Balance",
+        "Utility Balance",
+        "Equipment List",
+        "Process Datasheet",
+        "Piping & Instrumentation Diagram (P&ID)",
+        "Line List",
+        "Valve List",
+        "Control Philosophy",
+        "Operating Philosophy",
+        "Cause & Effect Inputs",
+        "HAZOP Action Closure"
+      ],
+      "Design / Layout": [
+        "Overall Plot Plan",
+        "Plant Layout",
+        "Equipment Layout",
+        "Area General Arrangement",
+        "Maintenance / Access Layout",
+        "Road / Access Layout",
+        "Battery Limit Layout",
+        "3D Model Review",
+        "Clash Review",
+        "As-Built Layout"
+      ],
+      "Mechanical": [
+        "Equipment GA",
+        "Fabrication Drawing",
+        "Nozzle Orientation",
+        "Internals Drawing",
+        "Platform / Ladder Drawing",
+        "Support / Saddle Drawing",
+        "Foundation Load Data",
+        "Mechanical Design Calculation",
+        "Vendor Drawing Review",
+        "Manufacturing / Shop Drawing",
+        "As-Built Mechanical Drawing"
+      ],
+      "Civil": [
+        "Site Grading Plan",
+        "Foundation Layout",
+        "Equipment Foundation Drawing",
+        "RCC Detail Drawing",
+        "Drainage Layout",
+        "Road / Paving Layout",
+        "Building General Arrangement",
+        "Architectural Drawing",
+        "Underground Services Layout",
+        "As-Built Civil Drawing"
+      ],
+      "Structural": [
+        "Structural Design Calculation",
+        "Structural General Arrangement",
+        "Steel Framing Plan",
+        "Pipe Rack Drawing",
+        "Platform / Stair / Ladder Drawing",
+        "Connection Detail",
+        "Structural Fabrication Drawing",
+        "Erection Drawing",
+        "As-Built Structural Drawing"
+      ],
+      "Piping": [
+        "Piping Design Basis",
+        "Piping General Arrangement",
+        "Piping Layout",
+        "Piping Isometric",
+        "Pipe Support Drawing",
+        "Special Support Drawing",
+        "Stress Analysis",
+        "Material Take-Off / BOQ",
+        "Tie-In List",
+        "As-Built Isometric"
+      ],
+      "Electrical": [
+        "Electrical Design Basis",
+        "Load List",
+        "Single Line Diagram (SLD)",
+        "Power Distribution Diagram",
+        "MCC / PCC General Arrangement",
+        "Motor List",
+        "Cable Schedule",
+        "Cable Sizing Calculation",
+        "Cable Tray Layout",
+        "Lighting Layout",
+        "Earthing Layout",
+        "Lightning Protection Layout",
+        "Power / Control Schematic",
+        "As-Built Electrical Drawing"
+      ],
+      "Instrumentation": [
+        "Instrument Index",
+        "Instrument Datasheet",
+        "I/O List",
+        "Instrument Location Layout",
+        "Instrument Cable Schedule",
+        "Junction Box Schedule",
+        "Hook-Up Drawing",
+        "Loop Diagram",
+        "Cause & Effect",
+        "Control Philosophy",
+        "PLC / DCS Architecture",
+        "Alarm / Trip Schedule",
+        "As-Built Instrument Drawing"
+      ],
+      "Automation": [
+        "Control System Architecture",
+        "Functional Design Specification",
+        "Software Design Specification",
+        "PLC / DCS Hardware Configuration",
+        "I/O Mapping",
+        "Communication / Network Architecture",
+        "Interlock Logic",
+        "HMI Philosophy",
+        "HMI Screen Design",
+        "FAT Procedure",
+        "SAT Procedure",
+        "As-Built Software / Backup"
+      ]
+    };
+
+    /* ======================================================================
+       E. STATUS / WORKFLOW CONFIGURATION
+       ----------------------------------------------------------------------
+       The same workflow is reused for all engineering departments.
+       ====================================================================== */
+    const STATUS_OPTIONS = [
+      "Not Started",
+      "In Progress",
+      "Submitted for Check",
+      "Checking",
+      "Returned",
+      "Checked",
+      "Submitted for Review",
+      "Reviewing",
+      "Reviewed",
+      "Submitted for Approval",
+      "Approving",
+      "Approved",
+      "Issued",
+      "Completed",
+      "On Hold",
+      "Cancelled",
+      "Not Required"
+    ];
+
+    // Default progress values used when a workflow action changes the status.
+    const STATUS_PROGRESS = {
+      "Not Started": 0,
+      "In Progress": 10,
+      "Submitted for Check": 50,
+      "Checking": 55,
+      "Returned": 30,
+      "Checked": 60,
+      "Submitted for Review": 65,
+      "Reviewing": 70,
+      "Reviewed": 80,
+      "Submitted for Approval": 85,
+      "Approving": 90,
+      "Approved": 95,
+      "Issued": 100,
+      "Completed": 100,
+      "On Hold": 0,
+      "Cancelled": 0,
+      "Not Required": 100
+    };
+
+    /* ======================================================================
+       F. CENTRAL APPLICATION STATE
+       ====================================================================== */
+    const state = {
+      demoMode: new URLSearchParams(window.location.search).get("demo") === "1",
+      currentUser: "",
+      appName: CONFIG.APP_NAME,
+      designTrackingReport: CONFIG.REPORTS.designTracking || "",
+      projects: [],
+      employees: [],
+      equipment: [],
+      tracking: [],
+      pdsCache: new Map(),
+      bomCache: new Map(),
+      selectedProject: null,
+      selectedDepartment: "",
+      selectedEquipment: null,
+      activeTab: "overview",
+      modalRecord: null,
+      modalVirtualType: "",
+      lastSourceDiagnostics: {}
+    };
+
+    /* ======================================================================
+       G. DOM SHORTCUTS
+       ====================================================================== */
+    const $ = (id) => document.getElementById(id);
+
+    /* ======================================================================
+       H. SMALL UTILITY FUNCTIONS
+       ====================================================================== */
+
+    // HTML-escapes user/application data before inserting it into innerHTML.
+    function escapeHtml(value) {
+      return String(value ?? "").replace(/[&<>"']/g, (ch) => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;"
+      }[ch]));
+    }
+
+    // Normalizes a field key so "Project_Code", "Project Code" and "project-code" compare similarly.
+    function normalizeKey(value) {
+      return String(value ?? "").toLowerCase().replace(/[^a-z0-9]/g, "");
+    }
+
+    // Converts Creator lookup/name objects into readable text.
+    function scalarValue(value) {
+      if (value === null || value === undefined) return "";
+      if (typeof value !== "object") return String(value);
+      if (value.display_value !== undefined) return String(value.display_value ?? "");
+      if (value.zc_display_value !== undefined) return String(value.zc_display_value ?? "");
+      const fullName = [value.prefix, value.first_name, value.last_name, value.suffix].filter(Boolean).join(" ").trim();
+      if (fullName) return fullName;
+      if (value.ID !== undefined) return String(value.ID);
+      try { return JSON.stringify(value); } catch (_) { return String(value); }
+    }
+
+    // Gets a value from a record using a list of possible field link names.
+    function pick(record, aliases, fallback = "") {
+      if (!record) return fallback;
+      for (const alias of aliases || []) {
+        if (Object.prototype.hasOwnProperty.call(record, alias)) return scalarValue(record[alias]);
+      }
+      const normalized = Object.fromEntries(Object.keys(record).map((key) => [normalizeKey(key), key]));
+      for (const alias of aliases || []) {
+        const actual = normalized[normalizeKey(alias)];
+        if (actual) return scalarValue(record[actual]);
+      }
+      return fallback;
+    }
+
+    // Returns a numeric value safely.
+    function numberValue(value, fallback = 0) {
+      const n = Number(String(value ?? "").replace(/,/g, ""));
+      return Number.isFinite(n) ? n : fallback;
+    }
+
+    // Creates a Creator criteria-safe string by escaping backslashes and quotes.
+    function criteriaText(value) {
+      return String(value ?? "").replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+    }
+
+    // Returns true when a status is treated as closed for overdue calculations.
+    function isClosedStatus(status) {
+      return ["Approved", "Issued", "Completed", "Cancelled", "Not Required"].includes(status);
+    }
+
+    // Creates a simple status CSS class.
+    function statusClass(status) {
+      if (["Approved", "Issued", "Completed"].includes(status)) return "success";
+      if (["Returned", "Cancelled"].includes(status)) return "danger";
+      if (["Submitted for Check", "Checking", "Submitted for Review", "Reviewing", "Submitted for Approval", "Approving"].includes(status)) return "warning";
+      if (["In Progress", "Checked", "Reviewed"].includes(status)) return "info";
+      if (["On Hold", "Not Required"].includes(status)) return "brand";
+      return "";
+    }
+
+    // Displays a blocking loading layer while API operations are running.
+    let loadingDepth = 0;
+    function showLoading(text = "Loading...") {
+      loadingDepth += 1;
+      $("loadingText").textContent = text;
+      $("loadingOverlay").classList.remove("hidden");
+    }
+    function hideLoading() {
+      loadingDepth = Math.max(0, loadingDepth - 1);
+      if (loadingDepth === 0) $("loadingOverlay").classList.add("hidden");
+    }
+
+    // Small toast notification helper.
+    function toast(message, type = "") {
+      const el = document.createElement("div");
+      el.className = `toast ${type}`.trim();
+      el.textContent = message;
+      $("toastWrap").appendChild(el);
+      setTimeout(() => el.remove(), 4200);
+    }
+
+    // Displays a persistent source/configuration error banner.
+    function showError(message) {
+      $("errorBanner").textContent = message;
+      $("errorBanner").classList.remove("hidden");
+    }
+    function clearError() {
+      $("errorBanner").classList.add("hidden");
+      $("errorBanner").textContent = "";
+    }
+
+    /* ======================================================================
+       I. DATE CONVERSION HELPERS
+       ----------------------------------------------------------------------
+       Creator application examples use dd-MMM-yyyy. HTML date inputs use
+       yyyy-mm-dd. These helpers convert in both directions.
+       ====================================================================== */
+    const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+    function toCreatorDate(isoDate) {
+      if (!isoDate) return "";
+      const parts = String(isoDate).split("-");
+      if (parts.length !== 3) return isoDate;
+      return `${parts[2]}-${MONTHS[Number(parts[1]) - 1]}-${parts[0]}`;
+    }
+
+    function toCreatorDateTime(date = new Date()) {
+      const pad = (n) => String(n).padStart(2, "0");
+      return `${pad(date.getDate())}-${MONTHS[date.getMonth()]}-${date.getFullYear()} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+    }
+
+    function toInputDate(value) {
+      if (!value) return "";
+      const text = scalarValue(value).trim();
+      if (/^\d{4}-\d{2}-\d{2}$/.test(text)) return text;
+      const match = text.match(/^(\d{1,2})-([A-Za-z]{3})-(\d{4})/);
+      if (match) {
+        const month = MONTHS.findIndex((m) => m.toLowerCase() === match[2].toLowerCase()) + 1;
+        if (month > 0) return `${match[3]}-${String(month).padStart(2,"0")}-${String(match[1]).padStart(2,"0")}`;
+      }
+      const parsed = new Date(text);
+      if (!Number.isNaN(parsed.getTime())) {
+        return `${parsed.getFullYear()}-${String(parsed.getMonth()+1).padStart(2,"0")}-${String(parsed.getDate()).padStart(2,"0")}`;
+      }
+      return "";
+    }
+
+    function displayDate(value) {
+      if (!value) return "—";
+      const text = scalarValue(value);
+      const iso = toInputDate(text);
+      return iso ? toCreatorDate(iso) : text;
+    }
+
+    function isOverdue(record) {
+      const end = toInputDate(record?.[TRACKING_FIELDS.plannedEnd] || record?.Planned_End_Date || "");
+      if (!end || isClosedStatus(record?.[TRACKING_FIELDS.status] || record?.Status || "")) return false;
+      const endDate = new Date(`${end}T23:59:59`);
+      return endDate.getTime() < Date.now();
+    }
+
+    /* ======================================================================
+       J. CREATOR API WRAPPERS
+       ----------------------------------------------------------------------
+       Every Zoho call goes through these functions. This keeps the business
+       logic readable and centralizes error handling.
+       ====================================================================== */
+
+    // Adds app_name to a config object. Passing it is valid because all data is in this app.
+    function withAppName(config) {
+      return { app_name: state.appName || CONFIG.APP_NAME, ...config };
+    }
+
+    // Throws a readable error when a Creator API response is not successful.
+    function assertCreatorResponse(response, label) {
+      if (!response) throw new Error(`${label}: empty response from Zoho Creator.`);
+      if (response.code !== undefined && Number(response.code) !== 3000) {
+        const msg = response.message || response.description || JSON.stringify(response);
+        throw new Error(`${label}: ${msg}`);
+      }
+      return response;
+    }
+
+    // Fetches report records and automatically follows record_cursor pagination.
+    async function fetchAllRecords(reportName, criteria = "", maxBatches = CONFIG.MAX_CURSOR_BATCHES) {
+      if (state.demoMode) return demoFetch(reportName, criteria);
+
+      const rows = [];
+      let cursor = "";
+      for (let batch = 0; batch < maxBatches; batch += 1) {
+        const config = withAppName({
+          report_name: reportName,
+          field_config: "all",
+          max_records: 1000
+        });
+        if (criteria) config.criteria = criteria;
+        if (cursor) config.record_cursor = cursor;
+
+        const response = assertCreatorResponse(
+          await ZOHO.CREATOR.DATA.getRecords(config),
+          `Get Records - ${reportName}`
+        );
+        const data = Array.isArray(response.data) ? response.data : [];
+        rows.push(...data);
+
+        // Zoho returns a cursor only when more records exist.
+        cursor = response.record_cursor || response.cursor || "";
+        if (!cursor || data.length === 0) break;
+      }
+      return rows;
+    }
+
+    // Tries several Creator criteria expressions and returns the first matching dataset.
+    async function queryByExpressions(reportName, expressions) {
+      let lastError = null;
+      for (const expression of expressions) {
+        try {
+          const rows = await fetchAllRecords(reportName, expression, 3);
+          if (rows.length) return { rows, expression };
+        } catch (error) {
+          lastError = error;
+        }
+      }
+      if (lastError) console.warn(`No successful criteria match for ${reportName}.`, lastError);
+      return { rows: [], expression: "" };
+    }
+
+    // Adds one Design_Tracking record. File fields are uploaded separately afterwards.
+    async function creatorAddTracking(data) {
+      if (state.demoMode) return demoAddTracking(data);
+      const response = assertCreatorResponse(
+        await ZOHO.CREATOR.DATA.addRecords(withAppName({
+          form_name: CONFIG.FORMS.designTracking,
+          payload: { data }
+        })),
+        "Add Design Tracking"
+      );
+      return String(response?.data?.ID || response?.data?.id || "");
+    }
+
+    // Updates one Design_Tracking record by ID through its report.
+    async function creatorUpdateTracking(id, data) {
+      if (state.demoMode) return demoUpdateTracking(id, data);
+      if (!state.designTrackingReport) throw new Error("Design Tracking report link name has not been resolved.");
+      const response = assertCreatorResponse(
+        await ZOHO.CREATOR.DATA.updateRecordById(withAppName({
+          report_name: state.designTrackingReport,
+          id: String(id),
+          payload: { data }
+        })),
+        "Update Design Tracking"
+      );
+      return String(response?.data?.ID || id);
+    }
+
+    // Uploads a file to one of the three File Upload fields in Design_Tracking.
+    async function creatorUploadFile(id, fieldName, file) {
+      if (!file) return;
+      if (file.size > CONFIG.MAX_FILE_BYTES) throw new Error(`${file.name} exceeds the 50 MB Creator file-upload limit.`);
+      if (state.demoMode) return;
+      if (!state.designTrackingReport) throw new Error("Design Tracking report link name is required for file upload.");
+      assertCreatorResponse(
+        await ZOHO.CREATOR.FILE.uploadFile(withAppName({
+          report_name: state.designTrackingReport,
+          id: String(id),
+          field_name: fieldName,
+          file
+        })),
+        `Upload ${fieldName}`
+      );
+    }
+
+    /* ======================================================================
+       K. SOURCE RECORD ADAPTERS
+       ----------------------------------------------------------------------
+       These convert existing Creator report rows into a predictable structure
+       for the UI without changing any old forms.
+       ====================================================================== */
+    function adaptProject(record) {
+      return {
+        raw: record,
+        id: pick(record, FIELD_ALIASES.projects.id),
+        code: pick(record, FIELD_ALIASES.projects.code),
+        customer: pick(record, FIELD_ALIASES.projects.customer),
+        description: pick(record, FIELD_ALIASES.projects.description),
+        country: pick(record, FIELD_ALIASES.projects.country)
+      };
+    }
+
+    function adaptEquipment(record) {
+      return {
+        raw: record,
+        id: pick(record, FIELD_ALIASES.equipment.id),
+        projectCode: pick(record, FIELD_ALIASES.equipment.projectCode),
+        pdsName: pick(record, FIELD_ALIASES.equipment.pdsName),
+        tag: pick(record, FIELD_ALIASES.equipment.tag),
+        name: pick(record, FIELD_ALIASES.equipment.name),
+        groupCode: pick(record, FIELD_ALIASES.equipment.groupCode),
+        department: pick(record, FIELD_ALIASES.equipment.department),
+        category: pick(record, FIELD_ALIASES.equipment.category),
+        type: pick(record, FIELD_ALIASES.equipment.type),
+        subtype: pick(record, FIELD_ALIASES.equipment.subtype),
+        plantSection: pick(record, FIELD_ALIASES.equipment.plantSection),
+        plantType: pick(record, FIELD_ALIASES.equipment.plantType),
+        sectionRef: pick(record, FIELD_ALIASES.equipment.sectionRef),
+        isGeneral: false
+      };
+    }
+
+    function adaptEmployee(record) {
+      return {
+        raw: record,
+        id: pick(record, FIELD_ALIASES.employees.id),
+        name: pick(record, FIELD_ALIASES.employees.name),
+        email: pick(record, FIELD_ALIASES.employees.email),
+        supportEmail: pick(record, FIELD_ALIASES.employees.supportEmail),
+        department: pick(record, FIELD_ALIASES.employees.department)
+      };
+    }
+
+    // Virtual project-level item allows non-equipment documents such as Plot Plan or Design Basis.
+    function generalProjectItem() {
+      return {
+        raw: {},
+        id: "GENERAL",
+        projectCode: state.selectedProject?.code || "",
+        pdsName: "",
+        tag: "GENERAL",
+        name: "Project / Area General",
+        groupCode: "",
+        department: "",
+        category: "General",
+        type: "Project Level",
+        subtype: "",
+        plantSection: "",
+        plantType: "",
+        sectionRef: "",
+        isGeneral: true
+      };
+    }
+
+    /* ======================================================================
+       L. DATA LOADING
+       ====================================================================== */
+
+    // Reads all projects and employees at startup.
+    async function loadBaseData() {
+      showLoading("Loading projects and employees...");
+      clearError();
+      try {
+        if (state.demoMode) {
+          state.currentUser = "demo.user@mega.tc";
+          state.appName = CONFIG.APP_NAME;
+          state.designTrackingReport = "Design_Tracking_Report";
+        } else {
+          // JS API v2 exposes session/app context without SDK initialization.
+          const init = await ZOHO.CREATOR.UTIL.getInitParams();
+          state.currentUser = init?.loginUser || "";
+          state.appName = init?.appLinkName || CONFIG.APP_NAME;
+          await resolveDesignTrackingReport();
+        }
+
+        const [projectRows, employeeRows] = await Promise.all([
+          fetchAllRecords(CONFIG.REPORTS.projects),
+          fetchAllRecords(CONFIG.REPORTS.employees)
+        ]);
+
+        state.projects = projectRows.map(adaptProject).filter((p) => p.code);
+        state.projects.sort((a, b) => String(b.code).localeCompare(String(a.code), undefined, { numeric: true }));
+        state.employees = employeeRows.map(adaptEmployee).filter((e) => e.email || e.name);
+        state.employees.sort((a, b) => a.name.localeCompare(b.name));
+
+        $("sessionPill").textContent = state.currentUser ? `Signed in: ${state.currentUser}` : "Creator session connected";
+        renderProjectSelect();
+        renderDepartmentCards();
+      } catch (error) {
+        console.error(error);
+        $("sessionPill").textContent = "Creator connection error";
+        showError(`${error.message} Use Diagnostics to verify report/field link names and permissions.`);
+      } finally {
+        hideLoading();
+      }
+    }
+
+    // Resolves the default report generated for the Design_Tracking form.
+    async function resolveDesignTrackingReport() {
+      if (state.designTrackingReport) return state.designTrackingReport;
+      const response = assertCreatorResponse(
+        await ZOHO.CREATOR.META.getReports(withAppName({})),
+        "Get Reports"
+      );
+      const reports = response.reports || [];
+      const candidates = CONFIG.DESIGN_TRACKING_REPORT_CANDIDATES.map(normalizeKey);
+
+      let match = reports.find((r) => candidates.includes(normalizeKey(r.link_name)));
+      if (!match) {
+        match = reports.find((r) => normalizeKey(r.link_name).includes("designtracking") || normalizeKey(r.display_name).includes("designtracking"));
+      }
+      state.designTrackingReport = match?.link_name || "";
+      if (!state.designTrackingReport) {
+        console.warn("Design Tracking report could not be auto-discovered. File/update actions will need CONFIG.REPORTS.designTracking.");
+      }
+      return state.designTrackingReport;
+    }
+
+    // Loads equipment and tracking records for the selected project.
+    async function loadProjectData() {
+      if (!state.selectedProject) return;
+      showLoading(`Loading project ${state.selectedProject.code}...`);
+      clearError();
+      try {
+        const [equipment, tracking] = await Promise.all([
+          loadEquipmentForProject(state.selectedProject),
+          loadTrackingForProject(state.selectedProject.code)
+        ]);
+        state.equipment = equipment;
+        state.tracking = tracking;
+        state.pdsCache.clear();
+        state.bomCache.clear();
+        state.selectedEquipment = null;
+
+        renderSectionFilter();
+        renderDepartmentCards();
+        renderKpis();
+
+        // Keep the selected department if possible; otherwise default to Mechanical.
+        if (!state.selectedDepartment) state.selectedDepartment = "Mechanical";
+        selectDepartment(state.selectedDepartment);
+      } catch (error) {
+        console.error(error);
+        showError(`${error.message} If the project field is a lookup, run Diagnostics and add its field link name to FIELD_ALIASES.equipment.projectCode.`);
+      } finally {
+        hideLoading();
+      }
+    }
+
+    // Tries both project record ID and project code because the old equipment report may use a lookup.
+    async function loadEquipmentForProject(project) {
+      const code = criteriaText(project.code);
+      const id = criteriaText(project.id);
+      const fieldCandidates = FIELD_ALIASES.equipment.projectCode;
+      const expressions = [];
+
+      for (const field of fieldCandidates) {
+        if (project.id) {
+          expressions.push(`${field} == ${id}`);
+          expressions.push(`${field} == "${id}"`);
+        }
+        expressions.push(`${field} == "${code}"`);
+      }
+
+      const queried = await queryByExpressions(CONFIG.REPORTS.equipment, expressions);
+      let rows = queried.rows;
+      state.lastSourceDiagnostics.equipmentCriteria = queried.expression || "fallback-full-report";
+
+      // Fallback: fetch report batches and filter locally if direct criteria could not be resolved.
+      if (!rows.length) {
+        const allRows = await fetchAllRecords(CONFIG.REPORTS.equipment);
+        rows = allRows.filter((record) => {
+          const value = pick(record, FIELD_ALIASES.equipment.projectCode);
+          return String(value).trim() === String(project.code).trim() || String(value).includes(project.code);
+        });
+      }
+
+      const items = rows.map(adaptEquipment).filter((e) => e.tag || e.name);
+      items.sort((a, b) => String(a.tag).localeCompare(String(b.tag), undefined, { numeric: true }));
+      return items;
+    }
+
+    // Design_Tracking uses a known single-line Project_Code field, so criteria is reliable.
+    async function loadTrackingForProject(projectCode) {
+      const criteria = `${TRACKING_FIELDS.projectCode} == "${criteriaText(projectCode)}"`;
+      try {
+        return await fetchAllRecords(state.designTrackingReport || CONFIG.REPORTS.designTracking || "Design_Tracking_Report", criteria);
+      } catch (error) {
+        // If report auto-discovery failed, retry resolution once.
+        if (!state.demoMode && !state.designTrackingReport) {
+          await resolveDesignTrackingReport();
+          if (state.designTrackingReport) return fetchAllRecords(state.designTrackingReport, criteria);
+        }
+        throw error;
+      }
+    }
+
+    // Loads PDS records for the selected equipment, preferring the existing master equipment record ID.
+    async function loadPdsForEquipment(equipment) {
+      if (!equipment || equipment.isGeneral) return [];
+      const cacheKey = String(equipment.id || equipment.tag);
+      if (state.pdsCache.has(cacheKey)) return state.pdsCache.get(cacheKey);
+
+      const expressions = [];
+      if (equipment.id) {
+        for (const field of FIELD_ALIASES.pds.masterEquipmentId) {
+          expressions.push(`${field} == "${criteriaText(equipment.id)}"`);
+          expressions.push(`${field} == ${criteriaText(equipment.id)}`);
+        }
+      }
+      if (equipment.tag) {
+        for (const field of FIELD_ALIASES.pds.tag) expressions.push(`${field} == "${criteriaText(equipment.tag)}"`);
+      }
+
+      const queried = await queryByExpressions(CONFIG.REPORTS.pds, expressions);
+      let rows = queried.rows;
+      if (!rows.length) {
+        const projectCode = state.selectedProject?.code || "";
+        const projectExpressions = FIELD_ALIASES.pds.projectCode.map((field) => `${field} == "${criteriaText(projectCode)}"`);
+        const projectRows = (await queryByExpressions(CONFIG.REPORTS.pds, projectExpressions)).rows;
+        rows = projectRows.filter((r) => pick(r, FIELD_ALIASES.pds.tag) === equipment.tag);
+      }
+
+      state.pdsCache.set(cacheKey, rows);
+      return rows;
+    }
+
+    // Loads BOM rows for the selected equipment/tag.
+    async function loadBomForEquipment(equipment) {
+      if (!equipment || equipment.isGeneral) return [];
+      const cacheKey = String(equipment.id || equipment.tag);
+      if (state.bomCache.has(cacheKey)) return state.bomCache.get(cacheKey);
+
+      const expressions = [];
+      if (equipment.id) {
+        for (const field of FIELD_ALIASES.bom.masterEquipmentId) {
+          expressions.push(`${field} == "${criteriaText(equipment.id)}"`);
+          expressions.push(`${field} == ${criteriaText(equipment.id)}`);
+        }
+      }
+      if (equipment.tag) {
+        for (const field of FIELD_ALIASES.bom.tag) expressions.push(`${field} == "${criteriaText(equipment.tag)}"`);
+      }
+
+      const queried = await queryByExpressions(CONFIG.REPORTS.bom, expressions);
+      let rows = queried.rows;
+      if (!rows.length) {
+        const projectCode = state.selectedProject?.code || "";
+        const projectExpressions = FIELD_ALIASES.bom.projectCode.map((field) => `${field} == "${criteriaText(projectCode)}"`);
+        const projectRows = (await queryByExpressions(CONFIG.REPORTS.bom, projectExpressions)).rows;
+        rows = projectRows.filter((r) => pick(r, FIELD_ALIASES.bom.tag) === equipment.tag);
+      }
+
+      state.bomCache.set(cacheKey, rows);
+      return rows;
+    }
+
+    /* ======================================================================
+       M. MAIN RENDERING FUNCTIONS
+       ====================================================================== */
+
+    function renderProjectSelect() {
+      const select = $("projectSelect");
+      select.innerHTML = '<option value="">Select project...</option>' + state.projects.map((p) => {
+        const label = `${p.code}${p.customer ? ` — ${p.customer}` : ""}${p.description ? ` — ${p.description}` : ""}`;
+        return `<option value="${escapeHtml(p.id || p.code)}">${escapeHtml(label)}</option>`;
+      }).join("");
+    }
+
+    function renderSectionFilter() {
+      const sections = [...new Set(state.equipment.map((e) => e.plantSection).filter(Boolean))].sort();
+      $("sectionFilter").innerHTML = '<option value="">All sections</option>' + sections.map((s) => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join("");
+    }
+
+    function departmentStats(department) {
+      const records = state.tracking.filter((r) => scalarValue(r[TRACKING_FIELDS.designDepartment]) === department);
+      const total = records.length;
+      const completed = records.filter((r) => isClosedStatus(scalarValue(r[TRACKING_FIELDS.status]))).length;
+      const progress = total ? Math.round(records.reduce((sum, r) => sum + numberValue(r[TRACKING_FIELDS.progress]), 0) / total) : 0;
+      const overdue = records.filter(isOverdue).length;
+      return { total, completed, progress, overdue };
+    }
+
+    function renderDepartmentCards() {
+      const grid = $("deptGrid");
+      grid.innerHTML = Object.keys(DEPARTMENT_LIBRARY).map((department) => {
+        const stats = departmentStats(department);
+        const active = department === state.selectedDepartment ? "active" : "";
+        return `
+          <div class="dept-card ${active}" data-department="${escapeHtml(department)}" role="button" tabindex="0">
+            <div class="dept-name">${escapeHtml(department)}</div>
+            <div class="dept-metrics">
+              <div class="dept-progress">${stats.progress}%</div>
+              <div class="dept-count">${stats.completed}/${stats.total} closed</div>
+            </div>
+            <div class="mini-bar"><span style="width:${Math.max(0, Math.min(100, stats.progress))}%"></span></div>
+            <div class="dept-overdue">${stats.overdue ? `${stats.overdue} overdue` : (stats.total ? "No overdue designs" : "No tracking records yet")}</div>
+          </div>`;
+      }).join("");
+
+      grid.querySelectorAll(".dept-card").forEach((card) => {
+        card.addEventListener("click", () => selectDepartment(card.dataset.department));
+        card.addEventListener("keydown", (event) => {
+          if (event.key === "Enter" || event.key === " ") selectDepartment(card.dataset.department);
+        });
+      });
+    }
+
+    function renderKpis() {
+      if (!state.selectedProject) {
+        $("kpiStrip").classList.add("hidden");
+        return;
+      }
+      const rows = state.tracking;
+      const overdue = rows.filter(isOverdue).length;
+      const pendingCheck = rows.filter((r) => ["Submitted for Check", "Checking"].includes(scalarValue(r[TRACKING_FIELDS.status]))).length;
+      const pendingReview = rows.filter((r) => ["Submitted for Review", "Reviewing"].includes(scalarValue(r[TRACKING_FIELDS.status]))).length;
+      const pendingApproval = rows.filter((r) => ["Submitted for Approval", "Approving"].includes(scalarValue(r[TRACKING_FIELDS.status]))).length;
+      const issued = rows.filter((r) => ["Issued", "Completed"].includes(scalarValue(r[TRACKING_FIELDS.status]))).length;
+      const avg = rows.length ? Math.round(rows.reduce((s, r) => s + numberValue(r[TRACKING_FIELDS.progress]), 0) / rows.length) : 0;
+
+      const kpis = [
+        ["Tracked Designs", rows.length],
+        ["Overall Progress", `${avg}%`],
+        ["Overdue", overdue],
+        ["Pending Check", pendingCheck],
+        ["Pending Review", pendingReview],
+        ["Pending Approval", pendingApproval]
+      ];
+      $("kpiStrip").innerHTML = kpis.map(([label, value]) => `<div class="kpi"><div class="kpi-label">${escapeHtml(label)}</div><div class="kpi-value">${escapeHtml(value)}</div></div>`).join("");
+      $("kpiStrip").classList.remove("hidden");
+    }
+
+    function selectDepartment(department) {
+      state.selectedDepartment = department;
+      state.selectedEquipment = null;
+      state.activeTab = "overview";
+      renderDepartmentCards();
+      $("workspace").classList.toggle("hidden", !state.selectedProject);
+      $("equipmentPanelTitle").textContent = `${department} — Project Equipment`;
+      renderEquipmentList();
+      clearDetailPanel();
+    }
+
+    function filteredEquipment() {
+      const q = `${$("globalSearch").value} ${$("equipmentSearch").value}`.toLowerCase().trim();
+      const section = $("sectionFilter").value;
+      return state.equipment.filter((e) => {
+        const hay = [e.tag, e.name, e.category, e.type, e.plantSection, e.pdsName].join(" ").toLowerCase();
+        return (!q || hay.includes(q)) && (!section || e.plantSection === section);
+      });
+    }
+
+    function renderEquipmentList() {
+      if (!state.selectedProject || !state.selectedDepartment) return;
+      const items = filteredEquipment();
+      const withGeneral = [generalProjectItem(), ...items];
+      $("equipmentCount").textContent = String(items.length);
+
+      $("equipmentList").innerHTML = withGeneral.map((e) => {
+        const active = state.selectedEquipment?.id === e.id ? "active" : "";
+        const meta = e.isGeneral ? "For project/area-level documents" : [e.plantSection, e.category, e.pdsName].filter(Boolean).join(" • ");
+        return `
+          <button class="equipment-row ${active}" data-equipment-id="${escapeHtml(e.id)}" type="button">
+            <div class="equipment-tag">${escapeHtml(e.tag || "NO TAG")}</div>
+            <div class="equipment-name">${escapeHtml(e.name || "Unnamed equipment")}</div>
+            <div class="equipment-meta">${escapeHtml(meta || "—")}</div>
+          </button>`;
+      }).join("");
+
+      $("equipmentList").querySelectorAll(".equipment-row").forEach((button) => {
+        button.addEventListener("click", () => {
+          const id = button.dataset.equipmentId;
+          const selected = id === "GENERAL" ? generalProjectItem() : state.equipment.find((e) => String(e.id) === String(id));
+          selectEquipment(selected);
+        });
+      });
+    }
+
+    function clearDetailPanel() {
+      $("detailTabs").classList.add("hidden");
+      $("detailHero").innerHTML = `<div class="empty-state"><strong>Select an equipment tag</strong>Choose a project equipment record from the left side.</div>`;
+      $("tabBody").innerHTML = `<div class="empty-state"><strong>No equipment selected</strong>Project data will appear here.</div>`;
+    }
+
+    function selectEquipment(equipment) {
+      if (!equipment) return;
+      state.selectedEquipment = equipment;
+      state.activeTab = "overview";
+      renderEquipmentList();
+      renderEquipmentHero();
+      $("detailTabs").classList.remove("hidden");
+      setActiveTabButton("overview");
+      renderOverviewTab();
+    }
+
+    function renderEquipmentHero() {
+      const e = state.selectedEquipment;
+      $("detailHero").innerHTML = `
+        <div class="detail-hero-top">
+          <div>
+            <div class="detail-tag">${escapeHtml(e.tag)}</div>
+            <div class="detail-title">${escapeHtml(e.name)}</div>
+            <div class="detail-subtitle">${escapeHtml([e.plantSection, e.plantType, e.category, e.type].filter(Boolean).join(" • ") || "Project-level design")}</div>
+          </div>
+          <span class="status brand">${escapeHtml(state.selectedDepartment)}</span>
+        </div>`;
+    }
+
+    function setActiveTabButton(tab) {
+      $("detailTabs").querySelectorAll(".tab-btn").forEach((button) => button.classList.toggle("active", button.dataset.tab === tab));
+    }
+
+    async function openTab(tab) {
+      if (!state.selectedEquipment) return;
+      state.activeTab = tab;
+      setActiveTabButton(tab);
+      if (tab === "overview") return renderOverviewTab();
+      if (tab === "designs") return renderDesignsTab();
+      if (tab === "pds") {
+        if (state.selectedEquipment.isGeneral) return renderNoEquipmentData("PDS");
+        showLoading("Loading PDS records...");
+        try { renderPdsTab(await loadPdsForEquipment(state.selectedEquipment)); }
+        catch (error) { $("tabBody").innerHTML = `<div class="error-banner">${escapeHtml(error.message)}</div>`; }
+        finally { hideLoading(); }
+      }
+      if (tab === "bom") {
+        if (state.selectedEquipment.isGeneral) return renderNoEquipmentData("BOM");
+        showLoading("Loading BOM records...");
+        try { renderBomTab(await loadBomForEquipment(state.selectedEquipment)); }
+        catch (error) { $("tabBody").innerHTML = `<div class="error-banner">${escapeHtml(error.message)}</div>`; }
+        finally { hideLoading(); }
+      }
+    }
+
+    function renderNoEquipmentData(label) {
+      $("tabBody").innerHTML = `<div class="empty-state"><strong>${escapeHtml(label)} is equipment-specific</strong>Select an actual equipment tag from the left.</div>`;
+    }
+
+    function renderOverviewTab() {
+      const e = state.selectedEquipment;
+      const fields = [
+        ["Project Code", state.selectedProject?.code],
+        ["Customer", state.selectedProject?.customer],
+        ["Plant Section", e.plantSection],
+        ["Plant Section Type", e.plantType],
+        ["Tag Number", e.tag],
+        ["Equipment Name", e.name],
+        ["PDS Name", e.pdsName],
+        ["Group Code", e.groupCode],
+        ["Equipment Department", e.department],
+        ["Equipment Category", e.category],
+        ["Equipment Type", e.type],
+        ["Equipment Subtype", e.subtype],
+        ["Source Record ID", e.isGeneral ? "—" : e.id]
+      ];
+      $("tabBody").innerHTML = `<div class="info-grid">${fields.map(([label, value]) => `<div class="info-card"><div class="info-label">${escapeHtml(label)}</div><div class="info-value">${escapeHtml(value || "—")}</div></div>`).join("")}</div>`;
+    }
+
+    function renderPdsTab(rows) {
+      if (!rows.length) {
+        $("tabBody").innerHTML = `<div class="empty-state"><strong>No matching PDS found</strong>The widget tried equipment record ID and tag-number criteria.</div>`;
+        return;
+      }
+      $("tabBody").innerHTML = `
+        <div class="toolbar"><div class="toolbar-title">Equipment PDS (${rows.length})</div></div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>PDS</th><th>Tag</th><th>Section Ref</th><th>Status</th><th>Approver</th><th>Approved Time</th><th>ID</th></tr></thead>
+          <tbody>${rows.map((r) => {
+            const status = pick(r, FIELD_ALIASES.pds.status);
+            return `<tr>
+              <td>${escapeHtml(pick(r, FIELD_ALIASES.pds.pdsName) || state.selectedEquipment.pdsName || "—")}</td>
+              <td class="nowrap">${escapeHtml(pick(r, FIELD_ALIASES.pds.tag) || state.selectedEquipment.tag)}</td>
+              <td>${escapeHtml(pick(r, FIELD_ALIASES.pds.sectionRef) || "—")}</td>
+              <td><span class="status ${statusClass(status)}">${escapeHtml(status || "—")}</span></td>
+              <td>${escapeHtml(pick(r, FIELD_ALIASES.pds.approver) || "—")}</td>
+              <td>${escapeHtml(pick(r, FIELD_ALIASES.pds.approvedTime) || "—")}</td>
+              <td>${escapeHtml(pick(r, FIELD_ALIASES.pds.id) || "—")}</td>
+            </tr>`;
+          }).join("")}</tbody>
+        </table></div>`;
+    }
+
+    function renderBomTab(rows) {
+      if (!rows.length) {
+        $("tabBody").innerHTML = `<div class="empty-state"><strong>No matching BOM found</strong>The widget tried equipment record ID and tag-number criteria.</div>`;
+        return;
+      }
+      const visibleRows = rows.slice(0, 500);
+      $("tabBody").innerHTML = `
+        <div class="toolbar">
+          <div class="toolbar-title">Equipment BOM (${rows.length})</div>
+          ${rows.length > visibleRows.length ? `<div class="muted">Showing first ${visibleRows.length} rows</div>` : ""}
+        </div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Location</th><th>Indent</th><th>Priority</th><th>Item</th><th>Standard</th><th>MOC</th><th>Grade</th><th>Unit</th><th>Size</th><th>Type</th><th>Thickness</th><th>Qty</th><th>Finish Wt.</th><th>Raw Wt.</th></tr></thead>
+          <tbody>${visibleRows.map((r) => `<tr>
+            <td>${escapeHtml(pick(r, FIELD_ALIASES.bom.location) || "—")}</td>
+            <td>${escapeHtml(pick(r, FIELD_ALIASES.bom.indent) || "—")}</td>
+            <td>${escapeHtml(pick(r, FIELD_ALIASES.bom.priority) || "—")}</td>
+            <td class="td-title">${escapeHtml(pick(r, FIELD_ALIASES.bom.itemName) || "—")}</td>
+            <td>${escapeHtml(pick(r, FIELD_ALIASES.bom.generalStandard) || "—")}</td>
+            <td>${escapeHtml(pick(r, FIELD_ALIASES.bom.mocStandard) || "—")}</td>
+            <td>${escapeHtml(pick(r, FIELD_ALIASES.bom.mocGrade) || "—")}</td>
+            <td>${escapeHtml(pick(r, FIELD_ALIASES.bom.itemUnit) || "—")}</td>
+            <td>${escapeHtml(pick(r, FIELD_ALIASES.bom.itemSize) || "—")}</td>
+            <td>${escapeHtml(pick(r, FIELD_ALIASES.bom.itemType) || "—")}</td>
+            <td>${escapeHtml(pick(r, FIELD_ALIASES.bom.thickness) || "—")}</td>
+            <td>${escapeHtml(pick(r, FIELD_ALIASES.bom.quantity) || "—")}</td>
+            <td>${escapeHtml(pick(r, FIELD_ALIASES.bom.finishWeight) || "—")}</td>
+            <td>${escapeHtml(pick(r, FIELD_ALIASES.bom.rawWeight) || "—")}</td>
+          </tr>`).join("")}</tbody>
+        </table></div>`;
+    }
+
+    /* ======================================================================
+       N. DESIGN REQUIREMENT MERGE / REVISION LOGIC
+       ====================================================================== */
+
+    function recordAppliesToSelectedEquipment(record) {
+      const recordEquipmentId = scalarValue(record[TRACKING_FIELDS.equipmentRecordId]);
+      const recordTag = scalarValue(record[TRACKING_FIELDS.tagNumber]);
+      const selected = state.selectedEquipment;
+      if (!selected) return false;
+      if (selected.isGeneral) return !recordEquipmentId || recordEquipmentId === "GENERAL" || recordTag === "GENERAL";
+      return String(recordEquipmentId) === String(selected.id) || (recordTag && recordTag === selected.tag);
+    }
+
+    function revisionNumber(revision) {
+      const match = String(revision || "R0").match(/(\d+)/);
+      return match ? Number(match[1]) : 0;
+    }
+
+    function selectedEquipmentTracking() {
+      return state.tracking.filter((r) =>
+        scalarValue(r[TRACKING_FIELDS.designDepartment]) === state.selectedDepartment &&
+        recordAppliesToSelectedEquipment(r)
+      );
+    }
+
+    function latestRecordByDesignType(records) {
+      const map = new Map();
+      for (const record of records) {
+        const type = scalarValue(record[TRACKING_FIELDS.designType]);
+        if (!type) continue;
+        const current = map.get(type);
+        if (!current || revisionNumber(record[TRACKING_FIELDS.revision]) >= revisionNumber(current[TRACKING_FIELDS.revision])) map.set(type, record);
+      }
+      return map;
+    }
+
+    function mergedDesignRows() {
+      const records = selectedEquipmentTracking();
+      const latest = latestRecordByDesignType(records);
+      const library = DEPARTMENT_LIBRARY[state.selectedDepartment] || [];
+      const rows = library.map((type) => ({
+        type,
+        record: latest.get(type) || null,
+        virtual: !latest.has(type)
+      }));
+
+      // Custom design types already saved in Design_Tracking are appended below the standard library.
+      for (const [type, record] of latest.entries()) {
+        if (!library.includes(type)) rows.push({ type, record, virtual: false, custom: true });
+      }
+      return rows;
+    }
+
+    function renderDesignsTab() {
+      const rows = mergedDesignRows();
+      const savedCount = rows.filter((r) => !r.virtual).length;
+      $("tabBody").innerHTML = `
+        <div class="toolbar">
+          <div class="toolbar-left">
+            <div class="toolbar-title">${escapeHtml(state.selectedDepartment)} Designs</div>
+            <span class="status">${savedCount}/${rows.length} planned/tracked</span>
+          </div>
+          <div class="toolbar-right">
+            <button id="customDesignBtn" class="btn btn-secondary btn-sm" type="button">+ Custom Design</button>
+            <button id="initializeDesignsBtn" class="btn btn-soft btn-sm" type="button">Initialize All</button>
+          </div>
+        </div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Design</th><th>Drawing No.</th><th>Assigned</th><th>Start</th><th>End</th><th>Revision</th><th>Status</th><th>Progress</th><th>Action</th></tr></thead>
+          <tbody>${rows.map((row) => renderDesignRow(row)).join("")}</tbody>
+        </table></div>`;
+
+      $("customDesignBtn").addEventListener("click", () => openDesignModal(null, ""));
+      $("initializeDesignsBtn").addEventListener("click", initializeAllDesigns);
+      $("tabBody").querySelectorAll("[data-design-open]").forEach((button) => {
+        button.addEventListener("click", () => {
+          const type = button.dataset.designType;
+          const row = mergedDesignRows().find((x) => x.type === type);
+          openDesignModal(row?.record || null, type);
+        });
+      });
+    }
+
+    function renderDesignRow(row) {
+      const r = row.record;
+      const status = r ? scalarValue(r[TRACKING_FIELDS.status]) || "Not Started" : "Not Started";
+      const progress = r ? numberValue(r[TRACKING_FIELDS.progress]) : 0;
+      return `<tr>
+        <td class="td-title">${escapeHtml(row.type)}${row.custom ? '<div class="muted" style="font-size:10px;margin-top:2px;">Custom</div>' : ""}</td>
+        <td>${escapeHtml(r ? scalarValue(r[TRACKING_FIELDS.drawingNumber]) || "—" : "—")}</td>
+        <td>${escapeHtml(r ? scalarValue(r[TRACKING_FIELDS.assignedEmployeeName]) || scalarValue(r[TRACKING_FIELDS.assignedTo]) || "—" : "—")}</td>
+        <td class="nowrap">${escapeHtml(r ? displayDate(r[TRACKING_FIELDS.plannedStart]) : "—")}</td>
+        <td class="nowrap">${escapeHtml(r ? displayDate(r[TRACKING_FIELDS.plannedEnd]) : "—")}${r && isOverdue(r) ? '<div class="status danger" style="margin-top:4px;">Overdue</div>' : ""}</td>
+        <td>${escapeHtml(r ? scalarValue(r[TRACKING_FIELDS.revision]) || "R0" : "R0")}</td>
+        <td><span class="status ${statusClass(status)}">${escapeHtml(status)}</span></td>
+        <td class="progress-cell"><div class="progress-line"><div class="progress-track"><span style="width:${Math.max(0,Math.min(100,progress))}%"></span></div><strong>${progress}%</strong></div></td>
+        <td><button class="btn ${r ? "btn-secondary" : "btn-primary"} btn-sm" data-design-open="1" data-design-type="${escapeHtml(row.type)}" type="button">${r ? "Open" : "Plan"}</button></td>
+      </tr>`;
+    }
+
+    // Creates a Not Started tracking row for every library design that does not yet exist for this equipment.
+    async function initializeAllDesigns() {
+      const missing = mergedDesignRows().filter((row) => row.virtual);
+      if (!missing.length) return toast("All standard design rows are already initialized.", "success");
+      if (!confirm(`Create ${missing.length} Not Started design tracking records for ${state.selectedEquipment.name}?`)) return;
+
+      showLoading(`Initializing ${missing.length} design rows...`);
+      try {
+        for (let i = 0; i < missing.length; i += 1) {
+          $("loadingText").textContent = `Creating design ${i + 1} of ${missing.length}...`;
+          const data = baseTrackingPayload(missing[i].type);
+          data[TRACKING_FIELDS.status] = "Not Started";
+          data[TRACKING_FIELDS.progress] = 0;
+          data[TRACKING_FIELDS.revision] = "R0";
+          const id = await creatorAddTracking(data);
+          state.tracking.push({ ID: id, ...data });
+        }
+        toast(`${missing.length} design records initialized.`, "success");
+        renderAllTrackingViews();
+      } catch (error) {
+        console.error(error);
+        toast(error.message, "error");
+      } finally {
+        hideLoading();
+      }
+    }
+
+    /* ======================================================================
+       O. EMPLOYEE DROPDOWNS
+       ====================================================================== */
+
+    // Employees from the same/similar department are shown first, but all employees remain selectable.
+    function departmentKeywords(department) {
+      const map = {
+        "Process": ["process"],
+        "Design / Layout": ["design", "layout"],
+        "Mechanical": ["mechanical", "workshop", "equipment", "design"],
+        "Civil": ["civil"],
+        "Structural": ["structural", "structure"],
+        "Piping": ["piping"],
+        "Electrical": ["electrical"],
+        "Instrumentation": ["instrument", "instrumentation"],
+        "Automation": ["automation", "control"]
+      };
+      return map[department] || [String(department).toLowerCase()];
+    }
+
+    function sortedEmployeesForDepartment() {
+      const keywords = departmentKeywords(state.selectedDepartment);
+      return [...state.employees].sort((a, b) => {
+        const aMatch = keywords.some((k) => String(a.department).toLowerCase().includes(k));
+        const bMatch = keywords.some((k) => String(b.department).toLowerCase().includes(k));
+        if (aMatch !== bMatch) return aMatch ? -1 : 1;
+        return a.name.localeCompare(b.name);
+      });
+    }
+
+    function populateEmployeeSelects() {
+      const options = '<option value="">Select employee...</option>' + sortedEmployeesForDepartment().map((e) => {
+        const label = `${e.name || e.email}${e.department ? ` — ${e.department}` : ""}`;
+        return `<option value="${escapeHtml(e.email)}" data-name="${escapeHtml(e.name)}">${escapeHtml(label)}</option>`;
+      }).join("");
+      ["assignedToInput","checkerInput","reviewerInput","approverInput"].forEach((id) => $(id).innerHTML = options);
+    }
+
+    /* ======================================================================
+       P. DESIGN MODAL / SAVE
+       ====================================================================== */
+
+    function openDesignModal(record, designType = "") {
+      if (!state.selectedProject || !state.selectedDepartment || !state.selectedEquipment) return;
+      state.modalRecord = record;
+      state.modalVirtualType = designType;
+      populateEmployeeSelects();
+      populateStatusOptions();
+
+      const type = record ? scalarValue(record[TRACKING_FIELDS.designType]) : designType;
+      const defaultTitle = `${state.selectedEquipment.name} - ${type || "New Design"}`;
+
+      $("designTypeInput").value = type || "";
+      $("designTitleInput").value = record ? scalarValue(record[TRACKING_FIELDS.designTitle]) : defaultTitle;
+      $("drawingNumberInput").value = record ? scalarValue(record[TRACKING_FIELDS.drawingNumber]) : "";
+      $("priorityInput").value = record ? scalarValue(record[TRACKING_FIELDS.priority]) || "Medium" : "Medium";
+      $("revisionInput").value = record ? scalarValue(record[TRACKING_FIELDS.revision]) || "R0" : "R0";
+      $("plannedStartInput").value = record ? toInputDate(record[TRACKING_FIELDS.plannedStart]) : "";
+      $("plannedEndInput").value = record ? toInputDate(record[TRACKING_FIELDS.plannedEnd]) : "";
+      $("forecastEndInput").value = record ? toInputDate(record[TRACKING_FIELDS.forecastEnd]) : "";
+      $("assignedToInput").value = record ? scalarValue(record[TRACKING_FIELDS.assignedTo]) : "";
+      $("checkerInput").value = record ? scalarValue(record[TRACKING_FIELDS.checker]) : "";
+      $("reviewerInput").value = record ? scalarValue(record[TRACKING_FIELDS.reviewer]) : "";
+      $("approverInput").value = record ? scalarValue(record[TRACKING_FIELDS.approver]) : "";
+      $("statusInput").value = record ? scalarValue(record[TRACKING_FIELDS.status]) || "Not Started" : "Not Started";
+      $("progressInput").value = record ? numberValue(record[TRACKING_FIELDS.progress]) : 0;
+      $("revisionDescriptionInput").value = record ? scalarValue(record[TRACKING_FIELDS.revisionDescription]) : "";
+      $("remarksInput").value = record ? scalarValue(record[TRACKING_FIELDS.remarks]) : "";
+      $("returnReasonInput").value = record ? scalarValue(record[TRACKING_FIELDS.returnReason]) : "";
+      clearFileInputs();
+
+      $("designModalTitle").textContent = record ? "Edit Design Tracking" : "Plan Design";
+      $("designModalSubtitle").textContent = `${state.selectedProject.code} • ${state.selectedDepartment} • ${state.selectedEquipment.tag} • ${state.selectedEquipment.name}`;
+      $("designModalError").classList.add("hidden");
+      $("newRevisionBtn").classList.toggle("hidden", !record);
+      renderWorkflowActions();
+      $("designModalBackdrop").classList.remove("hidden");
+    }
+
+    function closeDesignModal() {
+      $("designModalBackdrop").classList.add("hidden");
+      state.modalRecord = null;
+      state.modalVirtualType = "";
+      clearFileInputs();
+    }
+
+    function clearFileInputs() {
+      ["drawingFileInput","nativeFileInput","supportingFileInput"].forEach((id) => $(id).value = "");
+    }
+
+    function populateStatusOptions() {
+      $("statusInput").innerHTML = STATUS_OPTIONS.map((s) => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join("");
+    }
+
+    function baseTrackingPayload(designType) {
+      const project = state.selectedProject;
+      const e = state.selectedEquipment;
+      return {
+        [TRACKING_FIELDS.projectCode]: project.code || "",
+        [TRACKING_FIELDS.projectRecordId]: project.id || "",
+        [TRACKING_FIELDS.equipmentRecordId]: e.isGeneral ? "GENERAL" : (e.id || ""),
+        [TRACKING_FIELDS.plantSectionName]: e.plantSection || "",
+        [TRACKING_FIELDS.plantSectionType]: e.plantType || "",
+        [TRACKING_FIELDS.pdsName]: e.pdsName || "",
+        [TRACKING_FIELDS.pdsRecordId]: "",
+        [TRACKING_FIELDS.tagNumber]: e.tag || "GENERAL",
+        [TRACKING_FIELDS.equipmentName]: e.name || "Project / Area General",
+        [TRACKING_FIELDS.equipmentCategory]: e.category || "",
+        [TRACKING_FIELDS.equipmentType]: e.type || "",
+        [TRACKING_FIELDS.equipmentDepartment]: e.department || "",
+        [TRACKING_FIELDS.designDepartment]: state.selectedDepartment,
+        [TRACKING_FIELDS.designType]: designType || "",
+        [TRACKING_FIELDS.designTitle]: `${e.name} - ${designType || "Design"}`,
+        [TRACKING_FIELDS.priority]: "Medium",
+        [TRACKING_FIELDS.status]: "Not Started",
+        [TRACKING_FIELDS.progress]: 0,
+        [TRACKING_FIELDS.revision]: "R0"
+      };
+    }
+
+    function collectModalPayload(overrides = {}) {
+      const type = $("designTypeInput").value.trim();
+      if (!type) throw new Error("Design Type is required.");
+      const start = $("plannedStartInput").value;
+      const end = $("plannedEndInput").value;
+      if (start && end && end < start) throw new Error("Planned End Date cannot be before Planned Start Date.");
+
+      const assignedOption = $("assignedToInput").selectedOptions[0];
+      const payload = {
+        ...baseTrackingPayload(type),
+        [TRACKING_FIELDS.designTitle]: $("designTitleInput").value.trim() || `${state.selectedEquipment.name} - ${type}`,
+        [TRACKING_FIELDS.drawingNumber]: $("drawingNumberInput").value.trim(),
+        [TRACKING_FIELDS.priority]: $("priorityInput").value,
+        [TRACKING_FIELDS.plannedStart]: toCreatorDate(start),
+        [TRACKING_FIELDS.plannedEnd]: toCreatorDate(end),
+        [TRACKING_FIELDS.forecastEnd]: toCreatorDate($("forecastEndInput").value),
+        [TRACKING_FIELDS.assignedTo]: $("assignedToInput").value,
+        [TRACKING_FIELDS.assignedEmployeeName]: assignedOption?.dataset?.name || assignedOption?.textContent?.split(" — ")[0] || "",
+        [TRACKING_FIELDS.checker]: $("checkerInput").value,
+        [TRACKING_FIELDS.reviewer]: $("reviewerInput").value,
+        [TRACKING_FIELDS.approver]: $("approverInput").value,
+        [TRACKING_FIELDS.status]: $("statusInput").value,
+        [TRACKING_FIELDS.progress]: Math.max(0, Math.min(100, numberValue($("progressInput").value))),
+        [TRACKING_FIELDS.revision]: $("revisionInput").value.trim() || "R0",
+        [TRACKING_FIELDS.revisionDescription]: $("revisionDescriptionInput").value.trim(),
+        [TRACKING_FIELDS.remarks]: $("remarksInput").value.trim(),
+        [TRACKING_FIELDS.returnReason]: $("returnReasonInput").value.trim()
+      };
+
+      // Empty strings are intentionally retained for text fields so users can clear old values on update.
+      return { ...payload, ...overrides };
+    }
+
+    async function saveDesignFromModal(overrides = {}, options = {}) {
+      const { closeAfter = false, toastMessage = "Design tracking saved." } = options;
+      showLoading("Saving design tracking...");
+      $("designModalError").classList.add("hidden");
+      try {
+        const payload = collectModalPayload(overrides);
+        let id = state.modalRecord ? String(state.modalRecord.ID || state.modalRecord.id) : "";
+
+        if (id) {
+          await creatorUpdateTracking(id, payload);
+          Object.assign(state.modalRecord, payload);
+        } else {
+          id = await creatorAddTracking(payload);
+          state.modalRecord = { ID: id, ...payload };
+          state.tracking.push(state.modalRecord);
+        }
+
+        // Uploading happens after record creation/update because Creator file uploads require a record ID.
+        await uploadModalFiles(id);
+
+        toast(toastMessage, "success");
+        renderAllTrackingViews();
+        if (closeAfter) closeDesignModal();
+        else {
+          $("newRevisionBtn").classList.remove("hidden");
+          renderWorkflowActions();
+        }
+        return state.modalRecord;
+      } catch (error) {
+        console.error(error);
+        $("designModalError").textContent = error.message;
+        $("designModalError").classList.remove("hidden");
+        throw error;
+      } finally {
+        hideLoading();
+      }
+    }
+
+    async function uploadModalFiles(id) {
+      const files = [
+        [TRACKING_FIELDS.drawingFile, $("drawingFileInput").files[0]],
+        [TRACKING_FIELDS.nativeFile, $("nativeFileInput").files[0]],
+        [TRACKING_FIELDS.supportingFile, $("supportingFileInput").files[0]]
+      ].filter(([, file]) => Boolean(file));
+
+      for (const [field, file] of files) {
+        if (file.size > CONFIG.MAX_FILE_BYTES) throw new Error(`${file.name} is larger than 50 MB.`);
+        $("loadingText").textContent = `Uploading ${file.name}...`;
+        await creatorUploadFile(id, field, file);
+      }
+      clearFileInputs();
+    }
+
+    function renderAllTrackingViews() {
+      renderDepartmentCards();
+      renderKpis();
+      if (state.activeTab === "designs" && state.selectedEquipment) renderDesignsTab();
+    }
+
+    /* ======================================================================
+       Q. WORKFLOW ACTIONS
+       ====================================================================== */
+    function workflowButtonsForStatus(status) {
+      const map = {
+        "Not Started": [["Start Design", "In Progress", "success"]],
+        "In Progress": [["Submit for Check", "Submitted for Check", "primary"], ["Put On Hold", "On Hold", "secondary"]],
+        "Submitted for Check": [["Begin Checking", "Checking", "primary"]],
+        "Checking": [["Mark Checked", "Checked", "success"], ["Return", "Returned", "danger"]],
+        "Returned": [["Resume Work", "In Progress", "primary"]],
+        "Checked": [["Submit for Review", "Submitted for Review", "primary"]],
+        "Submitted for Review": [["Begin Review", "Reviewing", "primary"]],
+        "Reviewing": [["Mark Reviewed", "Reviewed", "success"], ["Return", "Returned", "danger"]],
+        "Reviewed": [["Submit for Approval", "Submitted for Approval", "primary"]],
+        "Submitted for Approval": [["Begin Approval", "Approving", "primary"]],
+        "Approving": [["Approve", "Approved", "success"], ["Return", "Returned", "danger"]],
+        "Approved": [["Issue", "Issued", "success"]],
+        "Issued": [["Complete", "Completed", "success"]],
+        "On Hold": [["Resume Work", "In Progress", "primary"]]
+      };
+      return map[status] || [];
+    }
+
+    function renderWorkflowActions() {
+      const status = $("statusInput").value || "Not Started";
+      $("workflowActions").innerHTML = workflowButtonsForStatus(status).map(([label, next, kind]) => {
+        const css = kind === "primary" ? "btn-primary" : kind === "success" ? "btn-success" : kind === "danger" ? "btn-danger" : "btn-secondary";
+        return `<button class="btn ${css}" data-next-status="${escapeHtml(next)}" type="button">${escapeHtml(label)}</button>`;
+      }).join("");
+
+      $("workflowActions").querySelectorAll("[data-next-status]").forEach((button) => {
+        button.addEventListener("click", () => performWorkflowAction(button.dataset.nextStatus));
+      });
+    }
+
+    async function performWorkflowAction(nextStatus) {
+      const overrides = {
+        [TRACKING_FIELDS.status]: nextStatus,
+        [TRACKING_FIELDS.progress]: STATUS_PROGRESS[nextStatus] ?? numberValue($("progressInput").value)
+      };
+
+      if (nextStatus === "In Progress" && (!state.modalRecord || !scalarValue(state.modalRecord[TRACKING_FIELDS.actualStart]))) {
+        overrides[TRACKING_FIELDS.actualStart] = toCreatorDateTime(new Date());
+        overrides[TRACKING_FIELDS.startedBy] = state.currentUser || "";
+      }
+      if (nextStatus === "Completed") {
+        overrides[TRACKING_FIELDS.actualEnd] = toCreatorDateTime(new Date());
+        overrides[TRACKING_FIELDS.completedBy] = state.currentUser || "";
+      }
+      if (nextStatus === "Returned" && !$("returnReasonInput").value.trim()) {
+        $("designModalError").textContent = "Enter a Return / Rejection Reason before returning the design.";
+        $("designModalError").classList.remove("hidden");
+        $("returnReasonInput").focus();
+        return;
+      }
+
+      // Keep modal controls in sync with the workflow action being executed.
+      $("statusInput").value = nextStatus;
+      $("progressInput").value = overrides[TRACKING_FIELDS.progress];
+      try {
+        await saveDesignFromModal(overrides, { toastMessage: `Status changed to ${nextStatus}.` });
+      } catch (_) {
+        // Error is already displayed inside saveDesignFromModal.
+      }
+    }
+
+    /* ======================================================================
+       R. REVISION CREATION
+       ====================================================================== */
+    function nextRevision(current) {
+      return `R${revisionNumber(current) + 1}`;
+    }
+
+    async function createNewRevision() {
+      if (!state.modalRecord) return;
+      if (!confirm(`Create a new revision after ${$("revisionInput").value || "R0"}?`)) return;
+
+      showLoading("Creating new revision...");
+      try {
+        const currentId = String(state.modalRecord.ID);
+        const currentPayload = collectModalPayload();
+        const newPayload = {
+          ...currentPayload,
+          [TRACKING_FIELDS.revision]: nextRevision(currentPayload[TRACKING_FIELDS.revision]),
+          [TRACKING_FIELDS.parentDesignId]: currentId,
+          [TRACKING_FIELDS.status]: "Not Started",
+          [TRACKING_FIELDS.progress]: 0,
+          [TRACKING_FIELDS.actualStart]: "",
+          [TRACKING_FIELDS.actualEnd]: "",
+          [TRACKING_FIELDS.startedBy]: "",
+          [TRACKING_FIELDS.completedBy]: "",
+          [TRACKING_FIELDS.revisionDescription]: "",
+          [TRACKING_FIELDS.returnReason]: ""
+        };
+        const newId = await creatorAddTracking(newPayload);
+        const newRecord = { ID: newId, ...newPayload };
+        state.tracking.push(newRecord);
+        toast(`Created ${newPayload[TRACKING_FIELDS.revision]}.`, "success");
+        renderAllTrackingViews();
+        openDesignModal(newRecord, newPayload[TRACKING_FIELDS.designType]);
+      } catch (error) {
+        console.error(error);
+        toast(error.message, "error");
+      } finally {
+        hideLoading();
+      }
+    }
+
+    /* ======================================================================
+       S. DIAGNOSTICS
+       ----------------------------------------------------------------------
+       Diagnostics samples the reports and shows the actual JSON field keys.
+       This is the fastest way to correct a source alias if an old field link
+       name differs from the visible report column name.
+       ====================================================================== */
+    async function runDiagnostics() {
+      $("diagnosticsOutput").textContent = "Running diagnostics...";
+      if (state.demoMode) {
+        $("diagnosticsOutput").textContent = "DEMO MODE is active. Diagnostics against Creator are disabled.";
+        return;
+      }
+      const lines = [];
+      try {
+        lines.push(`App name: ${state.appName}`);
+        lines.push(`Login user: ${state.currentUser || "(not returned)"}`);
+        lines.push(`Design Tracking form: ${CONFIG.FORMS.designTracking}`);
+        lines.push(`Resolved Design Tracking report: ${state.designTrackingReport || "NOT FOUND"}`);
+        lines.push(`Equipment project criteria used: ${state.lastSourceDiagnostics.equipmentCriteria || "not loaded yet"}`);
+        lines.push("");
+
+        const reportsMeta = assertCreatorResponse(await ZOHO.CREATOR.META.getReports(withAppName({})), "Get Reports");
+        lines.push("Accessible report link names:");
+        (reportsMeta.reports || []).forEach((r) => lines.push(`  - ${r.link_name} (${r.display_name})`));
+        lines.push("");
+
+        for (const [label, reportName] of Object.entries(CONFIG.REPORTS)) {
+          if (!reportName || label === "designTracking") continue;
+          try {
+            const rows = await fetchAllRecords(reportName, "", 1);
+            lines.push(`${label.toUpperCase()} / ${reportName}`);
+            lines.push(`  Sample keys: ${rows[0] ? Object.keys(rows[0]).join(", ") : "NO RECORDS RETURNED"}`);
+          } catch (error) {
+            lines.push(`${label.toUpperCase()} / ${reportName}`);
+            lines.push(`  ERROR: ${error.message}`);
+          }
+          lines.push("");
+        }
+
+        if (state.designTrackingReport) {
+          try {
+            const rows = await fetchAllRecords(state.designTrackingReport, "", 1);
+            lines.push(`DESIGN TRACKING / ${state.designTrackingReport}`);
+            lines.push(`  Sample keys: ${rows[0] ? Object.keys(rows[0]).join(", ") : "No tracking records yet (this is okay)."}`);
+          } catch (error) {
+            lines.push(`DESIGN TRACKING ERROR: ${error.message}`);
+          }
+        }
+      } catch (error) {
+        lines.push(`DIAGNOSTIC ERROR: ${error.message}`);
+      }
+      $("diagnosticsOutput").textContent = lines.join("\n");
+    }
+
+    /* ======================================================================
+       T. EVENT WIRING
+       ====================================================================== */
+    function wireEvents() {
+      $("projectSelect").addEventListener("change", async (event) => {
+        const value = event.target.value;
+        state.selectedProject = state.projects.find((p) => String(p.id || p.code) === String(value)) || null;
+        state.selectedDepartment = "Mechanical";
+        state.selectedEquipment = null;
+        $("projectContext").textContent = state.selectedProject
+          ? `${state.selectedProject.code}${state.selectedProject.customer ? ` — ${state.selectedProject.customer}` : ""}${state.selectedProject.description ? ` — ${state.selectedProject.description}` : ""}`
+          : "Select a project to begin.";
+
+        if (state.selectedProject) await loadProjectData();
+        else {
+          state.equipment = [];
+          state.tracking = [];
+          $("workspace").classList.add("hidden");
+          $("kpiStrip").classList.add("hidden");
+          renderDepartmentCards();
+        }
+      });
+
+      ["globalSearch","equipmentSearch"].forEach((id) => $(id).addEventListener("input", renderEquipmentList));
+      $("sectionFilter").addEventListener("change", renderEquipmentList);
+      $("refreshBtn").addEventListener("click", async () => {
+        if (state.selectedProject) await loadProjectData();
+        else await loadBaseData();
+      });
+
+      $("detailTabs").querySelectorAll(".tab-btn").forEach((button) => button.addEventListener("click", () => openTab(button.dataset.tab)));
+
+      $("closeDesignModalBtn").addEventListener("click", closeDesignModal);
+      $("designModalBackdrop").addEventListener("click", (event) => { if (event.target === $("designModalBackdrop")) closeDesignModal(); });
+      $("statusInput").addEventListener("change", () => {
+        const status = $("statusInput").value;
+        $("progressInput").value = STATUS_PROGRESS[status] ?? $("progressInput").value;
+        renderWorkflowActions();
+      });
+      $("saveDesignBtn").addEventListener("click", async () => {
+        try { await saveDesignFromModal({}, { closeAfter: false }); } catch (_) {}
+      });
+      $("newRevisionBtn").addEventListener("click", createNewRevision);
+
+      $("diagnosticsBtn").addEventListener("click", () => $("diagnosticsBackdrop").classList.remove("hidden"));
+      $("closeDiagnosticsBtn").addEventListener("click", () => $("diagnosticsBackdrop").classList.add("hidden"));
+      $("diagnosticsBackdrop").addEventListener("click", (event) => { if (event.target === $("diagnosticsBackdrop")) $("diagnosticsBackdrop").classList.add("hidden"); });
+      $("runDiagnosticsBtn").addEventListener("click", runDiagnostics);
+
+      // Escape closes the topmost modal.
+      document.addEventListener("keydown", (event) => {
+        if (event.key !== "Escape") return;
+        if (!$("designModalBackdrop").classList.contains("hidden")) closeDesignModal();
+        else if (!$("diagnosticsBackdrop").classList.contains("hidden")) $("diagnosticsBackdrop").classList.add("hidden");
+      });
+    }
+
+    /* ======================================================================
+       U. DEMO MODE
+       ----------------------------------------------------------------------
+       Add ?demo=1 to the hosted URL to preview the UI outside Creator.
+       Demo mode never writes to Zoho Creator.
+       ====================================================================== */
+    const DEMO = {
+      projects: [
+        { ID: "P20015A", Project_Code: "20015A", Customer_Name: "ENZO Engineering", Project_Description: "100 KLPD MSDH Plant", Country: "India" },
+        { ID: "P21024", Project_Code: "21024", Customer_Name: "RENA SSK LTD", Project_Description: "Distillery Project", Country: "India" }
+      ],
+      equipment: [
+        { ID: "E1", Project_Code: "20015A", PDS_Name: "PDS - Distillation Column", Tag_Number: "CL-1501", Equipment_Name: "Regeneration Column", Plant_Section_Name: "Dehydration", Plant_Section_Type: "Rectified Spirit Liquid Basis Dehydration", Group_Code: "Shop", Department_Code: "Equipment - Stationary", Equipment_Category: "Distillation Column", Equipment_Type: "Sieve Tray" },
+        { ID: "E2", Project_Code: "20015A", PDS_Name: "PDS - Miscellaneous", Tag_Number: "VD-1701", Equipment_Name: "Vapour Liquid Separator For Evaporator - I - Vapour Ducting", Plant_Section_Name: "Evaporation", Plant_Section_Type: "Standalone Evaporation", Group_Code: "Shop", Department_Code: "Equipment - Stationary", Equipment_Category: "Ducting", Equipment_Type: "Vapour Ducting" },
+        { ID: "E3", Project_Code: "20015A", PDS_Name: "Bought Out Sheet", Tag_Number: "AG-2404A", Equipment_Name: "Lateral Agitator For Digester", Plant_Section_Name: "Biomethanation", Plant_Section_Type: "Biogas Plant", Group_Code: "Direct Supply", Department_Code: "Equipment - Rotating", Equipment_Category: "Agitator", Equipment_Type: "Propeller" },
+        { ID: "E4", Project_Code: "20015A", PDS_Name: "Bought Out Sheet", Tag_Number: "BL-2401A", Equipment_Name: "Biogas Blower", Plant_Section_Name: "Biomethanation", Plant_Section_Type: "Biogas Plant", Group_Code: "Direct Supply", Department_Code: "Equipment - Rotating", Equipment_Category: "Air Blower", Equipment_Type: "Centrifugal" }
+      ],
+      pds: [
+        { ID: "PDS1", Project_Code: "20015A", Master_Equipments_Report_ID: "E1", PDS_Name: "PDS - Distillation Column", Tag_Number: "CL-1501", Equipment_PDS_Status: "Approved", Section_Ref: "SL/3552", Approver_User: "santosh.patil@mega.tc", Approved_Time: "12-Sep-2025 18:01:03" }
+      ],
+      bom: [
+        { ID: "B1", Project_Code: "20015A", Master_Equipments_Report_ID: "E1", Tag_Number: "CL-1501", Location_Name: "Shell Plate 2", Indent_No: "1A10110411", Priority: "1A", Item_Name: "Plate", General_Standard: "US", MOC_Standard: "ASTM A240", MOC_Grade: "Gr 316", Item_Unit: "mm", Item_Size: "1500", Item_Type: "Hot Rolled", Thickness: "4.00", Quantity: "1", Finish_Weight: "151.39", Raw_Weight: "155.93" },
+        { ID: "B2", Project_Code: "20015A", Master_Equipments_Report_ID: "E1", Tag_Number: "CL-1501", Location_Name: "Tray Support Clits", Indent_No: "1A10114711", Priority: "1A", Item_Name: "Plate", General_Standard: "US", MOC_Standard: "ASTM A240", MOC_Grade: "Gr 316", Item_Unit: "mm", Item_Size: "1500", Item_Type: "Hot Rolled", Thickness: "2.50", Quantity: "16", Finish_Weight: "1.28", Raw_Weight: "1.34" }
+      ],
+      employees: [
+        { ID: "U1", Employee_Name: "Amrut Ithape", Email: "amrut.ithape@megaepc.com", Department: "Process Team" },
+        { ID: "U2", Employee_Name: "Ishwar Mali", Email: "mm@mega.tc", Department: "Workshop Team" },
+        { ID: "U3", Employee_Name: "Akash Lahane", Email: "akash.lahane@megaepc.com", Department: "Mechanical Team" },
+        { ID: "U4", Employee_Name: "Aman Kumar", Email: "site.mmpkenya@megaepc.com", Department: "Civil Team" }
+      ],
+      tracking: []
+    };
+
+    function demoFetch(reportName, criteria) {
+      let rows = [];
+      if (reportName === CONFIG.REPORTS.projects) rows = DEMO.projects;
+      else if (reportName === CONFIG.REPORTS.equipment) rows = DEMO.equipment;
+      else if (reportName === CONFIG.REPORTS.pds) rows = DEMO.pds;
+      else if (reportName === CONFIG.REPORTS.bom) rows = DEMO.bom;
+      else if (reportName === CONFIG.REPORTS.employees) rows = DEMO.employees;
+      else if (reportName === "Design_Tracking_Report") rows = DEMO.tracking;
+
+      // Demo filtering is deliberately simple and only supports quoted equality values.
+      const match = String(criteria || "").match(/==\s*"([^"]+)"/);
+      if (!match) return Promise.resolve([...rows]);
+      const value = match[1];
+      return Promise.resolve(rows.filter((r) => Object.values(r).some((v) => scalarValue(v) === value)));
+    }
+
+    function demoAddTracking(data) {
+      const id = `DT${Date.now()}${Math.floor(Math.random()*1000)}`;
+      DEMO.tracking.push({ ID: id, ...data });
+      return Promise.resolve(id);
+    }
+
+    function demoUpdateTracking(id, data) {
+      const row = DEMO.tracking.find((r) => String(r.ID) === String(id));
+      if (row) Object.assign(row, data);
+      return Promise.resolve(String(id));
+    }
+
+    /* ======================================================================
+       V. STARTUP
+       ====================================================================== */
+    async function startWidget() {
+      wireEvents();
+      if (state.demoMode) $("demoBanner").classList.remove("hidden");
+
+      // When opened directly on a normal host without ?demo=1, the Creator SDK
+      // may exist but there is no embedded application session. Show a useful
+      // message instead of silently presenting fake data.
+      if (!state.demoMode && (!window.ZOHO || !ZOHO.CREATOR)) {
+        showError("Zoho Creator Widget SDK is not available. Open this URL from a Creator Widget, or append ?demo=1 for a UI preview.");
+        $("sessionPill").textContent = "Not inside Creator";
+        return;
+      }
+      await loadBaseData();
+    }
+
+    // DOM is already available because the script is at the end of <body>.
+    startWidget();
+
+    /* ======================================================================
+       END-OF-JAVASCRIPT DEVELOPER NOTES
+       ----------------------------------------------------------------------
+       1) DATA IS NOT DUPLICATED:
+          - Project comes from All_Associated_Projects.
+          - Equipment comes from Master_Equipment_List_Subform_Report.
+          - PDS comes from All_Equipment_PDS.
+          - BOM comes from All_Equipment_BOM_Details.
+          - Employees come from Employ_to_Create_ticket_Report.
+          - Only NEW design tracking data is written to Design_Tracking.
+
+       2) WHAT TO EDIT WHEN A SOURCE FIELD DOES NOT SHOW:
+          - Open Widget Diagnostics.
+          - Run Diagnostics.
+          - Find the real sample JSON field key.
+          - Add that field link name to FIELD_ALIASES near the top of this file.
+
+       3) WHAT TO EDIT WHEN THE DESIGN TRACKING REPORT IS NOT FOUND:
+          - Open the normal report generated for Design_Tracking in Creator.
+          - Copy its report link name from #Report:<LINK_NAME>.
+          - Put it in CONFIG.REPORTS.designTracking.
+
+       4) DEPARTMENT DESIGN TYPES:
+          - All department design lists are in DEPARTMENT_LIBRARY.
+          - You can add/remove items without changing the database form.
+
+       5) STATUS FLOW:
+          - workflowButtonsForStatus() defines which button is available next.
+          - STATUS_PROGRESS defines the automatic progress percentage.
+
+       6) FILE UPLOAD:
+          - The normal record is created/saved first.
+          - Then ZOHO.CREATOR.FILE.uploadFile() uploads each selected file.
+          - Drawing_File, Native_File and Supporting_File are all supported.
+
+       7) REVISION CONTROL:
+          - New Revision creates a NEW Design_Tracking record.
+          - Parent_Design_ID points back to the previous revision record ID.
+          - Old revisions are never overwritten or deleted by this widget.
+
+       8) PRODUCTION PERMISSIONS:
+          - Every user who needs the widget must be allowed to READ the five
+            source reports and CREATE/EDIT Design_Tracking records.
+          - File fields must also be permitted for users who upload drawings.
+
+       9) DEMO PREVIEW:
+          - Open the hosted page as index.html?demo=1 to see sample data.
+          - Demo mode does not contact or change Creator.
+
+       10) IMPORTANT PHASE-1 DESIGN DECISION:
+           - This file uses one hidden Design_Tracking form for all departments.
+           - It intentionally does not create separate forms for Process, Civil,
+             Mechanical, Piping, Electrical, Instrumentation, etc.
+       ====================================================================== */
+  </script>
+</body>
+</html>
+
+<!-- ========================================================================
+     END-OF-FILE COMMENT / QUICK UNDERSTANDING GUIDE
+
+     USER FLOW
+     ---------
+     1. Select Project.
+     2. Click Department.
+     3. Select Project / Area General or an equipment Tag Number.
+     4. Review Overview / PDS / BOM.
+     5. Open Designs.
+     6. Plan one design or Initialize All standard design requirements.
+     7. Set Start Date, End Date, employee, checker, reviewer and approver.
+     8. Click Start Design.
+     9. Upload drawing/native/supporting files.
+     10. Move through Check -> Review -> Approval -> Issue -> Complete.
+     11. Use New Revision to create R1, R2, R3 without losing history.
+
+     STORAGE
+     -------
+     Old Creator reports are read-only sources for this widget.
+     New design tracking data is stored only in the hidden Design_Tracking form.
+
+     HOSTING
+     -------
+     This index.html is self-contained. Host it on HTTPS, then create an
+     EXTERNAL widget in Zoho Creator and use the hosted index URL as its index.
+     ======================================================================== -->
