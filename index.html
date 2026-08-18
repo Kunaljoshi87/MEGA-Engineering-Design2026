@@ -317,6 +317,44 @@
     .modal-subtitle { color: var(--muted); font-size: 11px; margin-top: 3px; }
     .icon-btn { border: none; background: #f1f3f6; border-radius: 8px; width: 34px; height: 34px; font-size: 19px; }
     .modal-body { padding: 14px 16px; overflow: auto; }
+
+    /* Revision history / audit display inside the design modal. */
+    .revision-audit-card {
+      margin-top: 16px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      overflow: hidden;
+      background: #fff;
+    }
+    .revision-audit-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      background: #fafbfc;
+    }
+    .revision-audit-title { font-weight: 800; font-size: 14px; }
+    .revision-audit-subtitle { color: var(--muted); font-size: 11px; margin-top: 2px; }
+    .revision-meta-banner {
+      margin-top: 14px;
+      padding: 10px 12px;
+      border: 1px solid #dfe4ea;
+      border-radius: 10px;
+      background: #f8fafc;
+      color: #334155;
+      font-size: 12px;
+      line-height: 1.45;
+    }
+    .revision-meta-banner.historical {
+      border-color: #f0c7d7;
+      background: #fff5f8;
+      color: #8a214f;
+    }
+    .revision-table td, .revision-table th { font-size: 11px; }
+    .revision-file-actions { display: flex; flex-wrap: wrap; gap: 5px; }
+    .historical-lock-note { font-weight: 700; }
     .modal-footer { padding: 12px 16px; border-top: 1px solid var(--line); display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
     .modal-actions { display: flex; gap: 7px; flex-wrap: wrap; }
     .form-grid { display: grid; grid-template-columns: repeat(3, minmax(170px, 1fr)); gap: 11px; }
@@ -604,6 +642,41 @@
             <textarea id="returnReasonInput" placeholder="Required when design is returned..."></textarea>
           </div>
         </div>
+
+        <!--
+          Revision metadata uses Zoho Creator system fields such as Added_Time,
+          Added_User, Modified_Time and Modified_User. No extra form fields are
+          required for these values. Older revisions are shown read-only.
+        -->
+        <div id="revisionMetaBanner" class="revision-meta-banner hidden"></div>
+
+        <section class="revision-audit-card">
+          <div class="revision-audit-head">
+            <div>
+              <div class="revision-audit-title">Revision History</div>
+              <div class="revision-audit-subtitle">Every design revision remains as a separate Design_Tracking record.</div>
+            </div>
+            <span id="revisionHistoryCount" class="status info">0 revisions</span>
+          </div>
+          <div class="table-wrap" style="border:0;border-radius:0;">
+            <table class="revision-table">
+              <thead>
+                <tr>
+                  <th>Revision</th>
+                  <th>Status</th>
+                  <th>Change / Description</th>
+                  <th>Created</th>
+                  <th>Created By</th>
+                  <th>Last Updated</th>
+                  <th>Updated By</th>
+                  <th>Files</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="revisionHistoryBody"></tbody>
+            </table>
+          </div>
+        </section>
       </div>
 
       <div class="modal-footer">
@@ -775,6 +848,19 @@
       parentDesignId: "Parent_Design_ID",
       startedBy: "Started_By",
       completedBy: "Completed_By"
+    };
+
+    /*
+      Creator system fields are automatically maintained by Zoho. They let the
+      widget show who created/updated each revision and when, without adding
+      duplicate fields to Design_Tracking. Different report/API responses may
+      use slightly different names, so aliases are kept here.
+    */
+    const SYSTEM_FIELD_ALIASES = {
+      addedTime: ["Added_Time", "Created_Time", "Created_Time1"],
+      addedUser: ["Added_User", "Created_By", "Created_User"],
+      modifiedTime: ["Modified_Time", "Last_Modified_Time", "Updated_Time"],
+      modifiedUser: ["Modified_User", "Last_Modified_User", "Updated_By"]
     };
 
     /* ======================================================================
@@ -1463,6 +1549,18 @@
       return iso ? toCreatorDate(iso) : text;
     }
 
+    // Preserves time where Creator returns a date-time system field.
+    function displayDateTime(value) {
+      if (!value) return "—";
+      const text = scalarValue(value).trim();
+      return text || "—";
+    }
+
+    function systemValue(record, aliases) {
+      if (!record) return "";
+      return pick(record, aliases) || "";
+    }
+
     function isOverdue(record) {
       const end = toInputDate(record?.[TRACKING_FIELDS.plannedEnd] || record?.Planned_End_Date || "");
       if (!end || isClosedStatus(record?.[TRACKING_FIELDS.status] || record?.Status || "")) return false;
@@ -1706,6 +1804,18 @@
         })),
         `Upload ${fieldName}`
       );
+    }
+
+    // Reads an old/current file directly from the Design_Tracking record.
+    // This is used by Revision History so users can download older drawings.
+    async function creatorReadTrackingFile(id, fieldName) {
+      if (state.demoMode) throw new Error("File download is disabled in demo mode.");
+      if (!state.designTrackingReport) throw new Error("Design Tracking report link name is required for file download.");
+      return await ZOHO.CREATOR.FILE.readFile(withAppName({
+        report_name: state.designTrackingReport,
+        id: String(id),
+        field_name: fieldName
+      }));
     }
 
     /* ======================================================================
@@ -2608,6 +2718,28 @@
       return map;
     }
 
+    // Returns every saved revision for one logical design on the selected equipment.
+    function revisionRecordsForDesignType(designType) {
+      return selectedEquipmentTracking()
+        .filter((r) => scalarValue(r[TRACKING_FIELDS.designType]) === designType)
+        .sort((a, b) => {
+          const revDiff = revisionNumber(b[TRACKING_FIELDS.revision]) - revisionNumber(a[TRACKING_FIELDS.revision]);
+          if (revDiff) return revDiff;
+          return String(systemValue(b, SYSTEM_FIELD_ALIASES.modifiedTime)).localeCompare(String(systemValue(a, SYSTEM_FIELD_ALIASES.modifiedTime)));
+        });
+    }
+
+    function latestRevisionForDesignType(designType) {
+      return revisionRecordsForDesignType(designType)[0] || null;
+    }
+
+    function isHistoricalRevision(record, designType) {
+      if (!record) return false;
+      const latest = latestRevisionForDesignType(designType || scalarValue(record[TRACKING_FIELDS.designType]));
+      if (!latest) return false;
+      return String(record.ID || record.id) !== String(latest.ID || latest.id);
+    }
+
     // Returns only design types that are relevant to the selected equipment.
     // The department library remains the full catalogue; this function narrows
     // it using Equipment Category / Type / Department so a pump does not get
@@ -2709,7 +2841,7 @@
           </div>
         </div>
         <div class="table-wrap"><table>
-          <thead><tr><th>Design</th><th>Drawing No.</th><th>Assigned</th><th>Start</th><th>End</th><th>Revision</th><th>Status</th><th>Progress</th><th>Action</th></tr></thead>
+          <thead><tr><th>Design</th><th>Drawing No.</th><th>Assigned</th><th>Start</th><th>End</th><th>Revision</th><th>Status</th><th>Progress</th><th>Last Updated</th><th>Updated By</th><th>Action</th></tr></thead>
           <tbody>${rows.map((row) => renderDesignRow(row)).join("")}</tbody>
         </table></div>`;
 
@@ -2737,6 +2869,8 @@
         <td>${escapeHtml(r ? scalarValue(r[TRACKING_FIELDS.revision]) || "R0" : "R0")}</td>
         <td><span class="status ${statusClass(status)}">${escapeHtml(status)}</span></td>
         <td class="progress-cell"><div class="progress-line"><div class="progress-track"><span style="width:${Math.max(0,Math.min(100,progress))}%"></span></div><strong>${progress}%</strong></div></td>
+        <td class="nowrap">${escapeHtml(r ? displayDateTime(systemValue(r, SYSTEM_FIELD_ALIASES.modifiedTime)) : "—")}</td>
+        <td>${escapeHtml(r ? scalarValue(systemValue(r, SYSTEM_FIELD_ALIASES.modifiedUser)) || "—" : "—")}</td>
         <td><button class="btn ${r ? "btn-secondary" : "btn-primary"} btn-sm" data-design-open="1" data-design-type="${escapeHtml(row.type)}" type="button">${r ? "Open" : "Plan"}</button></td>
       </tr>`;
     }
@@ -2839,12 +2973,131 @@
       $("returnReasonInput").value = record ? scalarValue(record[TRACKING_FIELDS.returnReason]) : "";
       clearFileInputs();
 
-      $("designModalTitle").textContent = record ? "Edit Design Tracking" : "Plan Design";
+      const historical = record ? isHistoricalRevision(record, type) : false;
+      $("designModalTitle").textContent = historical ? "Historical Design Revision" : (record ? "Edit Current Design Revision" : "Plan Design");
       $("designModalSubtitle").textContent = `${state.selectedProject.code} • ${state.selectedDepartment} • ${state.selectedEquipment.tag} • ${state.selectedEquipment.name}`;
       $("designModalError").classList.add("hidden");
-      $("newRevisionBtn").classList.toggle("hidden", !record);
+
+      // Revision itself is controlled by the + New Revision action, not edited manually.
+      $("revisionInput").readOnly = Boolean(record);
+
+      renderRevisionMeta(record, type);
+      renderRevisionHistory(type);
+      applyRevisionEditLock(historical);
       renderWorkflowActions();
       $("designModalBackdrop").classList.remove("hidden");
+    }
+
+    function renderRevisionMeta(record, designType) {
+      const banner = $("revisionMetaBanner");
+      if (!record) {
+        banner.classList.add("hidden");
+        return;
+      }
+
+      const historical = isHistoricalRevision(record, designType);
+      const revision = scalarValue(record[TRACKING_FIELDS.revision]) || "R0";
+      const created = displayDateTime(systemValue(record, SYSTEM_FIELD_ALIASES.addedTime));
+      const createdBy = scalarValue(systemValue(record, SYSTEM_FIELD_ALIASES.addedUser)) || "—";
+      const modified = displayDateTime(systemValue(record, SYSTEM_FIELD_ALIASES.modifiedTime));
+      const modifiedBy = scalarValue(systemValue(record, SYSTEM_FIELD_ALIASES.modifiedUser)) || "—";
+
+      banner.classList.remove("hidden", "historical");
+      if (historical) banner.classList.add("historical");
+      banner.innerHTML = historical
+        ? `<span class="historical-lock-note">Historical ${escapeHtml(revision)} — read only.</span> Created ${escapeHtml(created)} by ${escapeHtml(createdBy)}. Last updated ${escapeHtml(modified)} by ${escapeHtml(modifiedBy)}.`
+        : `<strong>Current ${escapeHtml(revision)}</strong>. Created ${escapeHtml(created)} by ${escapeHtml(createdBy)}. Last updated ${escapeHtml(modified)} by ${escapeHtml(modifiedBy)}.`;
+    }
+
+    function applyRevisionEditLock(historical) {
+      const editableIds = [
+        "designTypeInput","designTitleInput","drawingNumberInput","priorityInput","plannedStartInput",
+        "plannedEndInput","forecastEndInput","assignedToInput","checkerInput","reviewerInput","approverInput",
+        "statusInput","progressInput","revisionDescriptionInput","drawingFileInput","nativeFileInput",
+        "supportingFileInput","remarksInput","returnReasonInput"
+      ];
+      editableIds.forEach((id) => { $(id).disabled = Boolean(historical); });
+      $("saveDesignBtn").classList.toggle("hidden", Boolean(historical));
+      $("workflowActions").classList.toggle("hidden", Boolean(historical));
+      $("newRevisionBtn").classList.toggle("hidden", historical || !state.modalRecord);
+    }
+
+    function renderRevisionHistory(designType) {
+      const rows = designType ? revisionRecordsForDesignType(designType) : [];
+      $("revisionHistoryCount").textContent = `${rows.length} revision${rows.length === 1 ? "" : "s"}`;
+
+      if (!rows.length) {
+        $("revisionHistoryBody").innerHTML = `<tr><td colspan="9" class="muted">No saved revisions yet. The first saved record will be R0.</td></tr>`;
+        return;
+      }
+
+      $("revisionHistoryBody").innerHTML = rows.map((r, index) => {
+        const id = String(r.ID || r.id || "");
+        const revision = scalarValue(r[TRACKING_FIELDS.revision]) || "R0";
+        const status = scalarValue(r[TRACKING_FIELDS.status]) || "Not Started";
+        const description = scalarValue(r[TRACKING_FIELDS.revisionDescription]) || "—";
+        const created = displayDateTime(systemValue(r, SYSTEM_FIELD_ALIASES.addedTime));
+        const createdBy = scalarValue(systemValue(r, SYSTEM_FIELD_ALIASES.addedUser)) || "—";
+        const modified = displayDateTime(systemValue(r, SYSTEM_FIELD_ALIASES.modifiedTime));
+        const modifiedBy = scalarValue(systemValue(r, SYSTEM_FIELD_ALIASES.modifiedUser)) || "—";
+        const isCurrent = index === 0;
+
+        const fileButtons = [
+          [TRACKING_FIELDS.drawingFile, "Drawing"],
+          [TRACKING_FIELDS.nativeFile, "Native"],
+          [TRACKING_FIELDS.supportingFile, "Support"]
+        ].filter(([field]) => Boolean(r[field]))
+         .map(([field, label]) => `<button class="btn btn-soft btn-sm" type="button" data-download-revision-file="1" data-record-id="${escapeHtml(id)}" data-field-name="${escapeHtml(field)}" data-file-label="${escapeHtml(label)}">${escapeHtml(label)}</button>`).join("");
+
+        return `<tr>
+          <td><strong>${escapeHtml(revision)}</strong>${isCurrent ? '<div class="status success" style="margin-top:4px;">Current</div>' : '<div class="status" style="margin-top:4px;">Old</div>'}</td>
+          <td><span class="status ${statusClass(status)}">${escapeHtml(status)}</span></td>
+          <td>${escapeHtml(description)}</td>
+          <td class="nowrap">${escapeHtml(created)}</td>
+          <td>${escapeHtml(createdBy)}</td>
+          <td class="nowrap">${escapeHtml(modified)}</td>
+          <td>${escapeHtml(modifiedBy)}</td>
+          <td><div class="revision-file-actions">${fileButtons || "—"}</div></td>
+          <td><button class="btn btn-secondary btn-sm" type="button" data-view-revision-id="${escapeHtml(id)}">View</button></td>
+        </tr>`;
+      }).join("");
+
+      $("revisionHistoryBody").querySelectorAll("[data-view-revision-id]").forEach((button) => {
+        button.addEventListener("click", () => {
+          const record = rows.find((r) => String(r.ID || r.id) === String(button.dataset.viewRevisionId));
+          if (record) openDesignModal(record, designType);
+        });
+      });
+
+      $("revisionHistoryBody").querySelectorAll("[data-download-revision-file]").forEach((button) => {
+        button.addEventListener("click", () => downloadRevisionFile(
+          button.dataset.recordId,
+          button.dataset.fieldName,
+          button.dataset.fileLabel
+        ));
+      });
+    }
+
+    async function downloadRevisionFile(recordId, fieldName, label) {
+      showLoading(`Downloading ${label || "file"}...`);
+      try {
+        const response = await creatorReadTrackingFile(recordId, fieldName);
+        const content = response && response.data !== undefined ? response.data : response;
+        const blob = content instanceof Blob ? content : new Blob([content], { type: "application/octet-stream" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `${state.selectedProject?.code || "project"}_${state.selectedEquipment?.tag || "equipment"}_${label || "file"}`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 2000);
+      } catch (error) {
+        console.error(error);
+        toast(`Could not download old file: ${error.message || error}`, "error");
+      } finally {
+        hideLoading();
+      }
     }
 
     function closeDesignModal() {
@@ -2926,15 +3179,28 @@
       showLoading("Saving design tracking...");
       $("designModalError").classList.add("hidden");
       try {
+        const currentType = $("designTypeInput").value.trim();
+        if (state.modalRecord && isHistoricalRevision(state.modalRecord, currentType)) {
+          throw new Error("Old revisions are read-only. Open the current revision and use + New Revision to make a design change.");
+        }
+
         const payload = collectModalPayload(overrides);
         let id = state.modalRecord ? String(state.modalRecord.ID || state.modalRecord.id) : "";
+        const nowText = toCreatorDateTime(new Date());
 
         if (id) {
           await creatorUpdateTracking(id, payload);
-          Object.assign(state.modalRecord, payload);
+          Object.assign(state.modalRecord, payload, { Modified_Time: nowText, Modified_User: state.currentUser || "" });
         } else {
           id = await creatorAddTracking(payload);
-          state.modalRecord = { ID: id, ...payload };
+          state.modalRecord = {
+            ID: id,
+            ...payload,
+            Added_Time: nowText,
+            Added_User: state.currentUser || "",
+            Modified_Time: nowText,
+            Modified_User: state.currentUser || ""
+          };
           state.tracking.push(state.modalRecord);
         }
 
@@ -2943,6 +3209,8 @@
 
         toast(toastMessage, "success");
         renderAllTrackingViews();
+        renderRevisionMeta(state.modalRecord, currentType);
+        renderRevisionHistory(currentType);
         if (closeAfter) closeDesignModal();
         else {
           $("newRevisionBtn").classList.remove("hidden");
@@ -2970,6 +3238,7 @@
         if (file.size > CONFIG.MAX_FILE_BYTES) throw new Error(`${file.name} is larger than 50 MB.`);
         $("loadingText").textContent = `Uploading ${file.name}...`;
         await creatorUploadFile(id, field, file);
+        if (state.modalRecord) state.modalRecord[field] = file.name;
       }
       clearFileInputs();
     }
@@ -3055,12 +3324,28 @@
 
     async function createNewRevision() {
       if (!state.modalRecord) return;
-      if (!confirm(`Create a new revision after ${$("revisionInput").value || "R0"}?`)) return;
+
+      const currentType = scalarValue(state.modalRecord[TRACKING_FIELDS.designType]) || $("designTypeInput").value.trim();
+      if (isHistoricalRevision(state.modalRecord, currentType)) {
+        toast("Open the current revision before creating the next revision.", "error");
+        return;
+      }
+
+      const currentRevision = $("revisionInput").value || "R0";
+      const reason = prompt(`Reason / change summary for the new revision after ${currentRevision}:`, "");
+      if (reason === null) return;
+      if (!String(reason).trim()) {
+        toast("Revision description is required so the change history remains useful.", "error");
+        return;
+      }
+
+      if (!confirm(`Create ${nextRevision(currentRevision)} and keep ${currentRevision} as read-only history?`)) return;
 
       showLoading("Creating new revision...");
       try {
         const currentId = String(state.modalRecord.ID);
         const currentPayload = collectModalPayload();
+        const nowText = toCreatorDateTime(new Date());
         const newPayload = {
           ...currentPayload,
           [TRACKING_FIELDS.revision]: nextRevision(currentPayload[TRACKING_FIELDS.revision]),
@@ -3071,13 +3356,20 @@
           [TRACKING_FIELDS.actualEnd]: "",
           [TRACKING_FIELDS.startedBy]: "",
           [TRACKING_FIELDS.completedBy]: "",
-          [TRACKING_FIELDS.revisionDescription]: "",
+          [TRACKING_FIELDS.revisionDescription]: String(reason).trim(),
           [TRACKING_FIELDS.returnReason]: ""
         };
         const newId = await creatorAddTracking(newPayload);
-        const newRecord = { ID: newId, ...newPayload };
+        const newRecord = {
+          ID: newId,
+          ...newPayload,
+          Added_Time: nowText,
+          Added_User: state.currentUser || "",
+          Modified_Time: nowText,
+          Modified_User: state.currentUser || ""
+        };
         state.tracking.push(newRecord);
-        toast(`Created ${newPayload[TRACKING_FIELDS.revision]}.`, "success");
+        toast(`Created ${newPayload[TRACKING_FIELDS.revision]}. ${currentRevision} remains available in Revision History.`, "success");
         renderAllTrackingViews();
         openDesignModal(newRecord, newPayload[TRACKING_FIELDS.designType]);
       } catch (error) {
@@ -3087,6 +3379,7 @@
         hideLoading();
       }
     }
+
 
     /* ======================================================================
        S. DIAGNOSTICS
@@ -3398,6 +3691,8 @@
      9. Upload drawing/native/supporting files.
      10. Move through Check -> Review -> Approval -> Issue -> Complete.
      11. Use New Revision to create R1, R2, R3 without losing history.
+     12. Old revisions are read-only and remain downloadable from Revision History.
+     13. Added/Modified Time and User come from Creator system fields automatically.
 
      STORAGE
      -------
