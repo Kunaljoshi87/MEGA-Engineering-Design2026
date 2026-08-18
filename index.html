@@ -475,6 +475,7 @@
             <button class="tab-btn active" data-tab="overview" type="button">Overview</button>
             <button class="tab-btn" data-tab="pds" type="button">PDS</button>
             <button class="tab-btn" data-tab="bom" type="button">BOM</button>
+            <button class="tab-btn" data-tab="po" type="button">PO</button>
             <button class="tab-btn" data-tab="designs" type="button">Designs</button>
           </nav>
 
@@ -667,6 +668,9 @@
         equipment: "Master_Equipment_List_Subform_Report",
         pds: "All_Equipment_PDS",
         bom: "All_Equipment_BOM_Details",
+        // PO source is auto-discovered from available reports when possible.
+        // If you know the exact report link name later, put it here.
+        po: "",
         employees: "Employ_to_Create_ticket_Report",
         // Existing 72-row master used to map Plant Section Type -> Plant Section.
         plantSections: "All_Plant_Section_Types",
@@ -689,9 +693,31 @@
         "Design_Tracking"
       ],
 
+      // The Equipment List Project_Code lookup does NOT point to
+      // All_Associated_Projects. It points to the Engineering-side project
+      // master. V6 discovers that report (normally displayed as "All Projects")
+      // and resolves the selected visible code, e.g. 25005, to the correct
+      // legacy lookup record ID before requesting equipment.
+      EQUIPMENT_PROJECT_REPORT_CANDIDATES: [
+        "All_Projects",
+        "All_Projects_Report",
+        "Project_Report",
+        "Projects"
+      ],
+
+      // Optional PO report candidates. The widget will only show PO rows if it
+      // finds a report that can be tied back to the selected equipment/project.
+      PO_REPORT_CANDIDATES: [
+        "All_Purchase_Orders",
+        "Purchase_Order_Report",
+        "Purchase_Orders",
+        "All_PO",
+        "PO_Report"
+      ],
+
       // IMPORTANT: Project_Code is the real project field in the legacy equipment report.
       // However, its lookup record ID is NOT the same record ID returned by
-      // All_Associated_Projects. V5 therefore matches the DISPLAYED project code
+      // All_Associated_Projects. V6 resolves the Engineering-side lookup record ID for the selected project code
       // (for example 25005) inside Project_Code and caches the equipment report.
       EQUIPMENT_PROJECT_FIELD: "Project_Code",
       EQUIPMENT_PROJECT_IS_LOOKUP: true,
@@ -841,6 +867,19 @@
         rawLength: ["Raw_Length"],
         finishWeight: ["Finish_Weight"],
         rawWeight: ["Raw_Weight"]
+      },
+      po: {
+        id: ["ID"],
+        projectCode: ["Project_Code", "Project_Code1", "Project"],
+        masterEquipmentId: ["Master_Equipments_Report_ID", "Master_Equipment_Report_ID", "Master_Equipment_ID", "Equipment_Record_ID"],
+        tag: ["Tag_Number", "Tag_No", "Equipment_Tag"],
+        poNumber: ["PO_Number", "Purchase_Order_No", "Purchase_Order_Number", "PO_No", "Order_No"],
+        vendor: ["Vendor_Name", "Vendor", "Supplier_Name", "Supplier"],
+        poDate: ["PO_Date", "Purchase_Order_Date", "Order_Date", "Date"],
+        status: ["PO_Status", "Purchase_Order_Status", "Status"],
+        amount: ["PO_Amount", "Order_Amount", "Total_Amount", "Grand_Total", "Amount"],
+        item: ["Item_Name", "Description", "Item", "Material_Name"],
+        indent: ["Indent_No", "Indent_Number", "Indent"]
       },
       plantSections: {
         id: ["ID"],
@@ -1051,13 +1090,20 @@
       // Maps normalized Plant Section Type -> Plant Section Name.
       plantSectionTypeMap: new Map(),
       // The legacy equipment lookup uses a different project lookup ID than
-      // All_Associated_Projects, so V5 loads/caches the equipment report once
+      // All_Associated_Projects, so V6 first resolves the Engineering project lookup ID; fallback can load/cache the equipment report
       // and filters by the visible Project_Code (e.g. 25005).
       equipmentMasterRows: null,
+      // Engineering-side project report used by the Equipment Project_Code lookup.
+      equipmentProjectReport: "",
+      equipmentProjectRows: null,
+      equipmentProjectIdByCode: new Map(),
+      // Optional Purchase Order source report.
+      poReport: CONFIG.REPORTS.po || "",
       equipment: [],
       tracking: [],
       pdsCache: new Map(),
       bomCache: new Map(),
+      poCache: new Map(),
       selectedProject: null,
       selectedDepartment: "",
       selectedEquipment: null,
@@ -1773,6 +1819,8 @@
           state.currentUser = init?.loginUser || "";
           state.appName = init?.appLinkName || CONFIG.APP_NAME;
           await resolveDesignTrackingReport();
+          await resolveEquipmentProjectReport();
+          await resolvePoReport();
         }
 
         const [projectRows, employeeRows, plantSectionRows] = await Promise.all([
@@ -1838,6 +1886,111 @@
       return state.designTrackingReport;
     }
 
+    // ----------------------------------------------------------------------
+    // Resolve the Engineering-side "All Projects" report.
+    // ----------------------------------------------------------------------
+    // The project dropdown is populated from All_Associated_Projects, but the
+    // Equipment List Project_Code lookup points to another project master. We
+    // therefore map the selected visible Project Code to that second report's
+    // record ID. This is the critical V6 fix for projects such as 25005.
+    async function resolveEquipmentProjectReport() {
+      if (state.demoMode) {
+        state.equipmentProjectReport = "All_Projects";
+        return state.equipmentProjectReport;
+      }
+      if (state.equipmentProjectReport) return state.equipmentProjectReport;
+      try {
+        const response = assertCreatorResponse(
+          await ZOHO.CREATOR.META.getReports(withAppName({})),
+          "Get Reports"
+        );
+        const reports = response.reports || [];
+        const excluded = new Set([normalizeKey(CONFIG.REPORTS.projects), normalizeKey(CONFIG.REPORTS.equipment)]);
+        const candidates = CONFIG.EQUIPMENT_PROJECT_REPORT_CANDIDATES.map(normalizeKey);
+
+        let match = reports.find((r) => !excluded.has(normalizeKey(r.link_name)) && candidates.includes(normalizeKey(r.link_name)));
+        if (!match) {
+          match = reports.find((r) => {
+            const dn = normalizeKey(r.display_name);
+            const ln = normalizeKey(r.link_name);
+            return !excluded.has(ln) && (dn === "allprojects" || ln === "allprojects");
+          });
+        }
+        state.equipmentProjectReport = match?.link_name || "";
+        state.lastSourceDiagnostics.equipmentProjectReport = state.equipmentProjectReport || "NOT FOUND";
+        return state.equipmentProjectReport;
+      } catch (error) {
+        console.warn("Could not resolve Engineering project report", error);
+        return "";
+      }
+    }
+
+    // Loads the Engineering-side project records once and builds Code -> ID.
+    async function loadEquipmentProjectMap(forceReload = false) {
+      if (!forceReload && state.equipmentProjectRows && state.equipmentProjectIdByCode.size) {
+        return state.equipmentProjectIdByCode;
+      }
+      const reportName = await resolveEquipmentProjectReport();
+      if (!reportName) return state.equipmentProjectIdByCode;
+
+      const rows = await fetchAllRecords(reportName);
+      state.equipmentProjectRows = rows;
+      const map = new Map();
+      rows.forEach((row) => {
+        // Reuse project aliases and also inspect every value because this is a
+        // legacy project master and its exact code link name may differ.
+        let code = pick(row, FIELD_ALIASES.projects.code);
+        if (!code) {
+          const hit = deepScalarEntries(row).find(({ key, value }) =>
+            /project.*code/i.test(String(key)) && /^[A-Za-z0-9-]+$/.test(String(value).trim())
+          );
+          code = hit?.value || "";
+        }
+        const id = pick(row, ["ID"]);
+        if (code && id) map.set(String(code).trim(), String(id).trim());
+      });
+      state.equipmentProjectIdByCode = map;
+      state.lastSourceDiagnostics.equipmentProjectCount = rows.length;
+      return map;
+    }
+
+    // Finds the correct lookup ID used inside Master_Equipment_List_Subform_Report.
+    async function equipmentLookupProjectId(projectCode) {
+      const map = await loadEquipmentProjectMap(false);
+      return map.get(String(projectCode || "").trim()) || "";
+    }
+
+    // ----------------------------------------------------------------------
+    // Optional Purchase Order report resolver.
+    // ----------------------------------------------------------------------
+    async function resolvePoReport() {
+      if (state.poReport) return state.poReport;
+      if (state.demoMode) {
+        state.poReport = "All_Purchase_Orders";
+        return state.poReport;
+      }
+      try {
+        const response = assertCreatorResponse(
+          await ZOHO.CREATOR.META.getReports(withAppName({})),
+          "Get Reports"
+        );
+        const reports = response.reports || [];
+        const candidates = CONFIG.PO_REPORT_CANDIDATES.map(normalizeKey);
+        let match = reports.find((r) => candidates.includes(normalizeKey(r.link_name)));
+        if (!match) {
+          // Conservative auto-discovery: prefer display names that clearly say
+          // Purchase Order, rather than any report containing the letters PO.
+          match = reports.find((r) => /purchase\s*order/i.test(String(r.display_name || "")));
+        }
+        state.poReport = match?.link_name || "";
+        state.lastSourceDiagnostics.poReport = state.poReport || "NOT CONFIGURED";
+        return state.poReport;
+      } catch (error) {
+        console.warn("Could not resolve PO report", error);
+        return "";
+      }
+    }
+
     // Loads equipment and tracking records for the selected project.
     async function loadProjectData() {
       if (!state.selectedProject) return;
@@ -1852,6 +2005,7 @@
         state.tracking = tracking;
         state.pdsCache.clear();
         state.bomCache.clear();
+        state.poCache.clear();
         state.selectedEquipment = null;
 
         renderSectionFilter();
@@ -1863,7 +2017,7 @@
         selectDepartment(state.selectedDepartment);
       } catch (error) {
         console.error(error);
-        showError(`${errorMessage(error)} Open Diagnostics only if this persists; v5 matches Master Equipment List by the visible Project_Code value, then filters Plant Section and Plant Section Type.`);
+        showError(`${errorMessage(error)} Open Diagnostics only if this persists; v6 resolves the Engineering-side Project lookup ID first, then scopes every equipment/PDS/BOM/design record to the selected project and equipment.`);
       } finally {
         hideLoading();
       }
@@ -1896,7 +2050,7 @@
       state.equipmentMasterRows = rows;
       autoLearnEquipmentAliases(rows);
       state.lastSourceDiagnostics.equipmentRowsScanned = rows.length;
-      state.lastSourceDiagnostics.equipmentCriteria = "CLIENT MATCH: Project_Code display value";
+      state.lastSourceDiagnostics.equipmentCriteria = "FALLBACK CLIENT MATCH: Project_Code display value";
       return rows;
     }
 
@@ -1912,32 +2066,55 @@
       const projectCode = String(project?.code || "").trim();
       if (!projectCode) return [];
 
-      const allRows = await loadEquipmentMasterCache(false);
-      const matchedRows = allRows.filter((row) => equipmentRowMatchesProjectCode(row, projectCode));
+      let matchedRows = [];
+      let lookupId = "";
 
-      state.lastSourceDiagnostics.discoveredEquipmentProjectKey = CONFIG.EQUIPMENT_PROJECT_FIELD;
-      state.lastSourceDiagnostics.equipmentMatchedProjectCode = projectCode;
-      state.lastSourceDiagnostics.equipmentMatchedRows = matchedRows.length;
+      // PRIMARY / CORRECT PATH:
+      // Resolve 25005 in the Engineering-side All Projects report, then use
+      // that record ID to filter the Equipment List lookup Project_Code.
+      try {
+        lookupId = await equipmentLookupProjectId(projectCode);
+        if (lookupId) {
+          const criteria = `${CONFIG.EQUIPMENT_PROJECT_FIELD} == ${lookupId}`;
+          matchedRows = await fetchAllRecords(CONFIG.REPORTS.equipment, criteria);
+          state.lastSourceDiagnostics.equipmentCriteria = criteria;
+          state.lastSourceDiagnostics.equipmentLegacyProjectId = lookupId;
+        }
+      } catch (error) {
+        console.warn("Equipment lookup-ID query failed; using safe fallback.", error);
+      }
 
-      // Learn field aliases from the exact project's rows, then adapt them.
+      // FALLBACK:
+      // If the legacy project report could not be identified, scan the source
+      // report and use only rows whose Project_Code lookup visibly contains the
+      // exact selected project code. This fallback is project-safe but slower.
+      if (!matchedRows.length) {
+        const allRows = await loadEquipmentMasterCache(false);
+        matchedRows = allRows.filter((row) => equipmentRowMatchesProjectCode(row, projectCode));
+        state.lastSourceDiagnostics.equipmentFallbackScanned = allRows.length;
+      }
+
       autoLearnEquipmentAliases(matchedRows);
       const items = matchedRows.map(adaptEquipment).filter((e) => e.tag || e.name);
 
-      // De-duplicate by record ID, or by the complete hierarchy when ID is absent.
+      // De-duplicate within the selected project only.
       const unique = new Map();
       items.forEach((item) => {
-        const key = String(item.id || `${item.tag}|${item.name}|${item.plantSection}|${item.plantType}|${item.pdsName}`);
+        const key = String(item.id || `${projectCode}|${item.tag}|${item.name}|${item.plantSection}|${item.plantType}|${item.pdsName}`);
         if (!unique.has(key)) unique.set(key, item);
       });
 
       const result = [...unique.values()];
       result.sort((a, b) => String(a.tag || "").localeCompare(String(b.tag || ""), undefined, { numeric: true }));
 
+      state.lastSourceDiagnostics.equipmentMatchedProjectCode = projectCode;
+      state.lastSourceDiagnostics.equipmentMatchedRows = result.length;
+
       if (!result.length) {
         showError(
-          `No equipment rows matched Project Code ${projectCode}. ` +
-          `The widget loaded ${allRows.length} rows from ${CONFIG.REPORTS.equipment} and matched the visible Project_Code value only. ` +
-          `Open Diagnostics if this project definitely has equipment.`
+          `No equipment returned for Project ${projectCode}. ` +
+          `Engineering project lookup ID: ${lookupId || "not resolved"}. ` +
+          `Open Diagnostics and check the discovered Engineering All Projects report.`
         );
       }
       return result;
@@ -1958,69 +2135,94 @@
       }
     }
 
-    // Loads PDS records for the selected equipment, preferring the existing master equipment record ID.
+    // ----------------------------------------------------------------------
+    // STRICT EQUIPMENT-SCOPE MATCHING
+    // ----------------------------------------------------------------------
+    // Every PDS/BOM/PO row returned to the UI must belong to the selected
+    // equipment. A tag-only match is accepted only when the same row also
+    // belongs to the currently selected project. This prevents repeated tag
+    // numbers from another project leaking into the selected project dossier.
+    function rowMatchesSelectedEquipment(row, equipment, aliases) {
+      if (!row || !equipment) return false;
+      const selectedProjectCode = String(state.selectedProject?.code || "").trim();
+      const sourceEquipmentId = pick(row, aliases.masterEquipmentId || []);
+      const rowTag = pick(row, aliases.tag || []);
+      const rowProject = pick(row, aliases.projectCode || []);
+
+      if (sourceEquipmentId && equipment.id && String(sourceEquipmentId) === String(equipment.id)) return true;
+
+      if (rowTag && equipment.tag && String(rowTag).trim() === String(equipment.tag).trim()) {
+        // If the source row exposes Project Code, it must match the selected project.
+        if (rowProject) return valueContainsExactCode(rowProject, selectedProjectCode);
+        // If there is no project field, require the selected equipment's unique
+        // source record ID to be unavailable before accepting a tag fallback.
+        return !equipment.id;
+      }
+      return false;
+    }
+
+    async function queryEquipmentScopedReport(reportName, aliases, equipment) {
+      if (!reportName || !equipment || equipment.isGeneral) return [];
+      const expressions = [];
+
+      // Strongest link: use the first/known Master Equipment Record ID field.
+      // Keeping the criteria list short avoids dozens of harmless 400 errors in
+      // the browser console when old aliases do not exist in a report.
+      if (equipment.id && (aliases.masterEquipmentId || []).length) {
+        const field = aliases.masterEquipmentId[0];
+        expressions.push(`${field} == "${criteriaText(equipment.id)}"`);
+        expressions.push(`${field} == ${criteriaText(equipment.id)}`);
+      }
+
+      // Secondary link: exact Tag Number. Returned rows are STILL verified
+      // against project/equipment before they are displayed.
+      if (equipment.tag && (aliases.tag || []).length) {
+        const field = aliases.tag[0];
+        expressions.push(`${field} == "${criteriaText(equipment.tag)}"`);
+      }
+
+      const queried = await queryByExpressions(reportName, expressions);
+      let rows = (queried.rows || []).filter((row) => rowMatchesSelectedEquipment(row, equipment, aliases));
+
+      // Safe fallback: scan and VERIFY both equipment/project scope.
+      if (!rows.length) {
+        const scanned = await fetchAllRecords(reportName);
+        rows = scanned.filter((row) => rowMatchesSelectedEquipment(row, equipment, aliases));
+      }
+      return rows;
+    }
+
+    // Loads PDS records ONLY for the selected equipment in the selected project.
     async function loadPdsForEquipment(equipment) {
       if (!equipment || equipment.isGeneral) return [];
-      const cacheKey = String(equipment.id || equipment.tag);
+      const cacheKey = `${state.selectedProject?.code}|${equipment.id || equipment.tag}`;
       if (state.pdsCache.has(cacheKey)) return state.pdsCache.get(cacheKey);
-
-      const expressions = [];
-      if (equipment.id) {
-        for (const field of FIELD_ALIASES.pds.masterEquipmentId) {
-          expressions.push(`${field} == "${criteriaText(equipment.id)}"`);
-          expressions.push(`${field} == ${criteriaText(equipment.id)}`);
-        }
-      }
-      if (equipment.tag) {
-        for (const field of FIELD_ALIASES.pds.tag) expressions.push(`${field} == "${criteriaText(equipment.tag)}"`);
-      }
-
-      const queried = await queryByExpressions(CONFIG.REPORTS.pds, expressions);
-      let rows = queried.rows;
-      if (!rows.length) {
-        const projectCode = state.selectedProject?.code || "";
-        const projectExpressions = FIELD_ALIASES.pds.projectCode.map((field) => `${field} == "${criteriaText(projectCode)}"`);
-        const projectRows = (await queryByExpressions(CONFIG.REPORTS.pds, projectExpressions)).rows;
-        rows = projectRows.filter((r) => pick(r, FIELD_ALIASES.pds.tag) === equipment.tag);
-      }
-      if (!rows.length && equipment.tag) {
-        rows = await scanReportForExactValue(CONFIG.REPORTS.pds, equipment.tag);
-      }
-
+      const rows = await queryEquipmentScopedReport(CONFIG.REPORTS.pds, FIELD_ALIASES.pds, equipment);
       state.pdsCache.set(cacheKey, rows);
       return rows;
     }
 
-    // Loads BOM rows for the selected equipment/tag.
+    // Loads BOM rows ONLY for the selected equipment in the selected project.
     async function loadBomForEquipment(equipment) {
       if (!equipment || equipment.isGeneral) return [];
-      const cacheKey = String(equipment.id || equipment.tag);
+      const cacheKey = `${state.selectedProject?.code}|${equipment.id || equipment.tag}`;
       if (state.bomCache.has(cacheKey)) return state.bomCache.get(cacheKey);
-
-      const expressions = [];
-      if (equipment.id) {
-        for (const field of FIELD_ALIASES.bom.masterEquipmentId) {
-          expressions.push(`${field} == "${criteriaText(equipment.id)}"`);
-          expressions.push(`${field} == ${criteriaText(equipment.id)}`);
-        }
-      }
-      if (equipment.tag) {
-        for (const field of FIELD_ALIASES.bom.tag) expressions.push(`${field} == "${criteriaText(equipment.tag)}"`);
-      }
-
-      const queried = await queryByExpressions(CONFIG.REPORTS.bom, expressions);
-      let rows = queried.rows;
-      if (!rows.length) {
-        const projectCode = state.selectedProject?.code || "";
-        const projectExpressions = FIELD_ALIASES.bom.projectCode.map((field) => `${field} == "${criteriaText(projectCode)}"`);
-        const projectRows = (await queryByExpressions(CONFIG.REPORTS.bom, projectExpressions)).rows;
-        rows = projectRows.filter((r) => pick(r, FIELD_ALIASES.bom.tag) === equipment.tag);
-      }
-      if (!rows.length && equipment.tag) {
-        rows = await scanReportForExactValue(CONFIG.REPORTS.bom, equipment.tag);
-      }
-
+      const rows = await queryEquipmentScopedReport(CONFIG.REPORTS.bom, FIELD_ALIASES.bom, equipment);
       state.bomCache.set(cacheKey, rows);
+      return rows;
+    }
+
+    // Loads Purchase Order rows ONLY when an existing PO report is available
+    // and can be linked to the selected equipment by Equipment Record ID or by
+    // exact Tag + Project. No cross-project PO rows are shown.
+    async function loadPoForEquipment(equipment) {
+      if (!equipment || equipment.isGeneral) return [];
+      const reportName = state.poReport || await resolvePoReport();
+      if (!reportName) return [];
+      const cacheKey = `${state.selectedProject?.code}|${equipment.id || equipment.tag}`;
+      if (state.poCache.has(cacheKey)) return state.poCache.get(cacheKey);
+      const rows = await queryEquipmentScopedReport(reportName, FIELD_ALIASES.po, equipment);
+      state.poCache.set(cacheKey, rows);
       return rows;
     }
 
@@ -2255,6 +2457,13 @@
         catch (error) { $("tabBody").innerHTML = `<div class="error-banner">${escapeHtml(error.message)}</div>`; }
         finally { hideLoading(); }
       }
+      if (tab === "po") {
+        if (state.selectedEquipment.isGeneral) return renderNoEquipmentData("PO");
+        showLoading("Loading Purchase Order records...");
+        try { renderPoTab(await loadPoForEquipment(state.selectedEquipment)); }
+        catch (error) { $("tabBody").innerHTML = `<div class="error-banner">${escapeHtml(error.message)}</div>`; }
+        finally { hideLoading(); }
+      }
     }
 
     function renderNoEquipmentData(label) {
@@ -2337,6 +2546,32 @@
         </table></div>`;
     }
 
+    function renderPoTab(rows) {
+      if (!(state.poReport || CONFIG.REPORTS.po)) {
+        $("tabBody").innerHTML = `<div class="empty-state"><strong>PO source not connected yet</strong>The widget is ready for equipment-wise PO filtering, but I still need the exact existing Purchase Order report link name (or a report with Tag Number / Equipment Record ID) to connect it safely.</div>`;
+        return;
+      }
+      if (!rows.length) {
+        $("tabBody").innerHTML = `<div class="empty-state"><strong>No matching PO found</strong>No Purchase Order row was linked to this exact project + equipment.</div>`;
+        return;
+      }
+      $("tabBody").innerHTML = `
+        <div class="toolbar"><div class="toolbar-title">Equipment Purchase Orders (${rows.length})</div></div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>PO No.</th><th>Date</th><th>Vendor</th><th>Item</th><th>Indent</th><th>Status</th><th>Amount</th><th>ID</th></tr></thead>
+          <tbody>${rows.map((r) => `<tr>
+            <td>${escapeHtml(pick(r, FIELD_ALIASES.po.poNumber) || "—")}</td>
+            <td>${escapeHtml(pick(r, FIELD_ALIASES.po.poDate) || "—")}</td>
+            <td>${escapeHtml(pick(r, FIELD_ALIASES.po.vendor) || "—")}</td>
+            <td class="td-title">${escapeHtml(pick(r, FIELD_ALIASES.po.item) || "—")}</td>
+            <td>${escapeHtml(pick(r, FIELD_ALIASES.po.indent) || "—")}</td>
+            <td>${escapeHtml(pick(r, FIELD_ALIASES.po.status) || "—")}</td>
+            <td>${escapeHtml(pick(r, FIELD_ALIASES.po.amount) || "—")}</td>
+            <td>${escapeHtml(pick(r, FIELD_ALIASES.po.id) || "—")}</td>
+          </tr>`).join("")}</tbody>
+        </table></div>`;
+    }
+
     /* ======================================================================
        N. DESIGN REQUIREMENT MERGE / REVISION LOGIC
        ====================================================================== */
@@ -2373,10 +2608,79 @@
       return map;
     }
 
+    // Returns only design types that are relevant to the selected equipment.
+    // The department library remains the full catalogue; this function narrows
+    // it using Equipment Category / Type / Department so a pump does not get
+    // the same design list as a tank or an electric motor.
+    function applicableDesignLibrary(department, equipment) {
+      const full = DEPARTMENT_LIBRARY[department] || [];
+      if (!equipment || equipment.isGeneral) return full;
+
+      const text = [equipment.category, equipment.type, equipment.subtype, equipment.department, equipment.name]
+        .filter(Boolean).join(" ").toLowerCase();
+      const has = (...tokens) => tokens.some((t) => text.includes(String(t).toLowerCase()));
+
+      const RULES = {
+        Mechanical: {
+          tank: ["Equipment GA", "Fabrication Drawing", "Nozzle Orientation", "Support / Saddle Drawing", "Foundation Load Data", "Mechanical Design Calculation", "Manufacturing / Shop Drawing", "As-Built Mechanical Drawing"],
+          column: ["Equipment GA", "Fabrication Drawing", "Nozzle Orientation", "Internals Drawing", "Platform / Ladder Drawing", "Support / Saddle Drawing", "Foundation Load Data", "Mechanical Design Calculation", "Manufacturing / Shop Drawing", "As-Built Mechanical Drawing"],
+          pump: ["Equipment GA", "Foundation Load Data", "Vendor Drawing Review", "As-Built Mechanical Drawing"],
+          agitator: ["Equipment GA", "Foundation Load Data", "Vendor Drawing Review", "As-Built Mechanical Drawing"],
+          blower: ["Equipment GA", "Foundation Load Data", "Vendor Drawing Review", "As-Built Mechanical Drawing"],
+          motor: ["Vendor Drawing Review", "Foundation Load Data", "As-Built Mechanical Drawing"],
+          piping: []
+        },
+        Civil: {
+          defaultEquipment: ["Foundation Layout", "Equipment Foundation Drawing", "RCC Detail Drawing", "As-Built Civil Drawing"]
+        },
+        Structural: {
+          defaultEquipment: ["Structural Design Calculation", "Structural General Arrangement", "Connection Detail", "Structural Fabrication Drawing", "Erection Drawing", "As-Built Structural Drawing"]
+        },
+        Piping: {
+          defaultEquipment: ["Piping General Arrangement", "Piping Layout", "Piping Isometric", "Pipe Support Drawing", "Material Take-Off / BOQ", "As-Built Isometric"]
+        },
+        Electrical: {
+          motor: ["Load List", "Motor List", "Cable Schedule", "Cable Sizing Calculation", "Power / Control Schematic", "Earthing Layout", "As-Built Electrical Drawing"],
+          defaultEquipment: ["Load List", "Cable Schedule", "Cable Sizing Calculation", "Earthing Layout", "Power / Control Schematic", "As-Built Electrical Drawing"]
+        },
+        Instrumentation: {
+          defaultEquipment: ["Instrument Datasheet", "I/O List", "Instrument Location Layout", "Hook-Up Drawing", "Loop Diagram", "Alarm / Trip Schedule", "As-Built Instrument Drawing"]
+        },
+        Automation: {
+          defaultEquipment: ["I/O Mapping", "Interlock Logic", "HMI Screen Design", "FAT Procedure", "SAT Procedure", "As-Built Software / Backup"]
+        },
+        Process: {
+          defaultEquipment: ["Process Datasheet", "Piping & Instrumentation Diagram (P&ID)", "Equipment List"]
+        },
+        "Design / Layout": {
+          defaultEquipment: ["Equipment Layout", "Area General Arrangement", "3D Model Review", "Clash Review", "As-Built Layout"]
+        }
+      };
+
+      let list = null;
+      if (department === "Mechanical") {
+        if (has("tank", "vessel")) list = RULES.Mechanical.tank;
+        else if (has("column")) list = RULES.Mechanical.column;
+        else if (has("pump")) list = RULES.Mechanical.pump;
+        else if (has("agitator")) list = RULES.Mechanical.agitator;
+        else if (has("blower", "fan")) list = RULES.Mechanical.blower;
+        else if (has("motor")) list = RULES.Mechanical.motor;
+        else if (has("spool piping", "piping")) list = RULES.Mechanical.piping;
+      } else if (department === "Electrical") {
+        list = has("motor", "electrical") ? RULES.Electrical.motor : RULES.Electrical.defaultEquipment;
+      } else if (RULES[department]?.defaultEquipment) {
+        list = RULES[department].defaultEquipment;
+      }
+
+      // If no category-specific rule exists, use the full department library.
+      // Existing saved/custom tracking rows are still appended below.
+      return Array.isArray(list) ? list : full;
+    }
+
     function mergedDesignRows() {
       const records = selectedEquipmentTracking();
       const latest = latestRecordByDesignType(records);
-      const library = DEPARTMENT_LIBRARY[state.selectedDepartment] || [];
+      const library = applicableDesignLibrary(state.selectedDepartment, state.selectedEquipment);
       const rows = library.map((type) => ({
         type,
         record: latest.get(type) || null,
@@ -2942,6 +3246,9 @@
         { ID: "B1", Project_Code: "20015A", Master_Equipments_Report_ID: "E1", Tag_Number: "CL-1501", Location_Name: "Shell Plate 2", Indent_No: "1A10110411", Priority: "1A", Item_Name: "Plate", General_Standard: "US", MOC_Standard: "ASTM A240", MOC_Grade: "Gr 316", Item_Unit: "mm", Item_Size: "1500", Item_Type: "Hot Rolled", Thickness: "4.00", Quantity: "1", Finish_Weight: "151.39", Raw_Weight: "155.93" },
         { ID: "B2", Project_Code: "20015A", Master_Equipments_Report_ID: "E1", Tag_Number: "CL-1501", Location_Name: "Tray Support Clits", Indent_No: "1A10114711", Priority: "1A", Item_Name: "Plate", General_Standard: "US", MOC_Standard: "ASTM A240", MOC_Grade: "Gr 316", Item_Unit: "mm", Item_Size: "1500", Item_Type: "Hot Rolled", Thickness: "2.50", Quantity: "16", Finish_Weight: "1.28", Raw_Weight: "1.34" }
       ],
+      po: [
+        { ID: "PO1", Project_Code: "20015A", Master_Equipments_Report_ID: "E1", Tag_Number: "CL-1501", PO_Number: "PO-DEMO-001", Vendor_Name: "Demo Vendor", PO_Date: "18-Aug-2026", PO_Status: "Open", PO_Amount: "100000", Item_Name: "Column Material" }
+      ],
       plantSections: [
         { ID: "PS1", Plant_Section_Name: "Dehydration", Plant_Section_Type: "Rectified Spirit Liquid Basis Dehydration" },
         { ID: "PS2", Plant_Section_Name: "Evaporation", Plant_Section_Type: "Standalone Evaporation" },
@@ -2963,6 +3270,8 @@
       else if (reportName === CONFIG.REPORTS.equipment) rows = DEMO.equipment;
       else if (reportName === CONFIG.REPORTS.pds) rows = DEMO.pds;
       else if (reportName === CONFIG.REPORTS.bom) rows = DEMO.bom;
+      else if (reportName === state.poReport || reportName === "All_Purchase_Orders") rows = DEMO.po || [];
+      else if (reportName === "All_Projects") rows = DEMO.projects;
       else if (reportName === CONFIG.REPORTS.plantSections) rows = DEMO.plantSections;
       else if (reportName === CONFIG.REPORTS.employees) rows = DEMO.employees;
       else if (reportName === "Design_Tracking_Report") rows = DEMO.tracking;
