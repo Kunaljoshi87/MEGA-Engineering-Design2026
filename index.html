@@ -681,8 +681,14 @@
         "Design_Tracking"
       ],
 
-      // Maximum number of cursor batches the fallback loader will read.
-      // 15 x 1000 = 15,000 records maximum for one source report operation.
+      // IMPORTANT: The equipment report screenshot/diagnostics confirms that
+      // Project_Code is the real project field in Master_Equipment_List_Subform_Report.
+      // In this legacy report Project_Code behaves as a LOOKUP, therefore Creator API
+      // criteria must normally use the selected Project record ID (not the displayed code).
+      EQUIPMENT_PROJECT_FIELD: "Project_Code",
+      EQUIPMENT_PROJECT_IS_LOOKUP: true,
+
+      // Maximum number of cursor batches used only by Diagnostics/fallback tools.
       MAX_CURSOR_BATCHES: 30,
 
       // File Upload field limit documented by Zoho Creator JS API v2.
@@ -1381,10 +1387,20 @@
         if (criteria) config.criteria = criteria;
         if (cursor) config.record_cursor = cursor;
 
-        const response = assertCreatorResponse(
-          await ZOHO.CREATOR.DATA.getRecords(config),
-          `Get Records - ${reportName}`
-        );
+        let response;
+        try {
+          response = assertCreatorResponse(
+            await ZOHO.CREATOR.DATA.getRecords(config),
+            `Get Records - ${reportName}`
+          );
+        } catch (error) {
+          // Creator V2.1 can reject an otherwise valid filtered request with
+          // code 9280 when the criteria simply has no matching records.
+          // Treat that as an empty result instead of a fatal widget error.
+          const rawError = String(error?.responseText || error?.message || error || "");
+          if (/9280|No records found matching/i.test(rawError)) return rows;
+          throw error;
+        }
         const data = Array.isArray(response.data) ? response.data : [];
         rows.push(...data);
 
@@ -1725,63 +1741,102 @@
         selectDepartment(state.selectedDepartment);
       } catch (error) {
         console.error(error);
-        showError(`${errorMessage(error)} Open Diagnostics only if this persists; v3 now auto-discovers legacy project/equipment fields.`);
+        showError(`${errorMessage(error)} Open Diagnostics only if this persists; v4 matches Master Equipment List by the selected Project_Code lookup record ID.`);
       } finally {
         hideLoading();
       }
     }
 
-    // Loads project equipment from the legacy subform report. v3 uses three
-    // levels: known aliases -> automatic criteria discovery -> full cursor scan.
+    // Loads ONLY the equipment that belongs to the selected project.
+    //
+    // The live diagnostics supplied for the MEGA app confirm these facts:
+    //   Report: Master_Equipment_List_Subform_Report
+    //   Project field: Project_Code
+    //
+    // Project_Code is a lookup in this legacy equipment report (the API response
+    // exposes nested keys such as Project_Code.Added_User). Zoho Creator V2.1
+    // requires the LOOKED-UP RECORD ID when filtering a lookup field. Therefore
+    // the first/primary criteria is: Project_Code == <selected project record ID>.
+    //
+    // Only if that returns no rows do we try the displayed Project Code as text,
+    // which keeps the widget compatible if this field is converted to Single Line
+    // in the future. We deliberately DO NOT scan all 16,000+ equipment rows during
+    // normal use anymore. That was slow and caused confusing 400/no-record logs.
     async function loadEquipmentForProject(project) {
-      const code = criteriaText(project.code);
-      const id = criteriaText(project.id);
-      const expressions = [];
+      const field = CONFIG.EQUIPMENT_PROJECT_FIELD || "Project_Code";
+      const projectId = criteriaText(project?.id || "");
+      const projectCode = criteriaText(project?.code || "");
+      let rows = [];
+      let criteriaUsed = "";
 
-      // Level 1: try the known/common project field aliases.
-      for (const field of FIELD_ALIASES.equipment.projectCode) {
-        if (project.id) {
-          expressions.push(`${field} == ${id}`);
-          expressions.push(`${field} == "${id}"`);
+      // Primary mode: Project_Code is a lookup -> match selected project RECORD ID.
+      if (CONFIG.EQUIPMENT_PROJECT_IS_LOOKUP && projectId) {
+        criteriaUsed = `${field} == ${projectId}`;
+        try {
+          rows = await fetchAllRecords(CONFIG.REPORTS.equipment, criteriaUsed);
+        } catch (error) {
+          console.warn("Equipment lookup-ID criteria failed; trying displayed project code.", error);
+          rows = [];
         }
-        if (project.code) expressions.push(`${field} == "${code}"`);
       }
 
-      let queried = await queryByExpressions(CONFIG.REPORTS.equipment, expressions);
-      let rows = queried.rows;
-      state.lastSourceDiagnostics.equipmentCriteria = queried.expression || "";
-
-      // Level 2: inspect the actual report keys and test likely project fields.
-      if (!rows.length) {
-        queried = await discoverEquipmentByCriteria(project);
-        rows = queried.rows;
-        if (queried.expression) state.lastSourceDiagnostics.equipmentCriteria = queried.expression;
+      // Compatibility mode: Project_Code is/was a Single Line field.
+      if (!rows.length && projectCode) {
+        criteriaUsed = `${field} == "${projectCode}"`;
+        try {
+          rows = await fetchAllRecords(CONFIG.REPORTS.equipment, criteriaUsed);
+        } catch (error) {
+          console.warn("Equipment text project-code criteria failed.", error);
+          rows = [];
+        }
       }
 
-      // Level 3: scan returned rows page-by-page and find the selected project
-      // inside normal/lookup display values. This removes dependency on the
-      // old project field's link name.
-      if (!rows.length) {
-        rows = await scanEquipmentReportForProject(project);
-        if (rows.length) state.lastSourceDiagnostics.equipmentCriteria = "cursor scan / auto project match";
-      }
+      state.lastSourceDiagnostics.equipmentCriteria = criteriaUsed || "not attempted";
+      state.lastSourceDiagnostics.equipmentRowsScanned = rows.length;
+      state.lastSourceDiagnostics.discoveredEquipmentProjectKey = field;
 
+      // Learn the exact legacy field names from the rows returned for THIS project.
       autoLearnEquipmentAliases(rows);
-      const items = rows.map(adaptEquipment).filter((e) => e.tag || e.name);
 
-      // De-duplicate because old subform reports can expose the same equipment
-      // through more than one grouped/lookup path.
+      // Extra safety: even after server-side filtering, verify the returned
+      // Project_Code value/lookup ID against the selected project. This guarantees
+      // that equipment from another project is never displayed in this widget.
+      const selectedId = String(project?.id || "").trim();
+      const selectedCode = String(project?.code || "").trim();
+      const projectMatchedRows = rows.filter((row) => {
+        const raw = row?.[field];
+        if (raw && typeof raw === "object") {
+          const lookupId = String(raw.ID || raw.id || "").trim();
+          const display = scalarValue(raw).trim();
+          return (selectedId && lookupId === selectedId) ||
+                 (selectedCode && (display === selectedCode || display.split(/[^A-Za-z0-9]+/).includes(selectedCode)));
+        }
+        const value = scalarValue(raw).trim();
+        return !value || value === selectedCode || value === selectedId;
+      });
+
+      const sourceRows = projectMatchedRows.length ? projectMatchedRows : rows;
+      const items = sourceRows.map(adaptEquipment).filter((e) => e.tag || e.name);
+
+      // De-duplicate legacy subform rows by Creator record ID; if unavailable,
+      // use tag/name/section as a stable fallback key.
       const unique = new Map();
       items.forEach((item) => {
-        const key = String(item.id || `${item.tag}|${item.name}|${item.plantSection}`);
+        const key = String(item.id || `${item.tag}|${item.name}|${item.plantSection}|${item.plantType}`);
         if (!unique.has(key)) unique.set(key, item);
       });
+
       const result = [...unique.values()];
-      result.sort((a, b) => String(a.tag).localeCompare(String(b.tag), undefined, { numeric: true }));
+      result.sort((a, b) => String(a.tag || "").localeCompare(String(b.tag || ""), undefined, { numeric: true }));
 
       if (!result.length) {
-        const keys = state.lastSourceDiagnostics.equipmentSampleKeys || [];
-        showError(`No equipment rows matched project ${project.code}. The widget scanned ${state.lastSourceDiagnostics.equipmentRowsScanned || 0} equipment rows. Sample equipment keys: ${keys.join(", ") || "none returned"}. If this project truly has equipment, send a screenshot of Diagnostics output and I can pin the exact legacy field.`);
+        // This is a normal condition for project entries such as "Others" that
+        // genuinely do not have equipment in the Master Equipment List.
+        showError(
+          `No equipment exists in ${CONFIG.REPORTS.equipment} for Project Code ${project.code}. ` +
+          `Matching field: ${field}. Selected Project Record ID: ${project.id || "not available"}. ` +
+          `Select a project that has equipment (for example 25005 in your report) and Refresh.`
+        );
       }
       return result;
     }
@@ -1873,15 +1928,48 @@
 
     function renderProjectSelect() {
       const select = $("projectSelect");
-      select.innerHTML = '<option value="">Select project...</option>' + state.projects.map((p) => {
+
+      // Do not auto-open a special text project such as "Others". Keep a real
+      // Select project... placeholder so the user deliberately chooses the code
+      // whose equipment should be loaded. Numeric/alphanumeric project codes are
+      // shown first; special text entries are placed after them.
+      const ordered = [...state.projects].sort((a, b) => {
+        const aNormal = /^\d+[A-Za-z]?$/.test(String(a.code || "").trim());
+        const bNormal = /^\d+[A-Za-z]?$/.test(String(b.code || "").trim());
+        if (aNormal !== bNormal) return aNormal ? -1 : 1;
+        return String(b.code || "").localeCompare(String(a.code || ""), undefined, { numeric: true });
+      });
+
+      select.innerHTML = '<option value="">Select project...</option>' + ordered.map((p) => {
         const label = `${p.code}${p.customer ? ` — ${p.customer}` : ""}${p.description ? ` — ${p.description}` : ""}`;
         return `<option value="${escapeHtml(p.id || p.code)}">${escapeHtml(label)}</option>`;
       }).join("");
+      select.value = "";
+      state.selectedProject = null;
+    }
+
+    // Plant-section dropdown is built ONLY from the equipment rows already
+    // matched to the selected project. This guarantees that Project 25005,
+    // for example, shows only 25005 sections/types.
+    function equipmentSectionKey(e) {
+      return [e?.plantSection || "", e?.plantType || ""].join("|||");
+    }
+
+    function equipmentSectionLabel(e) {
+      if (e?.plantSection && e?.plantType) return `${e.plantSection} — ${e.plantType}`;
+      return e?.plantSection || e?.plantType || "";
     }
 
     function renderSectionFilter() {
-      const sections = [...new Set(state.equipment.map((e) => e.plantSection).filter(Boolean))].sort();
-      $("sectionFilter").innerHTML = '<option value="">All sections</option>' + sections.map((s) => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join("");
+      const options = new Map();
+      state.equipment.forEach((e) => {
+        const label = equipmentSectionLabel(e);
+        if (label) options.set(equipmentSectionKey(e), label);
+      });
+      const sorted = [...options.entries()].sort((a, b) => a[1].localeCompare(b[1]));
+      $("sectionFilter").innerHTML = '<option value="">All sections</option>' +
+        sorted.map(([value, label]) => `<option value="${escapeHtml(value)}">${escapeHtml(label)}</option>`).join("");
+      $("sectionFilter").value = "";
     }
 
     function departmentStats(department) {
@@ -1958,8 +2046,8 @@
       const q = `${$("globalSearch").value} ${$("equipmentSearch").value}`.toLowerCase().trim();
       const section = $("sectionFilter").value;
       return state.equipment.filter((e) => {
-        const hay = [e.tag, e.name, e.category, e.type, e.plantSection, e.pdsName].join(" ").toLowerCase();
-        return (!q || hay.includes(q)) && (!section || e.plantSection === section);
+        const hay = [e.tag, e.name, e.category, e.type, e.plantSection, e.plantType, e.pdsName, e.department].join(" ").toLowerCase();
+        return (!q || hay.includes(q)) && (!section || equipmentSectionKey(e) === section);
       });
     }
 
@@ -1971,7 +2059,7 @@
 
       $("equipmentList").innerHTML = withGeneral.map((e) => {
         const active = state.selectedEquipment?.id === e.id ? "active" : "";
-        const meta = e.isGeneral ? "For project/area-level documents" : [e.plantSection, e.category, e.pdsName].filter(Boolean).join(" • ");
+        const meta = e.isGeneral ? "For project/area-level documents" : [equipmentSectionLabel(e), e.category, e.pdsName].filter(Boolean).join(" • ");
         return `
           <button class="equipment-row ${active}" data-equipment-id="${escapeHtml(e.id)}" type="button">
             <div class="equipment-tag">${escapeHtml(e.tag || "NO TAG")}</div>
@@ -2639,6 +2727,9 @@
         state.selectedProject = state.projects.find((p) => String(p.id || p.code) === String(value)) || null;
         state.selectedDepartment = "Mechanical";
         state.selectedEquipment = null;
+        $("globalSearch").value = "";
+        $("equipmentSearch").value = "";
+        $("sectionFilter").innerHTML = '<option value="">All sections</option>';
         $("projectContext").textContent = state.selectedProject
           ? `${state.selectedProject.code}${state.selectedProject.customer ? ` — ${state.selectedProject.customer}` : ""}${state.selectedProject.description ? ` — ${state.selectedProject.description}` : ""}`
           : "Select a project to begin.";
@@ -2835,6 +2926,14 @@
      1. Select Project.
      2. Click Department.
      3. Select Project / Area General or an equipment Tag Number.
+
+     V4 PROJECT MATCHING NOTE
+     ------------------------
+     Master_Equipment_List_Subform_Report.Project_Code is treated as a lookup.
+     When a user selects Project 25005, the widget sends the selected Project
+     record ID in the Creator criteria: Project_Code == <record ID>. This is the
+     supported way to filter Creator lookup fields. Plant Section and Equipment
+     lists are then created ONLY from those returned project equipment rows.
      4. Review Overview / PDS / BOM.
      5. Open Designs.
      6. Plan one design or Initialize All standard design requirements.
