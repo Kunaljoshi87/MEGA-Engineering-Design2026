@@ -312,6 +312,7 @@
       flex-direction: column;
     }
     .modal-sm { width: min(760px, 96vw); }
+    .modal-diagnostics { width: min(1180px, 97vw); }
     .modal-head { display: flex; justify-content: space-between; gap: 14px; align-items: flex-start; padding: 14px 16px; border-bottom: 1px solid var(--line); }
     .modal-title { font-size: 17px; font-weight: 800; }
     .modal-subtitle { color: var(--muted); font-size: 11px; margin-top: 3px; }
@@ -695,20 +696,23 @@
        names can differ from display labels. It helps an admin troubleshoot.
        ================================================================== -->
   <div id="diagnosticsBackdrop" class="modal-backdrop hidden" role="dialog" aria-modal="true">
-    <div class="modal modal-sm">
+    <div class="modal modal-diagnostics">
       <div class="modal-head">
         <div>
-          <div class="modal-title">Widget Diagnostics</div>
-          <div class="modal-subtitle">Report discovery, sample field keys and current configuration.</div>
+          <div class="modal-title">Widget Diagnostics & Operation Flow</div>
+          <div class="modal-subtitle">Shows the exact Project → Plant Section → Equipment → PDS/BOM/PO → Design Tracking route for the current operation.</div>
         </div>
         <button id="closeDiagnosticsBtn" class="icon-btn" type="button" aria-label="Close">×</button>
       </div>
       <div class="modal-body">
         <div class="toolbar">
           <div class="toolbar-left"><strong>Configuration check</strong></div>
-          <div class="toolbar-right"><button id="runDiagnosticsBtn" class="btn btn-primary btn-sm" type="button">Run Diagnostics</button></div>
+          <div class="toolbar-right">
+            <button id="clearFlowBtn" class="btn btn-secondary btn-sm" type="button">Clear Flow Log</button>
+            <button id="runDiagnosticsBtn" class="btn btn-primary btn-sm" type="button">Run Diagnostics</button>
+          </div>
         </div>
-        <pre id="diagnosticsOutput" style="white-space:pre-wrap;word-break:break-word;background:#f7f8fb;border:1px solid #e2e6eb;border-radius:9px;padding:10px;min-height:260px;font-size:11px;line-height:1.45;"></pre>
+        <pre id="diagnosticsOutput" style="white-space:pre-wrap;word-break:break-word;background:#f7f8fb;border:1px solid #e2e6eb;border-radius:9px;padding:10px;min-height:430px;max-height:62vh;overflow:auto;font-size:11px;line-height:1.45;"></pre>
       </div>
     </div>
   </div>
@@ -1196,13 +1200,105 @@
       activeTab: "overview",
       modalRecord: null,
       modalVirtualType: "",
-      lastSourceDiagnostics: {}
+      lastSourceDiagnostics: {},
+
+      // V9: Meta information for the hidden Design_Tracking form. This lets
+      // the widget validate Creator field types BEFORE sending a save/update.
+      // It specifically prevents opaque error 3001 / "Invalid column value".
+      trackingFieldMeta: new Map(),
+      trackingMetaLoaded: false,
+      designTypeFallbackMode: false,
+      designTypeFallbackReason: "",
+
+      // V9: Local operation-flow log. Nothing here is written to Creator.
+      // It exists only for the current widget session and is displayed in Diagnostics.
+      operationFlow: [],
+      operationSequence: 0,
+      lastOperation: "Widget loaded"
     };
 
     /* ======================================================================
        G. DOM SHORTCUTS
        ====================================================================== */
     const $ = (id) => document.getElementById(id);
+
+    /* ======================================================================
+       G1. V8 OPERATION FLOW / TRACE HELPERS
+       ----------------------------------------------------------------------
+       These helpers create a human-readable runtime trail for Diagnostics.
+       Example:
+         Project 25005 selected
+           -> Equipment read from Master_Equipment_List_Subform_Report
+           -> Plant Section CO2 Recovery System
+           -> Plant Section Type Food Grade
+           -> Equipment TK-2901A
+           -> PDS read from All_Equipment_PDS
+           -> BOM read from All_Equipment_BOM_Details
+           -> Design update written to Design_Tracking
+
+       The flow log is LOCAL to the browser session. It does not create any
+       extra Creator records and therefore does not affect production data.
+       ====================================================================== */
+
+    // Returns the currently selected business context without changing data.
+    function currentFlowContext() {
+      const section = $("sectionFilter")?.value || "";
+      const sectionType = $("sectionTypeFilter")?.value || "";
+      const designType = $("designTypeInput")?.value || state.modalVirtualType || "";
+      const revision = $("revisionInput")?.value || scalarValue(state.modalRecord?.[TRACKING_FIELDS.revision]) || "";
+      return {
+        projectCode: state.selectedProject?.code || "",
+        projectRecordId: state.selectedProject?.id || "",
+        projectCustomer: state.selectedProject?.customer || "",
+        plantSection: section || state.selectedEquipment?.plantSection || "",
+        plantSectionType: sectionType || state.selectedEquipment?.plantType || "",
+        department: state.selectedDepartment || "",
+        equipmentRecordId: state.selectedEquipment?.id || "",
+        tagNumber: state.selectedEquipment?.tag || "",
+        equipmentName: state.selectedEquipment?.name || "",
+        designType,
+        revision
+      };
+    }
+
+    // Adds one timestamped operation to the Diagnostics flow log.
+    function traceFlow(stage, action, details = {}) {
+      const entry = {
+        no: ++state.operationSequence,
+        at: new Date().toLocaleString(),
+        stage: String(stage || "FLOW"),
+        action: String(action || ""),
+        context: currentFlowContext(),
+        details: details || {}
+      };
+      state.lastOperation = `${entry.stage}: ${entry.action}`;
+      state.operationFlow.push(entry);
+      // Keep the last 250 operations so a long session cannot grow indefinitely.
+      if (state.operationFlow.length > 250) state.operationFlow.splice(0, state.operationFlow.length - 250);
+      console.info(`[MEGA FLOW ${entry.no}] ${entry.stage} - ${entry.action}`, { context: entry.context, details: entry.details });
+      return entry;
+    }
+
+    // Clears only the local diagnostic trail, never Creator data.
+    function clearFlowLog() {
+      state.operationFlow = [];
+      state.operationSequence = 0;
+      state.lastOperation = "Flow log cleared";
+      traceFlow("DIAGNOSTICS", "Flow log cleared by user");
+    }
+
+    // Converts an object into short key/value lines for Diagnostics.
+    function appendDetailLines(lines, details, indent = "      ") {
+      Object.entries(details || {}).forEach(([key, value]) => {
+        let text = value;
+        if (Array.isArray(value)) text = value.join(", ");
+        else if (value && typeof value === "object") {
+          try { text = JSON.stringify(value); } catch (_) { text = String(value); }
+        }
+        if (text === "" || text === null || text === undefined) return;
+        lines.push(`${indent}${key}: ${text}`);
+      });
+    }
 
     /* ======================================================================
        H. SMALL UTILITY FUNCTIONS
@@ -1588,6 +1684,170 @@
     }
 
     /* ======================================================================
+       I-B. V9 DESIGN_TRACKING SCHEMA SAFETY
+       ----------------------------------------------------------------------
+       Creator returns error 3001 / "Invalid column value for Design_Type"
+       when a value such as "Piping General Arrangement" is sent to a field
+       configured as a Drop Down/Radio but that exact choice is not allowed.
+
+       V9 reads the live Design_Tracking field metadata before saving. For
+       Design_Type only, if Creator is configured incompatibly, V9 can use a
+       temporary compatibility fallback so Save / Start / Submit can continue.
+
+       PERMANENT BEST FIX IN CREATOR:
+       Design Type (link name Design_Type) should be a SINGLE LINE field.
+       ====================================================================== */
+
+    function trackingMeta(linkName) {
+      return state.trackingFieldMeta.get(String(linkName || "")) || null;
+    }
+
+    function creatorChoiceValues(meta) {
+      if (!meta || !Array.isArray(meta.choices)) return [];
+      return meta.choices
+        .map((choice) => scalarValue(choice?.value ?? choice?.key ?? choice))
+        .filter(Boolean);
+    }
+
+    function creatorFieldTypeName(meta) {
+      const names = {
+        1: "Single Line", 2: "Multi Line", 3: "Email", 4: "Rich Text",
+        5: "Number", 6: "Decimal", 7: "Percent", 8: "Currency",
+        9: "Auto Number", 10: "Date", 11: "Date-Time", 12: "Drop Down / Lookup",
+        13: "Radio / Lookup", 14: "Multi Select / Lookup", 15: "Checkbox / Lookup",
+        16: "Decision Box", 17: "URL", 18: "Image", 19: "File Upload",
+        20: "Formula", 21: "Subform", 24: "Add Notes", 25: "Signature",
+        26: "Users", 27: "Phone", 29: "Name", 30: "Address", 31: "Integration"
+      };
+      return names[Number(meta?.type)] || `Type ${meta?.type ?? "unknown"}`;
+    }
+
+    async function loadDesignTrackingSchema() {
+      if (state.demoMode) {
+        state.trackingMetaLoaded = true;
+        return;
+      }
+      try {
+        const response = assertCreatorResponse(
+          await ZOHO.CREATOR.META.getFields(withAppName({
+            form_name: CONFIG.FORMS.designTracking
+          })),
+          "Get Design_Tracking Fields"
+        );
+        const fields = Array.isArray(response.fields) ? response.fields : [];
+        state.trackingFieldMeta = new Map(fields.map((field) => [String(field.link_name || ""), field]));
+        state.trackingMetaLoaded = true;
+
+        const designMeta = trackingMeta(TRACKING_FIELDS.designType);
+        const choices = creatorChoiceValues(designMeta);
+        state.lastSourceDiagnostics.designTypeFieldSchema = designMeta ? {
+          displayName: designMeta.display_name || "Design Type",
+          linkName: designMeta.link_name || TRACKING_FIELDS.designType,
+          type: creatorFieldTypeName(designMeta),
+          isLookup: Boolean(designMeta.is_lookup_field),
+          choices
+        } : { missing: true };
+
+        traceFlow("SCHEMA", "Design_Tracking field metadata loaded", {
+          fieldCount: fields.length,
+          designTypeFieldType: designMeta ? creatorFieldTypeName(designMeta) : "NOT FOUND",
+          designTypeChoices: choices.slice(0, 25)
+        });
+      } catch (error) {
+        state.trackingMetaLoaded = false;
+        console.warn("Design_Tracking field metadata could not be loaded", error);
+        traceFlow("SCHEMA", "Design_Tracking metadata unavailable; continuing without preflight validation", {
+          error: error.message
+        });
+      }
+    }
+
+    function allConfiguredDesignTypes() {
+      return [...new Set(Object.values(DEPARTMENT_LIBRARY).flat().map(String))]
+        .sort((a, b) => b.length - a.length);
+    }
+
+    // Returns the design type even if Creator Design_Type had to be omitted.
+    // The default title is "<Equipment Name> - <Design Type>", so this can
+    // safely reconstruct the type on a later reload.
+    function getTrackingDesignType(record) {
+      if (!record) return "";
+      const direct = scalarValue(record[TRACKING_FIELDS.designType]).trim();
+      if (direct) return direct;
+
+      const title = scalarValue(record[TRACKING_FIELDS.designTitle]).trim();
+      if (!title) return "";
+
+      const equipmentName = scalarValue(record[TRACKING_FIELDS.equipmentName]).trim();
+      if (equipmentName) {
+        const prefix = `${equipmentName} - `;
+        if (title.toLowerCase().startsWith(prefix.toLowerCase())) {
+          return title.slice(prefix.length).trim();
+        }
+      }
+
+      for (const type of allConfiguredDesignTypes()) {
+        if (title === type || title.endsWith(` - ${type}`) || title.includes(type)) return type;
+      }
+      return "";
+    }
+
+    function prepareTrackingPayloadForCreator(rawPayload, { forUpdate = false } = {}) {
+      const payload = { ...rawPayload };
+      if (!state.trackingMetaLoaded || !state.trackingFieldMeta.size) return payload;
+
+      for (const [linkName, value] of Object.entries({ ...payload })) {
+        const meta = trackingMeta(linkName);
+        if (!meta) continue;
+
+        if ((value === "" || value === null || value === undefined) && !forUpdate) {
+          delete payload[linkName];
+          continue;
+        }
+
+        const type = Number(meta.type);
+        const isChoice = (type === 12 || type === 13) && !meta.is_lookup_field;
+        if (!isChoice || value === "" || value === null || value === undefined) continue;
+
+        const allowed = creatorChoiceValues(meta);
+        if (!allowed.length) continue;
+        const requested = String(value);
+        const exact = allowed.find((choice) => choice === requested);
+        if (exact) {
+          payload[linkName] = exact;
+          continue;
+        }
+        const caseMatch = allowed.find((choice) => choice.toLowerCase() === requested.toLowerCase());
+        if (caseMatch) {
+          payload[linkName] = caseMatch;
+          continue;
+        }
+
+        if (linkName === TRACKING_FIELDS.designType) {
+          delete payload[linkName];
+          state.designTypeFallbackMode = true;
+          state.designTypeFallbackReason =
+            `Design_Type is ${creatorFieldTypeName(meta)} and does not allow "${requested}". ` +
+            `V9 temporarily derives the type from Design_Title. Change Design_Type to Single Line for the permanent fix.`;
+          state.lastSourceDiagnostics.designTypeFallback = state.designTypeFallbackReason;
+          traceFlow("SCHEMA FALLBACK", "Omitted incompatible Design_Type from Creator payload", {
+            requestedDesignType: requested,
+            fieldType: creatorFieldTypeName(meta),
+            allowedChoices: allowed.slice(0, 25),
+            permanentFix: "Change Design_Type to Single Line"
+          });
+          continue;
+        }
+
+        throw new Error(
+          `${meta.display_name || linkName} does not accept "${requested}". ` +
+          `Allowed values: ${allowed.join(", ")}. Update the Creator field choices or widget configuration.`
+        );
+      }
+      return payload;
+    }
+
+    /* ======================================================================
        J. CREATOR API WRAPPERS
        ----------------------------------------------------------------------
        Every Zoho call goes through these functions. This keeps the business
@@ -1764,10 +2024,11 @@
     // Adds one Design_Tracking record. File fields are uploaded separately afterwards.
     async function creatorAddTracking(data) {
       if (state.demoMode) return demoAddTracking(data);
+      const creatorPayload = prepareTrackingPayloadForCreator(data, { forUpdate: false });
       const response = assertCreatorResponse(
         await ZOHO.CREATOR.DATA.addRecords(withAppName({
           form_name: CONFIG.FORMS.designTracking,
-          payload: { data }
+          payload: { data: creatorPayload }
         })),
         "Add Design Tracking"
       );
@@ -1778,11 +2039,12 @@
     async function creatorUpdateTracking(id, data) {
       if (state.demoMode) return demoUpdateTracking(id, data);
       if (!state.designTrackingReport) throw new Error("Design Tracking report link name has not been resolved.");
+      const creatorPayload = prepareTrackingPayloadForCreator(data, { forUpdate: true });
       const response = assertCreatorResponse(
         await ZOHO.CREATOR.DATA.updateRecordById(withAppName({
           report_name: state.designTrackingReport,
           id: String(id),
-          payload: { data }
+          payload: { data: creatorPayload }
         })),
         "Update Design Tracking"
       );
@@ -1809,6 +2071,11 @@
     // Reads an old/current file directly from the Design_Tracking record.
     // This is used by Revision History so users can download older drawings.
     async function creatorReadTrackingFile(id, fieldName) {
+      traceFlow("FILE READ", "Read design/revision file", {
+        sourceReport: state.designTrackingReport || "not resolved",
+        trackingRecordId: id,
+        fieldName
+      });
       if (state.demoMode) throw new Error("File download is disabled in demo mode.");
       if (!state.designTrackingReport) throw new Error("Design Tracking report link name is required for file download.");
       return await ZOHO.CREATOR.FILE.readFile(withAppName({
@@ -1912,6 +2179,11 @@
 
     // Reads projects, employees and the existing Plant Section Type master at startup.
     async function loadBaseData() {
+      traceFlow("STARTUP", "Loading base data", {
+        projectsSource: CONFIG.REPORTS.projects,
+        employeesSource: CONFIG.REPORTS.employees,
+        plantSectionSource: CONFIG.REPORTS.plantSections
+      });
       showLoading("Loading projects and employees...");
       clearError();
       try {
@@ -1929,6 +2201,7 @@
           state.currentUser = init?.loginUser || "";
           state.appName = init?.appLinkName || CONFIG.APP_NAME;
           await resolveDesignTrackingReport();
+          await loadDesignTrackingSchema();
           await resolveEquipmentProjectReport();
           await resolvePoReport();
         }
@@ -1948,6 +2221,16 @@
         // existing All_Plant_Section_Types report.
         autoLearnPlantSectionAliases(plantSectionRows);
         state.plantSectionRows = plantSectionRows.map(adaptPlantSectionMaster).filter((r) => r.type || r.section);
+
+        traceFlow("STARTUP", "Base data loaded", {
+          projectsRead: projectRows.length,
+          employeesRead: employeeRows.length,
+          plantSectionMasterRowsRead: plantSectionRows.length,
+          projectsSource: CONFIG.REPORTS.projects,
+          employeesSource: CONFIG.REPORTS.employees,
+          plantSectionSource: CONFIG.REPORTS.plantSections,
+          designTrackingReport: state.designTrackingReport || "not resolved"
+        });
         state.plantSectionTypeMap = new Map();
         state.plantSectionRows.forEach((r) => {
           if (r.type && r.section) state.plantSectionTypeMap.set(normalizeKey(r.type), r.section);
@@ -2104,6 +2387,12 @@
     // Loads equipment and tracking records for the selected project.
     async function loadProjectData() {
       if (!state.selectedProject) return;
+      traceFlow("PROJECT", `Load selected project ${state.selectedProject.code}`, {
+        projectSource: CONFIG.REPORTS.projects,
+        projectRecordId: state.selectedProject.id || "",
+        equipmentSource: CONFIG.REPORTS.equipment,
+        trackingSource: state.designTrackingReport || CONFIG.REPORTS.designTracking || "Design_Tracking report"
+      });
       showLoading(`Loading project ${state.selectedProject.code}...`);
       clearError();
       try {
@@ -2118,6 +2407,13 @@
         state.poCache.clear();
         state.selectedEquipment = null;
 
+        traceFlow("PROJECT", `Project ${state.selectedProject.code} data loaded`, {
+          equipmentRowsMatched: equipment.length,
+          designTrackingRowsMatched: tracking.length,
+          equipmentSource: CONFIG.REPORTS.equipment,
+          trackingSource: state.designTrackingReport || "not resolved"
+        });
+
         renderSectionFilter();
         renderDepartmentCards();
         renderKpis();
@@ -2127,7 +2423,7 @@
         selectDepartment(state.selectedDepartment);
       } catch (error) {
         console.error(error);
-        showError(`${errorMessage(error)} Open Diagnostics only if this persists; v6 resolves the Engineering-side Project lookup ID first, then scopes every equipment/PDS/BOM/design record to the selected project and equipment.`);
+        showError(`${errorMessage(error)} Open Diagnostics only if this persists; the widget scopes every equipment/PDS/BOM/design record to the selected project and equipment.`);
       } finally {
         hideLoading();
       }
@@ -2179,6 +2475,11 @@
       let matchedRows = [];
       let lookupId = "";
 
+      traceFlow("EQUIPMENT", `Resolve equipment for Project ${projectCode}`, {
+        sourceReport: CONFIG.REPORTS.equipment,
+        projectField: CONFIG.EQUIPMENT_PROJECT_FIELD
+      });
+
       // PRIMARY / CORRECT PATH:
       // Resolve 25005 in the Engineering-side All Projects report, then use
       // that record ID to filter the Equipment List lookup Project_Code.
@@ -2189,6 +2490,12 @@
           matchedRows = await fetchAllRecords(CONFIG.REPORTS.equipment, criteria);
           state.lastSourceDiagnostics.equipmentCriteria = criteria;
           state.lastSourceDiagnostics.equipmentLegacyProjectId = lookupId;
+          traceFlow("EQUIPMENT", "Creator criteria query completed", {
+            sourceReport: CONFIG.REPORTS.equipment,
+            criteria,
+            engineeringProjectLookupId: lookupId,
+            rowsReturned: matchedRows.length
+          });
         }
       } catch (error) {
         console.warn("Equipment lookup-ID query failed; using safe fallback.", error);
@@ -2202,6 +2509,12 @@
         const allRows = await loadEquipmentMasterCache(false);
         matchedRows = allRows.filter((row) => equipmentRowMatchesProjectCode(row, projectCode));
         state.lastSourceDiagnostics.equipmentFallbackScanned = allRows.length;
+        traceFlow("EQUIPMENT", "Fallback display-value match used", {
+          sourceReport: CONFIG.REPORTS.equipment,
+          matchRule: `Project_Code display value == ${projectCode}`,
+          rowsScanned: allRows.length,
+          rowsMatched: matchedRows.length
+        });
       }
 
       autoLearnEquipmentAliases(matchedRows);
@@ -2220,6 +2533,12 @@
       state.lastSourceDiagnostics.equipmentMatchedProjectCode = projectCode;
       state.lastSourceDiagnostics.equipmentMatchedRows = result.length;
 
+      traceFlow("EQUIPMENT", `Project ${projectCode} equipment ready`, {
+        sourceReport: CONFIG.REPORTS.equipment,
+        equipmentCount: result.length,
+        sampleTags: result.slice(0, 8).map((e) => e.tag).filter(Boolean)
+      });
+
       if (!result.length) {
         showError(
           `No equipment returned for Project ${projectCode}. ` +
@@ -2233,13 +2552,23 @@
     // Design_Tracking uses a known single-line Project_Code field, so criteria is reliable.
     async function loadTrackingForProject(projectCode) {
       const criteria = `${TRACKING_FIELDS.projectCode} == "${criteriaText(projectCode)}"`;
+      traceFlow("DESIGN TRACKING", `Read tracking for Project ${projectCode}`, {
+        sourceReport: state.designTrackingReport || CONFIG.REPORTS.designTracking || "auto-discovered Design Tracking report",
+        criteria
+      });
       try {
-        return await fetchAllRecords(state.designTrackingReport || CONFIG.REPORTS.designTracking || "Design_Tracking_Report", criteria);
+        const rows = await fetchAllRecords(state.designTrackingReport || CONFIG.REPORTS.designTracking || "Design_Tracking_Report", criteria);
+        traceFlow("DESIGN TRACKING", "Tracking read completed", { rowsReturned: rows.length, criteria });
+        return rows;
       } catch (error) {
         // If report auto-discovery failed, retry resolution once.
         if (!state.demoMode && !state.designTrackingReport) {
           await resolveDesignTrackingReport();
-          if (state.designTrackingReport) return fetchAllRecords(state.designTrackingReport, criteria);
+          if (state.designTrackingReport) {
+            const rows = await fetchAllRecords(state.designTrackingReport, criteria);
+            traceFlow("DESIGN TRACKING", "Tracking read completed after report resolution", { report: state.designTrackingReport, rowsReturned: rows.length, criteria });
+            return rows;
+          }
         }
         throw error;
       }
@@ -2274,6 +2603,11 @@
     async function queryEquipmentScopedReport(reportName, aliases, equipment) {
       if (!reportName || !equipment || equipment.isGeneral) return [];
       const expressions = [];
+      traceFlow("SOURCE QUERY", `Prepare equipment-scoped read from ${reportName}`, {
+        project: state.selectedProject?.code || "",
+        equipmentRecordId: equipment.id || "",
+        tagNumber: equipment.tag || ""
+      });
 
       // Strongest link: use the first/known Master Equipment Record ID field.
       // Keeping the criteria list short avoids dozens of harmless 400 errors in
@@ -2293,12 +2627,26 @@
 
       const queried = await queryByExpressions(reportName, expressions);
       let rows = (queried.rows || []).filter((row) => rowMatchesSelectedEquipment(row, equipment, aliases));
+      traceFlow("SOURCE QUERY", `Criteria result from ${reportName}`, {
+        criteriaUsed: queried.expression || "no criteria matched",
+        candidateRows: (queried.rows || []).length,
+        verifiedEquipmentRows: rows.length
+      });
 
       // Safe fallback: scan and VERIFY both equipment/project scope.
       if (!rows.length) {
         const scanned = await fetchAllRecords(reportName);
         rows = scanned.filter((row) => rowMatchesSelectedEquipment(row, equipment, aliases));
+        traceFlow("SOURCE QUERY", `Fallback scan used for ${reportName}`, {
+          rowsScanned: scanned.length,
+          rowsVerifiedForEquipment: rows.length
+        });
       }
+      traceFlow("SOURCE RESULT", `${reportName} equipment-scoped read complete`, {
+        rowsReturned: rows.length,
+        tagNumber: equipment.tag || "",
+        equipmentRecordId: equipment.id || ""
+      });
       return rows;
     }
 
@@ -2306,9 +2654,14 @@
     async function loadPdsForEquipment(equipment) {
       if (!equipment || equipment.isGeneral) return [];
       const cacheKey = `${state.selectedProject?.code}|${equipment.id || equipment.tag}`;
-      if (state.pdsCache.has(cacheKey)) return state.pdsCache.get(cacheKey);
+      if (state.pdsCache.has(cacheKey)) {
+        const cached = state.pdsCache.get(cacheKey);
+        traceFlow("PDS", "PDS returned from widget cache", { sourceReport: CONFIG.REPORTS.pds, rows: cached.length });
+        return cached;
+      }
       const rows = await queryEquipmentScopedReport(CONFIG.REPORTS.pds, FIELD_ALIASES.pds, equipment);
       state.pdsCache.set(cacheKey, rows);
+      traceFlow("PDS", "PDS loaded for selected equipment", { sourceReport: CONFIG.REPORTS.pds, rows: rows.length });
       return rows;
     }
 
@@ -2316,9 +2669,14 @@
     async function loadBomForEquipment(equipment) {
       if (!equipment || equipment.isGeneral) return [];
       const cacheKey = `${state.selectedProject?.code}|${equipment.id || equipment.tag}`;
-      if (state.bomCache.has(cacheKey)) return state.bomCache.get(cacheKey);
+      if (state.bomCache.has(cacheKey)) {
+        const cached = state.bomCache.get(cacheKey);
+        traceFlow("BOM", "BOM returned from widget cache", { sourceReport: CONFIG.REPORTS.bom, rows: cached.length });
+        return cached;
+      }
       const rows = await queryEquipmentScopedReport(CONFIG.REPORTS.bom, FIELD_ALIASES.bom, equipment);
       state.bomCache.set(cacheKey, rows);
+      traceFlow("BOM", "BOM loaded for selected equipment", { sourceReport: CONFIG.REPORTS.bom, rows: rows.length });
       return rows;
     }
 
@@ -2330,9 +2688,14 @@
       const reportName = state.poReport || await resolvePoReport();
       if (!reportName) return [];
       const cacheKey = `${state.selectedProject?.code}|${equipment.id || equipment.tag}`;
-      if (state.poCache.has(cacheKey)) return state.poCache.get(cacheKey);
+      if (state.poCache.has(cacheKey)) {
+        const cached = state.poCache.get(cacheKey);
+        traceFlow("PO", "PO returned from widget cache", { sourceReport: reportName, rows: cached.length });
+        return cached;
+      }
       const rows = await queryEquipmentScopedReport(reportName, FIELD_ALIASES.po, equipment);
       state.poCache.set(cacheKey, rows);
+      traceFlow("PO", "PO loaded for selected equipment", { sourceReport: reportName, rows: rows.length });
       return rows;
     }
 
@@ -2460,6 +2823,9 @@
 
     function selectDepartment(department) {
       state.selectedDepartment = department;
+      traceFlow("DEPARTMENT", `Department selected: ${department}`, {
+        designRuleSource: "Widget DESIGN_LIBRARY / equipment applicability rules"
+      });
       state.selectedEquipment = null;
       state.activeTab = "overview";
       renderDepartmentCards();
@@ -2522,6 +2888,16 @@
     function selectEquipment(equipment) {
       if (!equipment) return;
       state.selectedEquipment = equipment;
+      traceFlow("EQUIPMENT SELECT", `Equipment selected: ${equipment.tag || "NO TAG"} - ${equipment.name || ""}`, {
+        sourceReport: CONFIG.REPORTS.equipment,
+        equipmentRecordId: equipment.id || "",
+        plantSection: equipment.plantSection || "",
+        plantSectionType: equipment.plantType || "",
+        category: equipment.category || "",
+        type: equipment.type || "",
+        subtype: equipment.subtype || "",
+        pdsName: equipment.pdsName || ""
+      });
       state.activeTab = "overview";
       renderEquipmentList();
       renderEquipmentHero();
@@ -2710,7 +3086,7 @@
     function latestRecordByDesignType(records) {
       const map = new Map();
       for (const record of records) {
-        const type = scalarValue(record[TRACKING_FIELDS.designType]);
+        const type = getTrackingDesignType(record);
         if (!type) continue;
         const current = map.get(type);
         if (!current || revisionNumber(record[TRACKING_FIELDS.revision]) >= revisionNumber(current[TRACKING_FIELDS.revision])) map.set(type, record);
@@ -2721,7 +3097,7 @@
     // Returns every saved revision for one logical design on the selected equipment.
     function revisionRecordsForDesignType(designType) {
       return selectedEquipmentTracking()
-        .filter((r) => scalarValue(r[TRACKING_FIELDS.designType]) === designType)
+        .filter((r) => getTrackingDesignType(r) === designType)
         .sort((a, b) => {
           const revDiff = revisionNumber(b[TRACKING_FIELDS.revision]) - revisionNumber(a[TRACKING_FIELDS.revision]);
           if (revDiff) return revDiff;
@@ -2735,7 +3111,7 @@
 
     function isHistoricalRevision(record, designType) {
       if (!record) return false;
-      const latest = latestRevisionForDesignType(designType || scalarValue(record[TRACKING_FIELDS.designType]));
+      const latest = latestRevisionForDesignType(designType || getTrackingDesignType(record));
       if (!latest) return false;
       return String(record.ID || record.id) !== String(latest.ID || latest.id);
     }
@@ -2878,6 +3254,12 @@
     // Creates a Not Started tracking row for every library design that does not yet exist for this equipment.
     async function initializeAllDesigns() {
       const missing = mergedDesignRows().filter((row) => row.virtual);
+      traceFlow("DESIGN INIT", "Initialize all missing standard designs requested", {
+        department: state.selectedDepartment || "",
+        equipmentTag: state.selectedEquipment?.tag || "",
+        missingDesignCount: missing.length,
+        targetForm: CONFIG.FORMS.designTracking
+      });
       if (!missing.length) return toast("All standard design rows are already initialized.", "success");
       if (!confirm(`Create ${missing.length} Not Started design tracking records for ${state.selectedEquipment.name}?`)) return;
 
@@ -2891,7 +3273,13 @@
           data[TRACKING_FIELDS.revision] = "R0";
           const id = await creatorAddTracking(data);
           state.tracking.push({ ID: id, ...data });
+          traceFlow("DESIGN INIT", `Created ${missing[i].type} R0`, {
+            trackingRecordId: id,
+            status: "Not Started",
+            targetForm: CONFIG.FORMS.designTracking
+          });
         }
+        traceFlow("DESIGN INIT", "Initialize All completed", { createdRecords: missing.length });
         toast(`${missing.length} design records initialized.`, "success");
         renderAllTrackingViews();
       } catch (error) {
@@ -2946,12 +3334,19 @@
 
     function openDesignModal(record, designType = "") {
       if (!state.selectedProject || !state.selectedDepartment || !state.selectedEquipment) return;
+      traceFlow("DESIGN", record ? "Open existing design/revision" : "Open new design", {
+        designType: getTrackingDesignType(record) || designType || "",
+        revision: scalarValue(record?.[TRACKING_FIELDS.revision]) || "R0",
+        trackingRecordId: record?.ID || record?.id || "new record",
+        storageForm: CONFIG.FORMS.designTracking,
+        storageReport: state.designTrackingReport || "auto-discovered"
+      });
       state.modalRecord = record;
       state.modalVirtualType = designType;
       populateEmployeeSelects();
       populateStatusOptions();
 
-      const type = record ? scalarValue(record[TRACKING_FIELDS.designType]) : designType;
+      const type = record ? getTrackingDesignType(record) : designType;
       const defaultTitle = `${state.selectedEquipment.name} - ${type || "New Design"}`;
 
       $("designTypeInput").value = type || "";
@@ -3189,9 +3584,25 @@
         const nowText = toCreatorDateTime(new Date());
 
         if (id) {
+          traceFlow("WRITE", "Update existing Design_Tracking record", {
+            targetForm: CONFIG.FORMS.designTracking,
+            targetReport: state.designTrackingReport || "not resolved",
+            trackingRecordId: id,
+            designType: payload[TRACKING_FIELDS.designType],
+            revision: payload[TRACKING_FIELDS.revision],
+            status: payload[TRACKING_FIELDS.status],
+            updatedBy: state.currentUser || ""
+          });
           await creatorUpdateTracking(id, payload);
           Object.assign(state.modalRecord, payload, { Modified_Time: nowText, Modified_User: state.currentUser || "" });
         } else {
+          traceFlow("WRITE", "Create new Design_Tracking record", {
+            targetForm: CONFIG.FORMS.designTracking,
+            designType: payload[TRACKING_FIELDS.designType],
+            revision: payload[TRACKING_FIELDS.revision],
+            status: payload[TRACKING_FIELDS.status],
+            createdBy: state.currentUser || ""
+          });
           id = await creatorAddTracking(payload);
           state.modalRecord = {
             ID: id,
@@ -3202,12 +3613,23 @@
             Modified_User: state.currentUser || ""
           };
           state.tracking.push(state.modalRecord);
+          traceFlow("WRITE", "Design_Tracking record created", { trackingRecordId: id });
         }
 
         // Uploading happens after record creation/update because Creator file uploads require a record ID.
         await uploadModalFiles(id);
+        traceFlow("WRITE", "Design save completed", {
+          trackingRecordId: id,
+          designType: payload[TRACKING_FIELDS.designType],
+          revision: payload[TRACKING_FIELDS.revision],
+          status: payload[TRACKING_FIELDS.status],
+          modifiedBy: state.currentUser || ""
+        });
 
         toast(toastMessage, "success");
+        if (state.designTypeFallbackMode && state.designTypeFallbackReason) {
+          toast("Saved successfully. Design_Type compatibility fallback is active; see Diagnostics for the permanent field fix.", "warning");
+        }
         renderAllTrackingViews();
         renderRevisionMeta(state.modalRecord, currentType);
         renderRevisionHistory(currentType);
@@ -3219,9 +3641,13 @@
         return state.modalRecord;
       } catch (error) {
         console.error(error);
-        $("designModalError").textContent = error.message;
+        let message = error.message || String(error);
+        if (/Invalid column value for Design_Type/i.test(message)) {
+          message += " | Creator Design_Type is not accepting this dynamic design name. Permanent fix: edit Design Tracking > Design Type and make it a Single Line field. V9 auto-fallback works when field metadata is readable.";
+        }
+        $("designModalError").textContent = message;
         $("designModalError").classList.remove("hidden");
-        throw error;
+        throw new Error(message);
       } finally {
         hideLoading();
       }
@@ -3237,6 +3663,13 @@
       for (const [field, file] of files) {
         if (file.size > CONFIG.MAX_FILE_BYTES) throw new Error(`${file.name} is larger than 50 MB.`);
         $("loadingText").textContent = `Uploading ${file.name}...`;
+        traceFlow("FILE UPLOAD", `Upload ${file.name}`, {
+          targetReport: state.designTrackingReport || "not resolved",
+          trackingRecordId: id,
+          fieldName: field,
+          fileName: file.name,
+          fileBytes: file.size
+        });
         await creatorUploadFile(id, field, file);
         if (state.modalRecord) state.modalRecord[field] = file.name;
       }
@@ -3285,6 +3718,13 @@
     }
 
     async function performWorkflowAction(nextStatus) {
+      const previousStatus = $("statusInput").value || "Not Started";
+      traceFlow("WORKFLOW", `${previousStatus} -> ${nextStatus}`, {
+        designType: $("designTypeInput").value || "",
+        revision: $("revisionInput").value || "R0",
+        trackingRecordId: state.modalRecord?.ID || "new record",
+        performedBy: state.currentUser || ""
+      });
       const overrides = {
         [TRACKING_FIELDS.status]: nextStatus,
         [TRACKING_FIELDS.progress]: STATUS_PROGRESS[nextStatus] ?? numberValue($("progressInput").value)
@@ -3325,7 +3765,7 @@
     async function createNewRevision() {
       if (!state.modalRecord) return;
 
-      const currentType = scalarValue(state.modalRecord[TRACKING_FIELDS.designType]) || $("designTypeInput").value.trim();
+      const currentType = getTrackingDesignType(state.modalRecord) || $("designTypeInput").value.trim();
       if (isHistoricalRevision(state.modalRecord, currentType)) {
         toast("Open the current revision before creating the next revision.", "error");
         return;
@@ -3340,6 +3780,13 @@
       }
 
       if (!confirm(`Create ${nextRevision(currentRevision)} and keep ${currentRevision} as read-only history?`)) return;
+
+      traceFlow("REVISION", `Create ${nextRevision(currentRevision)} from ${currentRevision}`, {
+        currentTrackingRecordId: state.modalRecord?.ID || "",
+        designType: currentType,
+        changeSummary: String(reason).trim(),
+        createdBy: state.currentUser || ""
+      });
 
       showLoading("Creating new revision...");
       try {
@@ -3369,6 +3816,14 @@
           Modified_User: state.currentUser || ""
         };
         state.tracking.push(newRecord);
+        traceFlow("REVISION", "New revision record created", {
+          oldTrackingRecordId: currentId,
+          newTrackingRecordId: newId,
+          oldRevision: currentRevision,
+          newRevision: newPayload[TRACKING_FIELDS.revision],
+          parentDesignId: currentId,
+          targetForm: CONFIG.FORMS.designTracking
+        });
         toast(`Created ${newPayload[TRACKING_FIELDS.revision]}. ${currentRevision} remains available in Revision History.`, "success");
         renderAllTrackingViews();
         openDesignModal(newRecord, newPayload[TRACKING_FIELDS.designType]);
@@ -3389,20 +3844,176 @@
        name differs from the visible report column name.
        ====================================================================== */
     async function runDiagnostics() {
-      $("diagnosticsOutput").textContent = "Running diagnostics...";
+      $("diagnosticsOutput").textContent = "Running diagnostics and building operation flow...";
       if (state.demoMode) {
-        $("diagnosticsOutput").textContent = "DEMO MODE is active. Diagnostics against Creator are disabled.";
+        $("diagnosticsOutput").textContent = "DEMO MODE is active. Live Creator diagnostics are disabled.\n\n" + buildFlowDiagnosticsText();
         return;
       }
+
       const lines = [];
       try {
+        // ---------------------------------------------------------------
+        // PART 1 - CURRENT BUSINESS / DATA FLOW
+        // ---------------------------------------------------------------
+        lines.push("============================================================");
+        lines.push("CURRENT SELECTED DATA FLOW");
+        lines.push("============================================================");
+        lines.push("");
+
+        const ctx = currentFlowContext();
+        const section = ctx.plantSection || "(all / not selected)";
+        const sectionType = ctx.plantSectionType || "(all / not selected)";
+        const selectedEquipment = state.selectedEquipment;
+
+        lines.push("1. PROJECT");
+        lines.push(`   READ FROM : ${CONFIG.REPORTS.projects}`);
+        lines.push(`   Project   : ${ctx.projectCode || "(none selected)"}`);
+        lines.push(`   Customer  : ${ctx.projectCustomer || "—"}`);
+        lines.push(`   Source ID : ${ctx.projectRecordId || "—"}`);
+        lines.push("");
+
+        lines.push("2. PROJECT EQUIPMENT");
+        lines.push(`   READ FROM : ${CONFIG.REPORTS.equipment}`);
+        lines.push(`   MATCH BY  : ${CONFIG.EQUIPMENT_PROJECT_FIELD}`);
+        lines.push(`   Criteria  : ${state.lastSourceDiagnostics.equipmentCriteria || "not loaded yet"}`);
+        lines.push(`   Legacy Project Lookup ID : ${state.lastSourceDiagnostics.equipmentLegacyProjectId || "not resolved / fallback used"}`);
+        lines.push(`   Project equipment loaded : ${state.equipment.length}`);
+        lines.push("");
+
+        lines.push("3. PLANT HIERARCHY");
+        lines.push(`   Plant Section      : ${section}`);
+        lines.push(`   Plant Section Type : ${sectionType}`);
+        lines.push(`   Master fallback    : ${CONFIG.REPORTS.plantSections}`);
+        lines.push(`   Equipment after current filters : ${filteredEquipment().length}`);
+        lines.push("");
+
+        lines.push("4. SELECTED EQUIPMENT");
+        if (selectedEquipment && !selectedEquipment.isGeneral) {
+          lines.push(`   Equipment source ID : ${selectedEquipment.id || "—"}`);
+          lines.push(`   Tag Number          : ${selectedEquipment.tag || "—"}`);
+          lines.push(`   Equipment Name      : ${selectedEquipment.name || "—"}`);
+          lines.push(`   Category            : ${selectedEquipment.category || "—"}`);
+          lines.push(`   Type                : ${selectedEquipment.type || "—"}`);
+          lines.push(`   Subtype             : ${selectedEquipment.subtype || "—"}`);
+          lines.push(`   Equipment Dept      : ${selectedEquipment.department || "—"}`);
+          lines.push(`   PDS Name from Equipment source : ${selectedEquipment.pdsName || "—"}`);
+        } else {
+          lines.push("   No actual equipment tag selected.");
+        }
+        lines.push("");
+
+        lines.push("5. EQUIPMENT DOSSIER READS");
+        lines.push(`   PDS : ${CONFIG.REPORTS.pds}`);
+        lines.push(`         Match = Master Equipment Record ID first; exact Tag + Project verification fallback`);
+        lines.push(`         Cached rows for selected equipment = ${selectedEquipment ? (state.pdsCache.get(`${ctx.projectCode}|${selectedEquipment.id || selectedEquipment.tag}`)?.length ?? "not loaded") : "n/a"}`);
+        lines.push(`   BOM : ${CONFIG.REPORTS.bom}`);
+        lines.push(`         Match = Master Equipment Record ID first; exact Tag + Project verification fallback`);
+        lines.push(`         Cached rows for selected equipment = ${selectedEquipment ? (state.bomCache.get(`${ctx.projectCode}|${selectedEquipment.id || selectedEquipment.tag}`)?.length ?? "not loaded") : "n/a"}`);
+        lines.push(`   PO  : ${state.poReport || "NOT CONFIGURED / NOT DISCOVERED"}`);
+        lines.push(`         Match = selected equipment + selected project only`);
+        lines.push("");
+
+        lines.push("6. DESIGN REQUIREMENTS");
+        lines.push(`   Department : ${ctx.department || "(none selected)"}`);
+        lines.push(`   Rule source: Widget design library / applicability logic`);
+        lines.push(`   Inputs     : Department + Equipment Category + Type + Subtype + Equipment Department + Name`);
+        if (selectedEquipment && ctx.department) {
+          const applicable = applicableDesignLibrary(ctx.department, selectedEquipment) || [];
+          lines.push(`   Applicable standard designs now : ${applicable.length}`);
+          applicable.slice(0, 15).forEach((d) => lines.push(`      - ${typeof d === "string" ? d : (d.type || d.name || JSON.stringify(d))}`));
+          if (applicable.length > 15) lines.push(`      ... ${applicable.length - 15} more`);
+        }
+        lines.push("");
+
+        lines.push("7. DESIGN TRACKING / REVISION STORAGE");
+        lines.push(`   WRITE FORM   : ${CONFIG.FORMS.designTracking}`);
+        lines.push(`   READ/UPDATE REPORT : ${state.designTrackingReport || "NOT RESOLVED"}`);
+        lines.push(`   Selected design : ${ctx.designType || "(none open)"}`);
+        lines.push(`   Revision        : ${ctx.revision || "—"}`);
+        lines.push(`   Tracking Record : ${state.modalRecord?.ID || state.modalRecord?.id || "—"}`);
+        lines.push(`   Current project tracking records loaded : ${state.tracking.length}`);
+        const flowDtMeta = trackingMeta(TRACKING_FIELDS.designType);
+        if (flowDtMeta) lines.push(`   Design_Type Creator field : ${creatorFieldTypeName(flowDtMeta)}`);
+        if (state.designTypeFallbackMode) lines.push(`   Design_Type compatibility fallback : ACTIVE`);
+        lines.push("");
+
+        lines.push("8. EMPLOYEE / RESPONSIBILITY SOURCE");
+        lines.push(`   READ FROM : ${CONFIG.REPORTS.employees}`);
+        lines.push(`   Employees loaded : ${state.employees.length}`);
+        lines.push("");
+
+        lines.push("9. ROUTE SUMMARY");
+        lines.push(`   ${ctx.projectCode || "PROJECT"}`);
+        lines.push(`      -> ${section}`);
+        lines.push(`      -> ${sectionType}`);
+        lines.push(`      -> ${ctx.tagNumber || "EQUIPMENT TAG"} ${ctx.equipmentName ? `(${ctx.equipmentName})` : ""}`);
+        lines.push(`      -> PDS: ${CONFIG.REPORTS.pds}`);
+        lines.push(`      -> BOM: ${CONFIG.REPORTS.bom}`);
+        lines.push(`      -> PO: ${state.poReport || "not connected"}`);
+        lines.push(`      -> ${ctx.department || "DEPARTMENT"} design rules`);
+        lines.push(`      -> ${ctx.designType || "DESIGN"} ${ctx.revision || ""}`.trimEnd());
+        lines.push(`      -> SAVE/UPDATE: ${CONFIG.FORMS.designTracking}`);
+        lines.push("");
+
+        // ---------------------------------------------------------------
+        // PART 2 - ACTUAL RECENT OPERATIONS
+        // ---------------------------------------------------------------
+        lines.push("============================================================");
+        lines.push("ACTUAL OPERATION FLOW - THIS WIDGET SESSION");
+        lines.push("============================================================");
+        lines.push(`Last operation: ${state.lastOperation}`);
+        lines.push(`Flow entries: ${state.operationFlow.length}`);
+        lines.push("");
+
+        if (!state.operationFlow.length) {
+          lines.push("No operation entries yet.");
+        } else {
+          state.operationFlow.slice(-120).forEach((entry) => {
+            lines.push(`[${entry.no}] ${entry.at} | ${entry.stage}`);
+            lines.push(`    ${entry.action}`);
+            const c = entry.context || {};
+            const contextText = [
+              c.projectCode && `Project=${c.projectCode}`,
+              c.plantSection && `Section=${c.plantSection}`,
+              c.plantSectionType && `Type=${c.plantSectionType}`,
+              c.department && `Dept=${c.department}`,
+              c.tagNumber && `Tag=${c.tagNumber}`,
+              c.designType && `Design=${c.designType}`,
+              c.revision && `Rev=${c.revision}`
+            ].filter(Boolean).join(" | ");
+            if (contextText) lines.push(`    Context: ${contextText}`);
+            appendDetailLines(lines, entry.details, "    ");
+            lines.push("");
+          });
+        }
+
+        // ---------------------------------------------------------------
+        // PART 3 - TECHNICAL REPORT / FIELD DIAGNOSTICS
+        // ---------------------------------------------------------------
+        lines.push("============================================================");
+        lines.push("TECHNICAL REPORT / FIELD DIAGNOSTICS");
+        lines.push("============================================================");
         lines.push(`App name: ${state.appName}`);
         lines.push(`Login user: ${state.currentUser || "(not returned)"}`);
         lines.push(`Design Tracking form: ${CONFIG.FORMS.designTracking}`);
         lines.push(`Resolved Design Tracking report: ${state.designTrackingReport || "NOT FOUND"}`);
+        lines.push(`Design Tracking schema loaded: ${state.trackingMetaLoaded ? "YES" : "NO"}`);
+        const dtMeta = trackingMeta(TRACKING_FIELDS.designType);
+        if (dtMeta) {
+          lines.push(`Design_Type field type: ${creatorFieldTypeName(dtMeta)}`);
+          lines.push(`Design_Type is lookup: ${dtMeta.is_lookup_field ? "YES" : "NO"}`);
+          lines.push(`Design_Type allowed choices: ${creatorChoiceValues(dtMeta).join(", ") || "n/a / free text"}`);
+        } else {
+          lines.push(`Design_Type field metadata: NOT FOUND`);
+        }
+        lines.push(`Design_Type fallback active: ${state.designTypeFallbackMode ? "YES" : "NO"}`);
+        if (state.designTypeFallbackReason) lines.push(`Design_Type fallback reason: ${state.designTypeFallbackReason}`);
+        lines.push(`Permanent Design_Type recommendation: Single Line field`);
+        lines.push("");
         lines.push(`Equipment project criteria used: ${state.lastSourceDiagnostics.equipmentCriteria || "not loaded yet"}`);
-        lines.push(`Discovered equipment project key: ${state.lastSourceDiagnostics.discoveredEquipmentProjectKey || "not discovered yet"}`);
+        lines.push(`Equipment project report: ${state.lastSourceDiagnostics.equipmentProjectReport || state.equipmentProjectReport || "not discovered"}`);
         lines.push(`Equipment rows scanned: ${state.lastSourceDiagnostics.equipmentRowsScanned || 0}`);
+        lines.push(`Equipment matched rows: ${state.lastSourceDiagnostics.equipmentMatchedRows || 0}`);
         lines.push(`Equipment sample keys: ${(state.lastSourceDiagnostics.equipmentSampleKeys || []).join(", ") || "not sampled yet"}`);
         lines.push("");
 
@@ -3439,6 +4050,16 @@
       $("diagnosticsOutput").textContent = lines.join("\n");
     }
 
+    // Used in Demo mode and by developers when they only want the local flow.
+    function buildFlowDiagnosticsText() {
+      const lines = ["ACTUAL OPERATION FLOW", "=====================", ""];
+      state.operationFlow.forEach((entry) => {
+        lines.push(`[${entry.no}] ${entry.at} | ${entry.stage} | ${entry.action}`);
+        appendDetailLines(lines, entry.details, "    ");
+      });
+      return lines.join("\n");
+    }
+
     /* ======================================================================
        T. EVENT WIRING
        ====================================================================== */
@@ -3446,6 +4067,16 @@
       $("projectSelect").addEventListener("change", async (event) => {
         const value = event.target.value;
         state.selectedProject = state.projects.find((p) => String(p.id || p.code) === String(value)) || null;
+        if (state.selectedProject) {
+          traceFlow("PROJECT SELECT", `Selected Project ${state.selectedProject.code}`, {
+            sourceReport: CONFIG.REPORTS.projects,
+            projectRecordId: state.selectedProject.id || "",
+            customer: state.selectedProject.customer || "",
+            description: state.selectedProject.description || ""
+          });
+        } else {
+          traceFlow("PROJECT SELECT", "Project selection cleared");
+        }
         state.selectedDepartment = "Mechanical";
         state.selectedEquipment = null;
         $("globalSearch").value = "";
@@ -3468,12 +4099,18 @@
 
       ["globalSearch","equipmentSearch"].forEach((id) => $(id).addEventListener("input", renderEquipmentList));
       $("sectionFilter").addEventListener("change", () => {
+        traceFlow("FILTER", `Plant Section selected: ${$("sectionFilter").value || "All sections"}`, {
+          project: state.selectedProject?.code || ""
+        });
         renderSectionTypeFilter();
         state.selectedEquipment = null;
         if (state.selectedDepartment) selectDepartment(state.selectedDepartment);
         else renderEquipmentList();
       });
       $("sectionTypeFilter").addEventListener("change", () => {
+        traceFlow("FILTER", `Plant Section Type selected: ${$("sectionTypeFilter").value || "All section types"}`, {
+          plantSection: $("sectionFilter").value || ""
+        });
         state.selectedEquipment = null;
         if (state.selectedDepartment) selectDepartment(state.selectedDepartment);
         else renderEquipmentList();
@@ -3506,6 +4143,10 @@
       $("closeDiagnosticsBtn").addEventListener("click", () => $("diagnosticsBackdrop").classList.add("hidden"));
       $("diagnosticsBackdrop").addEventListener("click", (event) => { if (event.target === $("diagnosticsBackdrop")) $("diagnosticsBackdrop").classList.add("hidden"); });
       $("runDiagnosticsBtn").addEventListener("click", runDiagnostics);
+      $("clearFlowBtn").addEventListener("click", () => {
+        clearFlowLog();
+        runDiagnostics();
+      });
 
       // Escape closes the topmost modal.
       document.addEventListener("keydown", (event) => {
@@ -3593,6 +4234,7 @@
        ====================================================================== */
     async function startWidget() {
       wireEvents();
+      traceFlow("STARTUP", "Widget JavaScript started", { appNameConfigured: CONFIG.APP_NAME, demoMode: state.demoMode });
       if (state.demoMode) $("demoBanner").classList.remove("hidden");
 
       // When opened directly on a normal host without ?demo=1, the Creator SDK
@@ -3620,7 +4262,17 @@
           - Employees come from Employ_to_Create_ticket_Report.
           - Only NEW design tracking data is written to Design_Tracking.
 
-       2) WHAT TO EDIT WHEN A SOURCE FIELD DOES NOT SHOW:
+       2) V9 DIAGNOSTICS / OPERATION FLOW + SCHEMA SAFETY:
+          - Diagnostics now shows the CURRENT SELECTED DATA FLOW.
+          - It shows exact source reports, project, plant section/type, tag,
+            equipment, department, design, revision and Design_Tracking target.
+          - It also records the ACTUAL operation sequence for this browser
+            session: reads, filters, selections, PDS/BOM/PO queries, writes,
+            uploads, workflow transitions and revision creation.
+          - Clear Flow Log clears only the local diagnostic history. It never
+            deletes or changes Creator records.
+
+       3) WHAT TO EDIT WHEN A SOURCE FIELD DOES NOT SHOW:
           - Open Widget Diagnostics.
           - Run Diagnostics.
           - Find the real sample JSON field key.
@@ -3662,6 +4314,16 @@
            - This file uses one hidden Design_Tracking form for all departments.
            - It intentionally does not create separate forms for Process, Civil,
              Mechanical, Piping, Electrical, Instrumentation, etc.
+
+       11) V9 DESIGN_TYPE / SUBMIT FIX:
+           - V9 reads Design_Tracking field metadata with META.getFields().
+           - If Design_Type is a Drop Down and the dynamic design name is not
+             an allowed choice, V9 temporarily omits that incompatible field,
+             derives the type from Design_Title, and lets Save / Start Design /
+             Submit for Check continue.
+           - Permanent best practice: Design_Type should be Single Line.
+           - Other dropdown mismatches are reported before the API call with
+             the exact allowed values.
        ====================================================================== */
   </script>
 </body>
