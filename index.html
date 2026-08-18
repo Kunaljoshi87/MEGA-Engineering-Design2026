@@ -88,7 +88,7 @@
     .filter-bar {
       padding: 14px;
       display: grid;
-      grid-template-columns: minmax(220px, 1.1fr) minmax(220px, 1fr) minmax(220px, 1fr) auto auto;
+      grid-template-columns: minmax(190px, .95fr) minmax(190px, .9fr) minmax(190px, .9fr) minmax(220px, 1fr) auto auto;
       gap: 10px;
       align-items: end;
       margin-bottom: 14px;
@@ -409,14 +409,20 @@
           </select>
         </div>
         <div class="field">
-          <label for="globalSearch">Search equipment / tag</label>
-          <input id="globalSearch" type="search" placeholder="Example: CL-1501 or Regeneration Column" />
-        </div>
-        <div class="field">
           <label for="sectionFilter">Plant section</label>
           <select id="sectionFilter">
-            <option value="">All sections</option>
+            <option value="">All plant sections</option>
           </select>
+        </div>
+        <div class="field">
+          <label for="sectionTypeFilter">Plant section type</label>
+          <select id="sectionTypeFilter">
+            <option value="">All section types</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="globalSearch">Search equipment / tag</label>
+          <input id="globalSearch" type="search" placeholder="Example: TK-2901A or CO2 Storage Tank" />
         </div>
         <button id="refreshBtn" class="btn btn-secondary" type="button">↻ Refresh</button>
         <button id="diagnosticsBtn" class="btn btn-secondary" type="button">⚙ Diagnostics</button>
@@ -662,6 +668,8 @@
         pds: "All_Equipment_PDS",
         bom: "All_Equipment_BOM_Details",
         employees: "Employ_to_Create_ticket_Report",
+        // Existing 72-row master used to map Plant Section Type -> Plant Section.
+        plantSections: "All_Plant_Section_Types",
 
         // Leave blank to auto-discover the default report created for Design_Tracking.
         // If auto-discovery ever fails, put the exact report link name here.
@@ -681,10 +689,10 @@
         "Design_Tracking"
       ],
 
-      // IMPORTANT: The equipment report screenshot/diagnostics confirms that
-      // Project_Code is the real project field in Master_Equipment_List_Subform_Report.
-      // In this legacy report Project_Code behaves as a LOOKUP, therefore Creator API
-      // criteria must normally use the selected Project record ID (not the displayed code).
+      // IMPORTANT: Project_Code is the real project field in the legacy equipment report.
+      // However, its lookup record ID is NOT the same record ID returned by
+      // All_Associated_Projects. V5 therefore matches the DISPLAYED project code
+      // (for example 25005) inside Project_Code and caches the equipment report.
       EQUIPMENT_PROJECT_FIELD: "Project_Code",
       EQUIPMENT_PROJECT_IS_LOOKUP: true,
 
@@ -833,6 +841,14 @@
         rawLength: ["Raw_Length"],
         finishWeight: ["Finish_Weight"],
         rawWeight: ["Raw_Weight"]
+      },
+      plantSections: {
+        id: ["ID"],
+        section: [
+          "Plant_Section_Name", "Plant_Section", "Section_Name", "Plant_Section_Master",
+          "Plant_Section_Lookup", "Plant_Section_Ref", "Parent_Section", "Name"
+        ],
+        type: ["Plant_Section_Type", "Plant_Section_Type1", "Section_Type", "Type"]
       },
       employees: {
         id: ["ID"],
@@ -1031,6 +1047,13 @@
       designTrackingReport: CONFIG.REPORTS.designTracking || "",
       projects: [],
       employees: [],
+      plantSectionRows: [],
+      // Maps normalized Plant Section Type -> Plant Section Name.
+      plantSectionTypeMap: new Map(),
+      // The legacy equipment lookup uses a different project lookup ID than
+      // All_Associated_Projects, so V5 loads/caches the equipment report once
+      // and filters by the visible Project_Code (e.g. 25005).
+      equipmentMasterRows: null,
       equipment: [],
       tracking: [],
       pdsCache: new Map(),
@@ -1069,11 +1092,29 @@
     function scalarValue(value) {
       if (value === null || value === undefined) return "";
       if (typeof value !== "object") return String(value);
-      if (value.display_value !== undefined) return String(value.display_value ?? "");
-      if (value.zc_display_value !== undefined) return String(value.zc_display_value ?? "");
+
+      // Creator V2.1 may return display_value / zc_display_value either as a
+      // string OR as a nested object. Recurse instead of producing "[object Object]".
+      if (value.display_value !== undefined) {
+        const text = scalarValue(value.display_value);
+        if (text) return text;
+      }
+      if (value.zc_display_value !== undefined) {
+        const text = scalarValue(value.zc_display_value);
+        if (text) return text;
+      }
+
       const fullName = [value.prefix, value.first_name, value.last_name, value.suffix].filter(Boolean).join(" ").trim();
       if (fullName) return fullName;
       if (value.ID !== undefined) return String(value.ID);
+
+      // Last readable fallback: concatenate primitive values from the object.
+      const parts = [];
+      Object.values(value).forEach((child) => {
+        if (child === null || child === undefined) return;
+        if (typeof child !== "object") parts.push(String(child));
+      });
+      if (parts.length) return parts.join(" ");
       try { return JSON.stringify(value); } catch (_) { return String(value); }
     }
 
@@ -1121,6 +1162,47 @@
         }
       }
       return out;
+    }
+
+    // Returns true only when a value contains the complete project code as a
+    // standalone token. This prevents project 25005 from matching 1250050.
+    function valueContainsExactCode(value, projectCode) {
+      const code = String(projectCode || "").trim();
+      if (!code) return false;
+      const entries = deepScalarEntries(value, "Project_Code");
+      if (!entries.length && value !== null && value !== undefined) {
+        entries.push({ key: "Project_Code", value: scalarValue(value) });
+      }
+      return entries.some(({ value: item }) => {
+        const text = String(item || "").trim();
+        if (text === code) return true;
+        const tokens = text.split(/[^A-Za-z0-9]+/).filter(Boolean);
+        return tokens.includes(code);
+      });
+    }
+
+    // Matches a legacy equipment row to the visible project code shown in the
+    // Master Equipment List grouping. We intentionally DO NOT compare the
+    // All_Associated_Projects record ID because the equipment lookup points to
+    // a different legacy project source and therefore has a different ID.
+    function equipmentRowMatchesProjectCode(row, projectCode) {
+      if (!row || !projectCode) return false;
+
+      // Prefer exact/normalized Project_Code aliases only.
+      for (const alias of FIELD_ALIASES.equipment.projectCode) {
+        if (Object.prototype.hasOwnProperty.call(row, alias) && valueContainsExactCode(row[alias], projectCode)) {
+          return true;
+        }
+      }
+
+      // Also support flattened legacy keys such as Project_Code.Project_Code.
+      for (const [key, value] of Object.entries(row)) {
+        const nk = normalizeKey(key);
+        if ((nk === "projectcode" || nk.startsWith("projectcode")) && valueContainsExactCode(value, projectCode)) {
+          return true;
+        }
+      }
+      return false;
     }
 
     // Tests whether a record contains the selected project code/record ID in
@@ -1205,6 +1287,17 @@
       ];
       mappings.forEach(([field, inc, exc]) => learnAlias("equipment", field, bestKeyByTokens(row, inc, exc)));
       state.lastSourceDiagnostics.equipmentSampleKeys = Object.keys(row);
+    }
+
+    // Learns the Plant Section Name/Type link names from the 72-row
+    // All_Plant_Section_Types report. This matters because the section name is
+    // displayed as a grouped heading in Creator and its exact legacy link name
+    // can differ from the visible label.
+    function autoLearnPlantSectionAliases(rows) {
+      const row = (rows || []).find(Boolean);
+      if (!row) return;
+      learnAlias("plantSections", "section", bestKeyByTokens(row, ["plant", "section", "name"], ["type"]));
+      learnAlias("plantSections", "type", bestKeyByTokens(row, ["plant", "section", "type"], []));
     }
 
     // Generic helper used by PDS/BOM fallback scans when a legacy field link
@@ -1586,7 +1679,26 @@
       };
     }
 
+    function adaptPlantSectionMaster(record) {
+      return {
+        raw: record,
+        id: pick(record, FIELD_ALIASES.plantSections.id),
+        section: pick(record, FIELD_ALIASES.plantSections.section),
+        type: pick(record, FIELD_ALIASES.plantSections.type)
+      };
+    }
+
     function adaptEquipment(record) {
+      const plantType = pick(record, FIELD_ALIASES.equipment.plantType);
+      let plantSection = pick(record, FIELD_ALIASES.equipment.plantSection);
+
+      // In the legacy Master Equipment List, Plant Section Name can be used as
+      // a grouping field and may not always be returned as a normal column.
+      // If that happens, infer it from All_Plant_Section_Types.
+      if (!plantSection && plantType) {
+        plantSection = state.plantSectionTypeMap.get(normalizeKey(plantType)) || "";
+      }
+
       return {
         raw: record,
         id: pick(record, FIELD_ALIASES.equipment.id),
@@ -1599,8 +1711,8 @@
         category: pick(record, FIELD_ALIASES.equipment.category),
         type: pick(record, FIELD_ALIASES.equipment.type),
         subtype: pick(record, FIELD_ALIASES.equipment.subtype),
-        plantSection: pick(record, FIELD_ALIASES.equipment.plantSection),
-        plantType: pick(record, FIELD_ALIASES.equipment.plantType),
+        plantSection,
+        plantType,
         sectionRef: pick(record, FIELD_ALIASES.equipment.sectionRef),
         isGeneral: false
       };
@@ -1642,7 +1754,7 @@
        L. DATA LOADING
        ====================================================================== */
 
-    // Reads all projects and employees at startup.
+    // Reads projects, employees and the existing Plant Section Type master at startup.
     async function loadBaseData() {
       showLoading("Loading projects and employees...");
       clearError();
@@ -1663,15 +1775,25 @@
           await resolveDesignTrackingReport();
         }
 
-        const [projectRows, employeeRows] = await Promise.all([
+        const [projectRows, employeeRows, plantSectionRows] = await Promise.all([
           fetchAllRecords(CONFIG.REPORTS.projects),
-          fetchAllRecords(CONFIG.REPORTS.employees)
+          fetchAllRecords(CONFIG.REPORTS.employees),
+          fetchAllRecords(CONFIG.REPORTS.plantSections)
         ]);
 
         state.projects = projectRows.map(adaptProject).filter((p) => p.code);
         state.projects.sort((a, b) => String(b.code).localeCompare(String(a.code), undefined, { numeric: true }));
         state.employees = employeeRows.map(adaptEmployee).filter((e) => e.email || e.name);
         state.employees.sort((a, b) => a.name.localeCompare(b.name));
+
+        // Build Food Grade -> CO2 Recovery System style mappings from the
+        // existing All_Plant_Section_Types report.
+        autoLearnPlantSectionAliases(plantSectionRows);
+        state.plantSectionRows = plantSectionRows.map(adaptPlantSectionMaster).filter((r) => r.type || r.section);
+        state.plantSectionTypeMap = new Map();
+        state.plantSectionRows.forEach((r) => {
+          if (r.type && r.section) state.plantSectionTypeMap.set(normalizeKey(r.type), r.section);
+        });
 
         $("sessionPill").textContent = state.currentUser ? `Signed in: ${state.currentUser}` : "Creator session connected";
         renderProjectSelect();
@@ -1741,7 +1863,7 @@
         selectDepartment(state.selectedDepartment);
       } catch (error) {
         console.error(error);
-        showError(`${errorMessage(error)} Open Diagnostics only if this persists; v4 matches Master Equipment List by the selected Project_Code lookup record ID.`);
+        showError(`${errorMessage(error)} Open Diagnostics only if this persists; v5 matches Master Equipment List by the visible Project_Code value, then filters Plant Section and Plant Section Type.`);
       } finally {
         hideLoading();
       }
@@ -1762,67 +1884,49 @@
     // which keeps the widget compatible if this field is converted to Single Line
     // in the future. We deliberately DO NOT scan all 16,000+ equipment rows during
     // normal use anymore. That was slow and caused confusing 400/no-record logs.
-    async function loadEquipmentForProject(project) {
-      const field = CONFIG.EQUIPMENT_PROJECT_FIELD || "Project_Code";
-      const projectId = criteriaText(project?.id || "");
-      const projectCode = criteriaText(project?.code || "");
-      let rows = [];
-      let criteriaUsed = "";
-
-      // Primary mode: Project_Code is a lookup -> match selected project RECORD ID.
-      if (CONFIG.EQUIPMENT_PROJECT_IS_LOOKUP && projectId) {
-        criteriaUsed = `${field} == ${projectId}`;
-        try {
-          rows = await fetchAllRecords(CONFIG.REPORTS.equipment, criteriaUsed);
-        } catch (error) {
-          console.warn("Equipment lookup-ID criteria failed; trying displayed project code.", error);
-          rows = [];
-        }
+    // Loads and caches the complete legacy Master Equipment report once.
+    // The report currently has ~16k rows, so this is intentionally cached for
+    // the widget session. Project changes after the first load are then instant.
+    async function loadEquipmentMasterCache(forceReload = false) {
+      if (!forceReload && Array.isArray(state.equipmentMasterRows)) {
+        return state.equipmentMasterRows;
       }
 
-      // Compatibility mode: Project_Code is/was a Single Line field.
-      if (!rows.length && projectCode) {
-        criteriaUsed = `${field} == "${projectCode}"`;
-        try {
-          rows = await fetchAllRecords(CONFIG.REPORTS.equipment, criteriaUsed);
-        } catch (error) {
-          console.warn("Equipment text project-code criteria failed.", error);
-          rows = [];
-        }
-      }
-
-      state.lastSourceDiagnostics.equipmentCriteria = criteriaUsed || "not attempted";
-      state.lastSourceDiagnostics.equipmentRowsScanned = rows.length;
-      state.lastSourceDiagnostics.discoveredEquipmentProjectKey = field;
-
-      // Learn the exact legacy field names from the rows returned for THIS project.
+      const rows = await fetchAllRecords(CONFIG.REPORTS.equipment);
+      state.equipmentMasterRows = rows;
       autoLearnEquipmentAliases(rows);
+      state.lastSourceDiagnostics.equipmentRowsScanned = rows.length;
+      state.lastSourceDiagnostics.equipmentCriteria = "CLIENT MATCH: Project_Code display value";
+      return rows;
+    }
 
-      // Extra safety: even after server-side filtering, verify the returned
-      // Project_Code value/lookup ID against the selected project. This guarantees
-      // that equipment from another project is never displayed in this widget.
-      const selectedId = String(project?.id || "").trim();
-      const selectedCode = String(project?.code || "").trim();
-      const projectMatchedRows = rows.filter((row) => {
-        const raw = row?.[field];
-        if (raw && typeof raw === "object") {
-          const lookupId = String(raw.ID || raw.id || "").trim();
-          const display = scalarValue(raw).trim();
-          return (selectedId && lookupId === selectedId) ||
-                 (selectedCode && (display === selectedCode || display.split(/[^A-Za-z0-9]+/).includes(selectedCode)));
-        }
-        const value = scalarValue(raw).trim();
-        return !value || value === selectedCode || value === selectedId;
-      });
+    // Loads ONLY equipment whose displayed Project_Code equals the selected
+    // project code. Example hierarchy:
+    //   25005 -> CO2 Recovery System -> Food Grade -> equipment tags.
+    //
+    // IMPORTANT: We deliberately do NOT use the All_Associated_Projects ID here.
+    // The legacy equipment Project_Code lookup points to a different project
+    // source, so those Creator record IDs do not match even though both display
+    // the same project code.
+    async function loadEquipmentForProject(project) {
+      const projectCode = String(project?.code || "").trim();
+      if (!projectCode) return [];
 
-      const sourceRows = projectMatchedRows.length ? projectMatchedRows : rows;
-      const items = sourceRows.map(adaptEquipment).filter((e) => e.tag || e.name);
+      const allRows = await loadEquipmentMasterCache(false);
+      const matchedRows = allRows.filter((row) => equipmentRowMatchesProjectCode(row, projectCode));
 
-      // De-duplicate legacy subform rows by Creator record ID; if unavailable,
-      // use tag/name/section as a stable fallback key.
+      state.lastSourceDiagnostics.discoveredEquipmentProjectKey = CONFIG.EQUIPMENT_PROJECT_FIELD;
+      state.lastSourceDiagnostics.equipmentMatchedProjectCode = projectCode;
+      state.lastSourceDiagnostics.equipmentMatchedRows = matchedRows.length;
+
+      // Learn field aliases from the exact project's rows, then adapt them.
+      autoLearnEquipmentAliases(matchedRows);
+      const items = matchedRows.map(adaptEquipment).filter((e) => e.tag || e.name);
+
+      // De-duplicate by record ID, or by the complete hierarchy when ID is absent.
       const unique = new Map();
       items.forEach((item) => {
-        const key = String(item.id || `${item.tag}|${item.name}|${item.plantSection}|${item.plantType}`);
+        const key = String(item.id || `${item.tag}|${item.name}|${item.plantSection}|${item.plantType}|${item.pdsName}`);
         if (!unique.has(key)) unique.set(key, item);
       });
 
@@ -1830,12 +1934,10 @@
       result.sort((a, b) => String(a.tag || "").localeCompare(String(b.tag || ""), undefined, { numeric: true }));
 
       if (!result.length) {
-        // This is a normal condition for project entries such as "Others" that
-        // genuinely do not have equipment in the Master Equipment List.
         showError(
-          `No equipment exists in ${CONFIG.REPORTS.equipment} for Project Code ${project.code}. ` +
-          `Matching field: ${field}. Selected Project Record ID: ${project.id || "not available"}. ` +
-          `Select a project that has equipment (for example 25005 in your report) and Refresh.`
+          `No equipment rows matched Project Code ${projectCode}. ` +
+          `The widget loaded ${allRows.length} rows from ${CONFIG.REPORTS.equipment} and matched the visible Project_Code value only. ` +
+          `Open Diagnostics if this project definitely has equipment.`
         );
       }
       return result;
@@ -1948,9 +2050,9 @@
       state.selectedProject = null;
     }
 
-    // Plant-section dropdown is built ONLY from the equipment rows already
-    // matched to the selected project. This guarantees that Project 25005,
-    // for example, shows only 25005 sections/types.
+    // Plant Section / Plant Section Type dropdowns are built ONLY from
+    // equipment already matched to the selected project.
+    // Example: 25005 -> CO2 Recovery System -> Food Grade.
     function equipmentSectionKey(e) {
       return [e?.plantSection || "", e?.plantType || ""].join("|||");
     }
@@ -1961,15 +2063,28 @@
     }
 
     function renderSectionFilter() {
-      const options = new Map();
-      state.equipment.forEach((e) => {
-        const label = equipmentSectionLabel(e);
-        if (label) options.set(equipmentSectionKey(e), label);
-      });
-      const sorted = [...options.entries()].sort((a, b) => a[1].localeCompare(b[1]));
-      $("sectionFilter").innerHTML = '<option value="">All sections</option>' +
-        sorted.map(([value, label]) => `<option value="${escapeHtml(value)}">${escapeHtml(label)}</option>`).join("");
+      const sections = [...new Set(
+        state.equipment.map((e) => String(e.plantSection || "").trim()).filter(Boolean)
+      )].sort((a, b) => a.localeCompare(b));
+
+      $("sectionFilter").innerHTML = '<option value="">All plant sections</option>' +
+        sections.map((value) => `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`).join("");
       $("sectionFilter").value = "";
+      renderSectionTypeFilter();
+    }
+
+    function renderSectionTypeFilter() {
+      const selectedSection = $("sectionFilter").value;
+      const types = [...new Set(
+        state.equipment
+          .filter((e) => !selectedSection || String(e.plantSection || "") === selectedSection)
+          .map((e) => String(e.plantType || "").trim())
+          .filter(Boolean)
+      )].sort((a, b) => a.localeCompare(b));
+
+      $("sectionTypeFilter").innerHTML = '<option value="">All section types</option>' +
+        types.map((value) => `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`).join("");
+      $("sectionTypeFilter").value = "";
     }
 
     function departmentStats(department) {
@@ -2037,7 +2152,10 @@
       state.activeTab = "overview";
       renderDepartmentCards();
       $("workspace").classList.toggle("hidden", !state.selectedProject);
-      $("equipmentPanelTitle").textContent = `${department} — Project Equipment`;
+      const section = $("sectionFilter").value;
+      const sectionType = $("sectionTypeFilter").value;
+      const hierarchy = [section, sectionType].filter(Boolean).join(" / ");
+      $("equipmentPanelTitle").textContent = `${department} — ${hierarchy || "Project"} Equipment`;
       renderEquipmentList();
       clearDetailPanel();
     }
@@ -2045,16 +2163,22 @@
     function filteredEquipment() {
       const q = `${$("globalSearch").value} ${$("equipmentSearch").value}`.toLowerCase().trim();
       const section = $("sectionFilter").value;
+      const sectionType = $("sectionTypeFilter").value;
       return state.equipment.filter((e) => {
         const hay = [e.tag, e.name, e.category, e.type, e.plantSection, e.plantType, e.pdsName, e.department].join(" ").toLowerCase();
-        return (!q || hay.includes(q)) && (!section || equipmentSectionKey(e) === section);
+        return (!q || hay.includes(q)) &&
+               (!section || String(e.plantSection || "") === section) &&
+               (!sectionType || String(e.plantType || "") === sectionType);
       });
     }
 
     function renderEquipmentList() {
       if (!state.selectedProject || !state.selectedDepartment) return;
       const items = filteredEquipment();
-      const withGeneral = [generalProjectItem(), ...items];
+      const hasPlantFilter = Boolean($("sectionFilter").value || $("sectionTypeFilter").value);
+      // When a concrete plant section/type is selected, show only real equipment
+      // tags. GENERAL remains available only at unfiltered project level.
+      const withGeneral = hasPlantFilter ? items : [generalProjectItem(), ...items];
       $("equipmentCount").textContent = String(items.length);
 
       $("equipmentList").innerHTML = withGeneral.map((e) => {
@@ -2729,7 +2853,8 @@
         state.selectedEquipment = null;
         $("globalSearch").value = "";
         $("equipmentSearch").value = "";
-        $("sectionFilter").innerHTML = '<option value="">All sections</option>';
+        $("sectionFilter").innerHTML = '<option value="">All plant sections</option>';
+        $("sectionTypeFilter").innerHTML = '<option value="">All section types</option>';
         $("projectContext").textContent = state.selectedProject
           ? `${state.selectedProject.code}${state.selectedProject.customer ? ` — ${state.selectedProject.customer}` : ""}${state.selectedProject.description ? ` — ${state.selectedProject.description}` : ""}`
           : "Select a project to begin.";
@@ -2745,10 +2870,25 @@
       });
 
       ["globalSearch","equipmentSearch"].forEach((id) => $(id).addEventListener("input", renderEquipmentList));
-      $("sectionFilter").addEventListener("change", renderEquipmentList);
+      $("sectionFilter").addEventListener("change", () => {
+        renderSectionTypeFilter();
+        state.selectedEquipment = null;
+        if (state.selectedDepartment) selectDepartment(state.selectedDepartment);
+        else renderEquipmentList();
+      });
+      $("sectionTypeFilter").addEventListener("change", () => {
+        state.selectedEquipment = null;
+        if (state.selectedDepartment) selectDepartment(state.selectedDepartment);
+        else renderEquipmentList();
+      });
       $("refreshBtn").addEventListener("click", async () => {
-        if (state.selectedProject) await loadProjectData();
-        else await loadBaseData();
+        if (state.selectedProject) {
+          // Force a fresh read so newly added Equipment List rows are visible.
+          state.equipmentMasterRows = null;
+          await loadProjectData();
+        } else {
+          await loadBaseData();
+        }
       });
 
       $("detailTabs").querySelectorAll(".tab-btn").forEach((button) => button.addEventListener("click", () => openTab(button.dataset.tab)));
@@ -2802,6 +2942,12 @@
         { ID: "B1", Project_Code: "20015A", Master_Equipments_Report_ID: "E1", Tag_Number: "CL-1501", Location_Name: "Shell Plate 2", Indent_No: "1A10110411", Priority: "1A", Item_Name: "Plate", General_Standard: "US", MOC_Standard: "ASTM A240", MOC_Grade: "Gr 316", Item_Unit: "mm", Item_Size: "1500", Item_Type: "Hot Rolled", Thickness: "4.00", Quantity: "1", Finish_Weight: "151.39", Raw_Weight: "155.93" },
         { ID: "B2", Project_Code: "20015A", Master_Equipments_Report_ID: "E1", Tag_Number: "CL-1501", Location_Name: "Tray Support Clits", Indent_No: "1A10114711", Priority: "1A", Item_Name: "Plate", General_Standard: "US", MOC_Standard: "ASTM A240", MOC_Grade: "Gr 316", Item_Unit: "mm", Item_Size: "1500", Item_Type: "Hot Rolled", Thickness: "2.50", Quantity: "16", Finish_Weight: "1.28", Raw_Weight: "1.34" }
       ],
+      plantSections: [
+        { ID: "PS1", Plant_Section_Name: "Dehydration", Plant_Section_Type: "Rectified Spirit Liquid Basis Dehydration" },
+        { ID: "PS2", Plant_Section_Name: "Evaporation", Plant_Section_Type: "Standalone Evaporation" },
+        { ID: "PS3", Plant_Section_Name: "Biomethanation", Plant_Section_Type: "Biogas Plant" },
+        { ID: "PS4", Plant_Section_Name: "CO2 Recovery System", Plant_Section_Type: "Food Grade" }
+      ],
       employees: [
         { ID: "U1", Employee_Name: "Amrut Ithape", Email: "amrut.ithape@megaepc.com", Department: "Process Team" },
         { ID: "U2", Employee_Name: "Ishwar Mali", Email: "mm@mega.tc", Department: "Workshop Team" },
@@ -2817,6 +2963,7 @@
       else if (reportName === CONFIG.REPORTS.equipment) rows = DEMO.equipment;
       else if (reportName === CONFIG.REPORTS.pds) rows = DEMO.pds;
       else if (reportName === CONFIG.REPORTS.bom) rows = DEMO.bom;
+      else if (reportName === CONFIG.REPORTS.plantSections) rows = DEMO.plantSections;
       else if (reportName === CONFIG.REPORTS.employees) rows = DEMO.employees;
       else if (reportName === "Design_Tracking_Report") rows = DEMO.tracking;
 
@@ -2927,7 +3074,7 @@
      2. Click Department.
      3. Select Project / Area General or an equipment Tag Number.
 
-     V4 PROJECT MATCHING NOTE
+     V5 PROJECT MATCHING NOTE
      ------------------------
      Master_Equipment_List_Subform_Report.Project_Code is treated as a lookup.
      When a user selects Project 25005, the widget sends the selected Project
