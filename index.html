@@ -683,7 +683,7 @@
 
       // Maximum number of cursor batches the fallback loader will read.
       // 15 x 1000 = 15,000 records maximum for one source report operation.
-      MAX_CURSOR_BATCHES: 15,
+      MAX_CURSOR_BATCHES: 30,
 
       // File Upload field limit documented by Zoho Creator JS API v2.
       MAX_FILE_BYTES: 50 * 1024 * 1024
@@ -756,7 +756,12 @@
       },
       equipment: {
         id: ["ID"],
-        projectCode: ["Project_Code", "Project_Code1", "Project", "Project_Code_Lookup", "Project_Details"],
+        projectCode: [
+          "Project_Code", "Project_Code1", "Project_Code2", "Project_Code3",
+          "Project", "Project1", "Project_Lookup", "Project_Code_Lookup",
+          "Project_Details", "Project_Detail", "Associated_Project", "Associated_Projects",
+          "Project_Name", "Project_No", "Project_Number", "Project_ID"
+        ],
         pdsName: ["PDS_Name", "PDS_Name1", "PDS", "PDS_Type"],
         tag: ["Tag_Number", "Tag_No", "Tag_Number1", "Equipment_Tag"],
         name: ["Equipment_Name", "Equipment_Name1", "Equipment", "Name"],
@@ -765,8 +770,15 @@
         category: ["Equipment_Category", "Equipment_Category1", "Category"],
         type: ["Equipment_Type", "Equipment_Type1", "Type"],
         subtype: ["Equipment_Subtype", "Equipment_Sub_Type", "Subtype"],
-        plantSection: ["Plant_Section_Name", "Plant_Section", "Section_Name", "Plant_Section_Name1"],
-        plantType: ["Plant_Section_Type", "Section_Type", "Plant_Section_Type1"],
+        plantSection: [
+          "Plant_Section_Name", "Plant_Section_Name1", "Plant_Section_Name2",
+          "Plant_Section", "Plant_Section1", "Section_Name", "Section_Name1",
+          "Plant_Name", "Plant_Section_Lookup"
+        ],
+        plantType: [
+          "Plant_Section_Type", "Plant_Section_Type1", "Plant_Section_Type2",
+          "Section_Type", "Section_Type1", "Plant_Type"
+        ],
         sectionRef: ["Section_Ref", "Section_Reference"]
       },
       pds: {
@@ -1073,6 +1085,139 @@
       return fallback;
     }
 
+    /* ----------------------------------------------------------------------
+       SOURCE AUTO-DISCOVERY HELPERS
+       ----------------------------------------------------------------------
+       The old MEGA Creator reports contain lookup/grouping fields whose real
+       link names can differ from their display labels. These helpers make the
+       widget discover those fields automatically instead of requiring the
+       user to hard-code every old link name.
+       ---------------------------------------------------------------------- */
+
+    // Returns every readable scalar value inside a Creator record, including
+    // nested lookup objects such as {ID, display_value, zc_display_value}.
+    function deepScalarEntries(value, topKey = "", out = [], depth = 0) {
+      if (depth > 5 || value === null || value === undefined) return out;
+      if (typeof value !== "object") {
+        out.push({ key: topKey, value: String(value) });
+        return out;
+      }
+      if (Array.isArray(value)) {
+        value.forEach((item) => deepScalarEntries(item, topKey, out, depth + 1));
+        return out;
+      }
+      for (const [key, child] of Object.entries(value)) {
+        const root = topKey || key;
+        if (child !== null && typeof child === "object") {
+          deepScalarEntries(child, root, out, depth + 1);
+        } else if (child !== null && child !== undefined) {
+          out.push({ key: root, value: String(child) });
+        }
+      }
+      return out;
+    }
+
+    // Tests whether a record contains the selected project code/record ID in
+    // any normal or lookup value. Exact/token matches are preferred so project
+    // 26005 does not accidentally match a longer unrelated value.
+    function recordMatchesProject(record, project) {
+      if (!record || !project) return false;
+      const needles = [String(project.code || "").trim(), String(project.id || "").trim()].filter(Boolean);
+
+      // First try known/discovered project aliases.
+      const known = pick(record, FIELD_ALIASES.equipment.projectCode);
+      if (known) {
+        const text = String(known).trim();
+        if (needles.some((n) => text === n || text.split(/[^A-Za-z0-9]+/).includes(n))) return true;
+      }
+
+      // Then inspect every top-level/nested value returned by Creator.
+      return deepScalarEntries(record).some(({ value }) => {
+        const text = String(value).trim();
+        return needles.some((n) => text === n || text.split(/[^A-Za-z0-9]+/).includes(n));
+      });
+    }
+
+    // Adds a discovered link name to the front of an alias list so all later
+    // reads use it immediately.
+    function learnAlias(group, field, key) {
+      if (!key || !FIELD_ALIASES[group]?.[field]) return;
+      const list = FIELD_ALIASES[group][field];
+      if (!list.includes(key)) list.unshift(key);
+    }
+
+    // Finds the top-level field whose nested/display value contains the
+    // selected project code or project record ID.
+    function discoverProjectKeyFromRows(rows, project) {
+      for (const row of rows || []) {
+        for (const { key, value } of deepScalarEntries(row)) {
+          const text = String(value).trim();
+          const code = String(project?.code || "").trim();
+          const id = String(project?.id || "").trim();
+          if ((code && (text === code || text.split(/[^A-Za-z0-9]+/).includes(code))) ||
+              (id && text === id)) {
+            learnAlias("equipment", "projectCode", key);
+            return key;
+          }
+        }
+      }
+      return "";
+    }
+
+    // Scores field names using common engineering/report naming words. This
+    // allows Plant_Section_Name_2, Equipment_Tag_No, etc. to be discovered.
+    function bestKeyByTokens(record, includeTokens, excludeTokens = []) {
+      if (!record) return "";
+      let best = "";
+      let bestScore = -1;
+      for (const key of Object.keys(record)) {
+        const nk = normalizeKey(key);
+        if (excludeTokens.some((t) => nk.includes(normalizeKey(t)))) continue;
+        let score = 0;
+        includeTokens.forEach((t) => { if (nk.includes(normalizeKey(t))) score += 2; });
+        if (score > bestScore && score > 0) { best = key; bestScore = score; }
+      }
+      return best;
+    }
+
+    // Learns the most common equipment field names from real report rows.
+    function autoLearnEquipmentAliases(rows) {
+      const row = (rows || []).find(Boolean);
+      if (!row) return;
+      const mappings = [
+        ["pdsName", ["pds", "name"], []],
+        ["tag", ["tag"], []],
+        ["name", ["equipment", "name"], ["category", "type", "subtype", "department"]],
+        ["groupCode", ["group", "code"], []],
+        ["department", ["department"], []],
+        ["category", ["equipment", "category"], []],
+        ["subtype", ["subtype"], []],
+        ["type", ["equipment", "type"], ["subtype"]],
+        ["plantSection", ["plant", "section", "name"], ["type", "ref"]],
+        ["plantType", ["plant", "section", "type"], ["ref"]],
+        ["sectionRef", ["section", "ref"], []]
+      ];
+      mappings.forEach(([field, inc, exc]) => learnAlias("equipment", field, bestKeyByTokens(row, inc, exc)));
+      state.lastSourceDiagnostics.equipmentSampleKeys = Object.keys(row);
+    }
+
+    // Generic helper used by PDS/BOM fallback scans when a legacy field link
+    // is not known.
+    function recordContainsNeedle(record, needle) {
+      const n = String(needle || "").trim();
+      if (!n) return false;
+      return deepScalarEntries(record).some(({ value }) => String(value).trim() === n);
+    }
+
+    // Returns a readable message even when Zoho rejects with a plain object.
+    function errorMessage(error) {
+      if (!error) return "Unknown Creator error";
+      if (typeof error === "string") return error;
+      return error.message || error.description || error.responseText || (() => {
+        try { return JSON.stringify(error); } catch (_) { return String(error); }
+      })();
+    }
+
     // Returns a numeric value safely.
     function numberValue(value, fallback = 0) {
       const n = Number(String(value ?? "").replace(/,/g, ""));
@@ -1181,6 +1326,25 @@
     }
 
     /* ======================================================================
+       I-A. API TIMEOUT HELPER
+       ----------------------------------------------------------------------
+       When this HTML is opened in a normal browser/ChatGPT preview, the Zoho
+       Widget SDK file can still load, but there is NO Creator application
+       session around the page. In that situation getInitParams()/data calls
+       may remain pending. This helper stops the loading screen and shows a
+       clear message instead of spinning forever.
+       ====================================================================== */
+    function withTimeout(promise, milliseconds, label) {
+      let timer;
+      const timeout = new Promise((_, reject) => {
+        timer = setTimeout(() => {
+          reject(new Error(`${label} timed out after ${Math.round(milliseconds / 1000)} seconds.`));
+        }, milliseconds);
+      });
+      return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
+    }
+
+    /* ======================================================================
        J. CREATOR API WRAPPERS
        ----------------------------------------------------------------------
        Every Zoho call goes through these functions. This keeps the business
@@ -1244,6 +1408,104 @@
       }
       if (lastError) console.warn(`No successful criteria match for ${reportName}.`, lastError);
       return { rows: [], expression: "" };
+    }
+
+    // Scans a report page-by-page and keeps rows containing the selected
+    // project anywhere in their returned values. This is the safety net for
+    // old subform reports where the project lookup link name is unknown.
+    async function scanEquipmentReportForProject(project) {
+      const matched = [];
+      let cursor = "";
+      let scanned = 0;
+      let discoveredProjectKey = "";
+
+      for (let batch = 0; batch < CONFIG.MAX_CURSOR_BATCHES; batch += 1) {
+        const config = withAppName({
+          report_name: CONFIG.REPORTS.equipment,
+          field_config: "all",
+          max_records: 1000
+        });
+        if (cursor) config.record_cursor = cursor;
+
+        const response = assertCreatorResponse(
+          await ZOHO.CREATOR.DATA.getRecords(config),
+          `Get Records - ${CONFIG.REPORTS.equipment}`
+        );
+        const rows = Array.isArray(response.data) ? response.data : [];
+        scanned += rows.length;
+        if (rows.length) {
+          autoLearnEquipmentAliases(rows);
+          discoveredProjectKey = discoveredProjectKey || discoverProjectKeyFromRows(rows, project);
+          matched.push(...rows.filter((row) => recordMatchesProject(row, project)));
+        }
+
+        cursor = response.record_cursor || response.cursor || "";
+        if (!cursor || rows.length === 0) break;
+      }
+
+      state.lastSourceDiagnostics.equipmentRowsScanned = scanned;
+      state.lastSourceDiagnostics.discoveredEquipmentProjectKey = discoveredProjectKey || "not visible in returned rows";
+      return matched;
+    }
+
+    // Uses real sample keys from the equipment report to discover an unknown
+    // project field by testing Creator criteria against likely field names.
+    async function discoverEquipmentByCriteria(project) {
+      let sampleRows = [];
+      try { sampleRows = await fetchAllRecords(CONFIG.REPORTS.equipment, "", 1); } catch (_) { return { rows: [], expression: "" }; }
+      if (!sampleRows.length) return { rows: [], expression: "" };
+      autoLearnEquipmentAliases(sampleRows);
+
+      const keys = Object.keys(sampleRows[0]);
+      const ordered = [...keys].sort((a, b) => {
+        const score = (k) => {
+          const nk = normalizeKey(k);
+          let v = 0;
+          if (nk.includes("project")) v += 20;
+          if (nk.includes("proj")) v += 10;
+          if (nk.includes("associated")) v += 8;
+          if (nk.includes("code")) v += 5;
+          return v;
+        };
+        return score(b) - score(a);
+      });
+
+      // First test likely project-related keys only. If nothing works, the
+      // full cursor scan below will inspect record values without criteria.
+      for (const key of ordered.filter((k) => /project|proj|associated/i.test(k)).slice(0, 12)) {
+        const expressions = [];
+        if (project.id) {
+          expressions.push(`${key} == ${criteriaText(project.id)}`);
+          expressions.push(`${key} == "${criteriaText(project.id)}"`);
+        }
+        if (project.code) expressions.push(`${key} == "${criteriaText(project.code)}"`);
+        const result = await queryByExpressions(CONFIG.REPORTS.equipment, expressions);
+        if (result.rows.length) {
+          learnAlias("equipment", "projectCode", key);
+          autoLearnEquipmentAliases(result.rows);
+          state.lastSourceDiagnostics.discoveredEquipmentProjectKey = key;
+          return result;
+        }
+      }
+      return { rows: [], expression: "" };
+    }
+
+    // Scans PDS/BOM reports by exact tag as a final fallback. The reports in
+    // the supplied screenshots visibly contain the equipment tag, so this
+    // works even when the tag field's old link name differs from our aliases.
+    async function scanReportForExactValue(reportName, needle, maxBatches = CONFIG.MAX_CURSOR_BATCHES) {
+      const matched = [];
+      let cursor = "";
+      for (let batch = 0; batch < maxBatches; batch += 1) {
+        const config = withAppName({ report_name: reportName, field_config: "all", max_records: 1000 });
+        if (cursor) config.record_cursor = cursor;
+        const response = assertCreatorResponse(await ZOHO.CREATOR.DATA.getRecords(config), `Get Records - ${reportName}`);
+        const rows = Array.isArray(response.data) ? response.data : [];
+        matched.push(...rows.filter((row) => recordContainsNeedle(row, needle)));
+        cursor = response.record_cursor || response.cursor || "";
+        if (!cursor || rows.length === 0) break;
+      }
+      return matched;
     }
 
     // Adds one Design_Tracking record. File fields are uploaded separately afterwards.
@@ -1375,7 +1637,11 @@
           state.designTrackingReport = "Design_Tracking_Report";
         } else {
           // JS API v2 exposes session/app context without SDK initialization.
-          const init = await ZOHO.CREATOR.UTIL.getInitParams();
+          const init = await withTimeout(
+            ZOHO.CREATOR.UTIL.getInitParams(),
+            8000,
+            "Zoho Creator session detection"
+          );
           state.currentUser = init?.loginUser || "";
           state.appName = init?.appLinkName || CONFIG.APP_NAME;
           await resolveDesignTrackingReport();
@@ -1396,8 +1662,18 @@
         renderDepartmentCards();
       } catch (error) {
         console.error(error);
-        $("sessionPill").textContent = "Creator connection error";
-        showError(`${error.message} Use Diagnostics to verify report/field link names and permissions.`);
+        $("sessionPill").textContent = "Not connected to Creator";
+
+        const timeoutLike = /timed out|session detection/i.test(String(error?.message || error));
+        if (timeoutLike) {
+          showError(
+            "This HTML is being opened outside an active Zoho Creator widget session. " +
+            "The ChatGPT file preview cannot read your Creator reports. Host/upload the widget and open it from a Creator Page. " +
+            "For UI-only testing outside Creator, open the hosted URL with ?demo=1."
+          );
+        } else {
+          showError(`${error.message} Use Diagnostics to verify report/field link names and permissions.`);
+        }
       } finally {
         hideLoading();
       }
@@ -1449,43 +1725,65 @@
         selectDepartment(state.selectedDepartment);
       } catch (error) {
         console.error(error);
-        showError(`${error.message} If the project field is a lookup, run Diagnostics and add its field link name to FIELD_ALIASES.equipment.projectCode.`);
+        showError(`${errorMessage(error)} Open Diagnostics only if this persists; v3 now auto-discovers legacy project/equipment fields.`);
       } finally {
         hideLoading();
       }
     }
 
-    // Tries both project record ID and project code because the old equipment report may use a lookup.
+    // Loads project equipment from the legacy subform report. v3 uses three
+    // levels: known aliases -> automatic criteria discovery -> full cursor scan.
     async function loadEquipmentForProject(project) {
       const code = criteriaText(project.code);
       const id = criteriaText(project.id);
-      const fieldCandidates = FIELD_ALIASES.equipment.projectCode;
       const expressions = [];
 
-      for (const field of fieldCandidates) {
+      // Level 1: try the known/common project field aliases.
+      for (const field of FIELD_ALIASES.equipment.projectCode) {
         if (project.id) {
           expressions.push(`${field} == ${id}`);
           expressions.push(`${field} == "${id}"`);
         }
-        expressions.push(`${field} == "${code}"`);
+        if (project.code) expressions.push(`${field} == "${code}"`);
       }
 
-      const queried = await queryByExpressions(CONFIG.REPORTS.equipment, expressions);
+      let queried = await queryByExpressions(CONFIG.REPORTS.equipment, expressions);
       let rows = queried.rows;
-      state.lastSourceDiagnostics.equipmentCriteria = queried.expression || "fallback-full-report";
+      state.lastSourceDiagnostics.equipmentCriteria = queried.expression || "";
 
-      // Fallback: fetch report batches and filter locally if direct criteria could not be resolved.
+      // Level 2: inspect the actual report keys and test likely project fields.
       if (!rows.length) {
-        const allRows = await fetchAllRecords(CONFIG.REPORTS.equipment);
-        rows = allRows.filter((record) => {
-          const value = pick(record, FIELD_ALIASES.equipment.projectCode);
-          return String(value).trim() === String(project.code).trim() || String(value).includes(project.code);
-        });
+        queried = await discoverEquipmentByCriteria(project);
+        rows = queried.rows;
+        if (queried.expression) state.lastSourceDiagnostics.equipmentCriteria = queried.expression;
       }
 
+      // Level 3: scan returned rows page-by-page and find the selected project
+      // inside normal/lookup display values. This removes dependency on the
+      // old project field's link name.
+      if (!rows.length) {
+        rows = await scanEquipmentReportForProject(project);
+        if (rows.length) state.lastSourceDiagnostics.equipmentCriteria = "cursor scan / auto project match";
+      }
+
+      autoLearnEquipmentAliases(rows);
       const items = rows.map(adaptEquipment).filter((e) => e.tag || e.name);
-      items.sort((a, b) => String(a.tag).localeCompare(String(b.tag), undefined, { numeric: true }));
-      return items;
+
+      // De-duplicate because old subform reports can expose the same equipment
+      // through more than one grouped/lookup path.
+      const unique = new Map();
+      items.forEach((item) => {
+        const key = String(item.id || `${item.tag}|${item.name}|${item.plantSection}`);
+        if (!unique.has(key)) unique.set(key, item);
+      });
+      const result = [...unique.values()];
+      result.sort((a, b) => String(a.tag).localeCompare(String(b.tag), undefined, { numeric: true }));
+
+      if (!result.length) {
+        const keys = state.lastSourceDiagnostics.equipmentSampleKeys || [];
+        showError(`No equipment rows matched project ${project.code}. The widget scanned ${state.lastSourceDiagnostics.equipmentRowsScanned || 0} equipment rows. Sample equipment keys: ${keys.join(", ") || "none returned"}. If this project truly has equipment, send a screenshot of Diagnostics output and I can pin the exact legacy field.`);
+      }
+      return result;
     }
 
     // Design_Tracking uses a known single-line Project_Code field, so criteria is reliable.
@@ -1528,6 +1826,9 @@
         const projectRows = (await queryByExpressions(CONFIG.REPORTS.pds, projectExpressions)).rows;
         rows = projectRows.filter((r) => pick(r, FIELD_ALIASES.pds.tag) === equipment.tag);
       }
+      if (!rows.length && equipment.tag) {
+        rows = await scanReportForExactValue(CONFIG.REPORTS.pds, equipment.tag);
+      }
 
       state.pdsCache.set(cacheKey, rows);
       return rows;
@@ -1557,6 +1858,9 @@
         const projectExpressions = FIELD_ALIASES.bom.projectCode.map((field) => `${field} == "${criteriaText(projectCode)}"`);
         const projectRows = (await queryByExpressions(CONFIG.REPORTS.bom, projectExpressions)).rows;
         rows = projectRows.filter((r) => pick(r, FIELD_ALIASES.bom.tag) === equipment.tag);
+      }
+      if (!rows.length && equipment.tag) {
+        rows = await scanReportForExactValue(CONFIG.REPORTS.bom, equipment.tag);
       }
 
       state.bomCache.set(cacheKey, rows);
@@ -2288,6 +2592,9 @@
         lines.push(`Design Tracking form: ${CONFIG.FORMS.designTracking}`);
         lines.push(`Resolved Design Tracking report: ${state.designTrackingReport || "NOT FOUND"}`);
         lines.push(`Equipment project criteria used: ${state.lastSourceDiagnostics.equipmentCriteria || "not loaded yet"}`);
+        lines.push(`Discovered equipment project key: ${state.lastSourceDiagnostics.discoveredEquipmentProjectKey || "not discovered yet"}`);
+        lines.push(`Equipment rows scanned: ${state.lastSourceDiagnostics.equipmentRowsScanned || 0}`);
+        lines.push(`Equipment sample keys: ${(state.lastSourceDiagnostics.equipmentSampleKeys || []).join(", ") || "not sampled yet"}`);
         lines.push("");
 
         const reportsMeta = assertCreatorResponse(await ZOHO.CREATOR.META.getReports(withAppName({})), "Get Reports");
