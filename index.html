@@ -989,13 +989,91 @@
     };
 
     /* ======================================================================
-       D. DEPARTMENT DESIGN LIBRARY
+       D. PROJECT DOCUMENT + DEPARTMENT DESIGN LIBRARY
        ----------------------------------------------------------------------
-       Phase 1 intentionally keeps this configuration inside the widget rather
-       than creating extra Creator master forms. Add/remove design types here.
-       A project user can also create a Custom Design from the widget.
+       V10 adds a native Project Department document register to the SAME
+       Design_Tracking form. No extra master/storage form is required.
+
+       Project-level documents are stored against the virtual GENERAL item.
+       Equipment-level engineering designs continue to use the actual selected
+       equipment record. Add/remove document/design names here only.
        ====================================================================== */
+    const PROJECT_DOCUMENT_GROUPS = {
+      "Project Control": [
+        "Project Handover / Kick-off Document",
+        "Project Execution Plan",
+        "Contract / Scope Summary",
+        "Project Deliverables Register",
+        "Client Requirement Register",
+        "Project Communication Matrix",
+        "Responsibility / RACI Matrix"
+      ],
+      "Planning": [
+        "Project Master Schedule",
+        "Schedule Basis",
+        "WBS / Activity Breakdown",
+        "Project Milestone Schedule",
+        "Engineering Schedule",
+        "Procurement Schedule",
+        "Manufacturing / Shop Schedule",
+        "Inspection / FAT Schedule",
+        "Dispatch Schedule",
+        "Site Delivery Schedule",
+        "Site Execution Schedule",
+        "Commissioning Schedule",
+        "Weekly / Monthly Look-ahead",
+        "Recovery / Catch-up Plan"
+      ],
+      "MEGA Internal": [
+        "TA",
+        "IWO",
+        "BB Dispatch Schedule",
+        "Shop FSB Schedule"
+      ],
+      "Procurement Coordination": [
+        "Purchase Requirement Schedule",
+        "PO Status Tracker",
+        "Vendor Follow-up Schedule",
+        "Vendor Document Schedule",
+        "Material Readiness Tracker"
+      ],
+      "Manufacturing": [
+        "Shop Manufacturing Plan",
+        "Shop Drawing Status",
+        "Fabrication Schedule",
+        "Ready-for-Dispatch List"
+      ],
+      "Dispatch / Logistics": [
+        "Dispatch Plan",
+        "Container Planning",
+        "Container Loading Plan",
+        "Equipment Packing Plan",
+        "Packing List Status",
+        "Shipment Schedule",
+        "Transport / Vehicle Planning",
+        "Site Material Delivery Plan"
+      ],
+      "Site Coordination": [
+        "Site Readiness Tracker",
+        "Material Required at Site Schedule",
+        "Site Priority List",
+        "Erection Sequence / Requirement Schedule",
+        "Pending Site Inputs"
+      ],
+      "Progress / Control": [
+        "Weekly Progress Report",
+        "Monthly Progress Report",
+        "Milestone Tracker",
+        "Delay / Constraint Register",
+        "Risk Register",
+        "Action Item Register",
+        "Change / Variation Register",
+        "Client MOM / Action Tracker"
+      ]
+    };
+
     const DEPARTMENT_LIBRARY = {
+      "Project": Object.values(PROJECT_DOCUMENT_GROUPS).flat(),
       "Process": [
         "Design Basis",
         "Block Flow Diagram (BFD)",
@@ -1008,8 +1086,9 @@
         "Piping & Instrumentation Diagram (P&ID)",
         "Line List",
         "Valve List",
-        "Control Philosophy",
+        "Process Description",
         "Operating Philosophy",
+        "Control Philosophy",
         "Cause & Effect Inputs",
         "HAZOP Action Closure"
       ],
@@ -1017,58 +1096,83 @@
         "Overall Plot Plan",
         "Plant Layout",
         "Equipment Layout",
+        "Area Layout",
         "Area General Arrangement",
         "Maintenance / Access Layout",
         "Road / Access Layout",
         "Battery Limit Layout",
+        "General Arrangement Layout",
+        "Equipment Location Plan",
         "3D Model Review",
         "Clash Review",
         "As-Built Layout"
       ],
       "Mechanical": [
+        "Equipment Datasheet",
         "Equipment GA",
+        "Mechanical Design Calculation",
         "Fabrication Drawing",
         "Nozzle Orientation",
         "Internals Drawing",
+        "Tray Layout",
         "Platform / Ladder Drawing",
         "Support / Saddle Drawing",
         "Foundation Load Data",
-        "Mechanical Design Calculation",
-        "Vendor Drawing Review",
+        "Nameplate Detail",
         "Manufacturing / Shop Drawing",
+        "Vendor Drawing Review",
+        "Vendor GA",
+        "Motor / Driver Data",
+        "Coupling Detail",
+        "Seal Arrangement",
+        "Lubrication Detail",
+        "Performance Curve",
+        "Installation Drawing",
+        "Alignment Requirement",
         "As-Built Mechanical Drawing"
       ],
       "Civil": [
-        "Site Grading Plan",
+        "Site Grading Layout",
         "Foundation Layout",
         "Equipment Foundation Drawing",
+        "RCC Drawing",
         "RCC Detail Drawing",
-        "Drainage Layout",
-        "Road / Paving Layout",
+        "Anchor Bolt Detail",
+        "Building Layout",
         "Building General Arrangement",
         "Architectural Drawing",
+        "Drainage Layout",
+        "Road / Paving Layout",
         "Underground Services Layout",
+        "Civil General Arrangement",
         "As-Built Civil Drawing"
       ],
       "Structural": [
+        "Structural Design Basis",
         "Structural Design Calculation",
         "Structural General Arrangement",
         "Steel Framing Plan",
+        "Platform Drawing",
+        "Stair / Ladder Drawing",
         "Pipe Rack Drawing",
-        "Platform / Stair / Ladder Drawing",
-        "Connection Detail",
-        "Structural Fabrication Drawing",
+        "Structural Connection Detail",
+        "Steel Fabrication Drawing",
         "Erection Drawing",
         "As-Built Structural Drawing"
       ],
       "Piping": [
         "Piping Design Basis",
+        "Piping Material Specification",
         "Piping General Arrangement",
         "Piping Layout",
+        "Equipment Connection Detail",
+        "Nozzle Orientation Reference",
         "Piping Isometric",
         "Pipe Support Drawing",
         "Special Support Drawing",
         "Stress Analysis",
+        "Line List",
+        "Valve List",
         "Material Take-Off / BOQ",
         "Tie-In List",
         "As-Built Isometric"
@@ -1076,17 +1180,21 @@
       "Electrical": [
         "Electrical Design Basis",
         "Load List",
+        "Motor List",
         "Single Line Diagram (SLD)",
         "Power Distribution Diagram",
+        "Transformer Datasheet",
         "MCC / PCC General Arrangement",
-        "Motor List",
         "Cable Schedule",
         "Cable Sizing Calculation",
         "Cable Tray Layout",
         "Lighting Layout",
         "Earthing Layout",
         "Lightning Protection Layout",
+        "Power Schematic",
+        "Control Schematic",
         "Power / Control Schematic",
+        "Electrical BOQ",
         "As-Built Electrical Drawing"
       ],
       "Instrumentation": [
@@ -1094,31 +1202,43 @@
         "Instrument Datasheet",
         "I/O List",
         "Instrument Location Layout",
-        "Instrument Cable Schedule",
-        "Junction Box Schedule",
         "Hook-Up Drawing",
         "Loop Diagram",
-        "Cause & Effect",
+        "Junction Box Schedule",
+        "Instrument Cable Schedule",
         "Control Philosophy",
-        "PLC / DCS Architecture",
+        "Cause & Effect",
         "Alarm / Trip Schedule",
+        "Instrument Connection Detail",
+        "PLC / DCS Architecture",
         "As-Built Instrument Drawing"
       ],
       "Automation": [
         "Control System Architecture",
-        "Functional Design Specification",
-        "Software Design Specification",
         "PLC / DCS Hardware Configuration",
         "I/O Mapping",
+        "Functional Design Specification",
+        "Software Design Specification",
         "Communication / Network Architecture",
         "Interlock Logic",
         "HMI Philosophy",
         "HMI Screen Design",
+        "Control Logic",
         "FAT Procedure",
+        "FAT Documents",
         "SAT Procedure",
+        "SAT Documents",
         "As-Built Software / Backup"
       ]
     };
+
+    function projectDocumentGroup(designType) {
+      const type = String(designType || "").trim();
+      for (const [group, docs] of Object.entries(PROJECT_DOCUMENT_GROUPS)) {
+        if (docs.includes(type)) return group;
+      }
+      return "Custom / Other";
+    }
 
     /* ======================================================================
        E. STATUS / WORKFLOW CONFIGURATION
@@ -1202,7 +1322,7 @@
       modalVirtualType: "",
       lastSourceDiagnostics: {},
 
-      // V9: Meta information for the hidden Design_Tracking form. This lets
+      // V10: Meta information for the hidden Design_Tracking form. This lets
       // the widget validate Creator field types BEFORE sending a save/update.
       // It specifically prevents opaque error 3001 / "Invalid column value".
       trackingFieldMeta: new Map(),
@@ -1210,7 +1330,7 @@
       designTypeFallbackMode: false,
       designTypeFallbackReason: "",
 
-      // V9: Local operation-flow log. Nothing here is written to Creator.
+      // V10: Local operation-flow log. Nothing here is written to Creator.
       // It exists only for the current widget session and is displayed in Diagnostics.
       operationFlow: [],
       operationSequence: 0,
@@ -1684,14 +1804,14 @@
     }
 
     /* ======================================================================
-       I-B. V9 DESIGN_TRACKING SCHEMA SAFETY
+       I-B. V10 DESIGN_TRACKING SCHEMA SAFETY
        ----------------------------------------------------------------------
        Creator returns error 3001 / "Invalid column value for Design_Type"
        when a value such as "Piping General Arrangement" is sent to a field
        configured as a Drop Down/Radio but that exact choice is not allowed.
 
-       V9 reads the live Design_Tracking field metadata before saving. For
-       Design_Type only, if Creator is configured incompatibly, V9 can use a
+       V10 reads the live Design_Tracking field metadata before saving. For
+       Design_Type only, if Creator is configured incompatibly, V10 can use a
        temporary compatibility fallback so Save / Start / Submit can continue.
 
        PERMANENT BEST FIX IN CREATOR:
@@ -1828,7 +1948,7 @@
           state.designTypeFallbackMode = true;
           state.designTypeFallbackReason =
             `Design_Type is ${creatorFieldTypeName(meta)} and does not allow "${requested}". ` +
-            `V9 temporarily derives the type from Design_Title. Change Design_Type to Single Line for the permanent fix.`;
+            `V10 temporarily derives the type from Design_Title. Change Design_Type to Single Line for the permanent fix.`;
           state.lastSourceDiagnostics.designTypeFallback = state.designTypeFallbackReason;
           traceFlow("SCHEMA FALLBACK", "Omitted incompatible Design_Type from Creator payload", {
             requestedDesignType: requested,
@@ -2160,7 +2280,7 @@
         projectCode: state.selectedProject?.code || "",
         pdsName: "",
         tag: "GENERAL",
-        name: "Project / Area General",
+        name: "Project Department Documents",
         groupCode: "",
         department: "",
         category: "General",
@@ -2824,12 +2944,32 @@
     function selectDepartment(department) {
       state.selectedDepartment = department;
       traceFlow("DEPARTMENT", `Department selected: ${department}`, {
-        designRuleSource: "Widget DESIGN_LIBRARY / equipment applicability rules"
+        designRuleSource: department === "Project"
+          ? "Project document register / PROJECT_DOCUMENT_GROUPS"
+          : "Widget DESIGN_LIBRARY / equipment applicability rules"
       });
       state.selectedEquipment = null;
       state.activeTab = "overview";
       renderDepartmentCards();
       $("workspace").classList.toggle("hidden", !state.selectedProject);
+
+      // PROJECT DEPARTMENT MODE:
+      // Project documents (TA, IWO, schedules, container planning, etc.) are
+      // project-level, so the user should not have to select an equipment tag.
+      // Automatically bind them to the virtual GENERAL record and open the
+      // Designs/Documents tab immediately.
+      if (department === "Project") {
+        state.selectedEquipment = generalProjectItem();
+        $("equipmentPanelTitle").textContent = `${state.selectedProject?.code || "Project"} — Project Documents`;
+        renderEquipmentList();
+        renderEquipmentHero();
+        $("detailTabs").classList.remove("hidden");
+        state.activeTab = "designs";
+        setActiveTabButton("designs");
+        renderDesignsTab();
+        return;
+      }
+
       const section = $("sectionFilter").value;
       const sectionType = $("sectionTypeFilter").value;
       const hierarchy = [section, sectionType].filter(Boolean).join(" / ");
@@ -2852,6 +2992,23 @@
 
     function renderEquipmentList() {
       if (!state.selectedProject || !state.selectedDepartment) return;
+
+      // Project Department documents are not tied to equipment. Show only one
+      // project-level row and keep all equipment hidden in this department.
+      if (state.selectedDepartment === "Project") {
+        const e = generalProjectItem();
+        const active = state.selectedEquipment?.isGeneral ? "active" : "";
+        $("equipmentCount").textContent = String(DEPARTMENT_LIBRARY.Project.length);
+        $("equipmentList").innerHTML = `
+          <button class="equipment-row ${active}" data-equipment-id="GENERAL" type="button">
+            <div class="equipment-tag">PROJECT</div>
+            <div class="equipment-name">Project Department Documents</div>
+            <div class="equipment-meta">${escapeHtml(state.selectedProject.code)} • ${DEPARTMENT_LIBRARY.Project.length} required document types</div>
+          </button>`;
+        $("equipmentList").querySelector(".equipment-row").addEventListener("click", () => selectEquipment(e));
+        return;
+      }
+
       const items = filteredEquipment();
       const hasPlantFilter = Boolean($("sectionFilter").value || $("sectionTypeFilter").value);
       // When a concrete plant section/type is selected, show only real equipment
@@ -2861,7 +3018,7 @@
 
       $("equipmentList").innerHTML = withGeneral.map((e) => {
         const active = state.selectedEquipment?.id === e.id ? "active" : "";
-        const meta = e.isGeneral ? "For project/area-level documents" : [equipmentSectionLabel(e), e.category, e.pdsName].filter(Boolean).join(" • ");
+        const meta = e.isGeneral ? "For project/area-level engineering documents" : [equipmentSectionLabel(e), e.category, e.pdsName].filter(Boolean).join(" • ");
         return `
           <button class="equipment-row ${active}" data-equipment-id="${escapeHtml(e.id)}" type="button">
             <div class="equipment-tag">${escapeHtml(e.tag || "NO TAG")}</div>
@@ -2908,6 +3065,18 @@
 
     function renderEquipmentHero() {
       const e = state.selectedEquipment;
+      if (state.selectedDepartment === "Project" && e?.isGeneral) {
+        $("detailHero").innerHTML = `
+          <div class="detail-hero-top">
+            <div>
+              <div class="detail-tag">PROJECT ${escapeHtml(state.selectedProject?.code || "")}</div>
+              <div class="detail-title">Project Department Document Register</div>
+              <div class="detail-subtitle">Planning • Internal • Procurement • Manufacturing • Dispatch / Logistics • Site • Progress Control</div>
+            </div>
+            <span class="status brand">Project</span>
+          </div>`;
+        return;
+      }
       $("detailHero").innerHTML = `
         <div class="detail-hero-top">
           <div>
@@ -2958,6 +3127,20 @@
 
     function renderOverviewTab() {
       const e = state.selectedEquipment;
+      if (state.selectedDepartment === "Project" && e?.isGeneral) {
+        const fields = [
+          ["Project Code", state.selectedProject?.code],
+          ["Customer", state.selectedProject?.customer],
+          ["Department", "Project"],
+          ["Tracking Level", "Project Document"],
+          ["Required Document Types", DEPARTMENT_LIBRARY.Project.length],
+          ["Tracked Records", selectedEquipmentTracking().length],
+          ["Purpose", "Project planning, coordination, manufacturing, dispatch/logistics and site control"]
+        ];
+        $("tabBody").innerHTML = `<div class="info-grid">${fields.map(([label, value]) => `<div class="info-card"><div class="info-label">${escapeHtml(label)}</div><div class="info-value">${escapeHtml(value || "—")}</div></div>`).join("")}</div>`;
+        return;
+      }
+
       const fields = [
         ["Project Code", state.selectedProject?.code],
         ["Customer", state.selectedProject?.customer],
@@ -3130,38 +3313,38 @@
 
       const RULES = {
         Mechanical: {
-          tank: ["Equipment GA", "Fabrication Drawing", "Nozzle Orientation", "Support / Saddle Drawing", "Foundation Load Data", "Mechanical Design Calculation", "Manufacturing / Shop Drawing", "As-Built Mechanical Drawing"],
-          column: ["Equipment GA", "Fabrication Drawing", "Nozzle Orientation", "Internals Drawing", "Platform / Ladder Drawing", "Support / Saddle Drawing", "Foundation Load Data", "Mechanical Design Calculation", "Manufacturing / Shop Drawing", "As-Built Mechanical Drawing"],
-          pump: ["Equipment GA", "Foundation Load Data", "Vendor Drawing Review", "As-Built Mechanical Drawing"],
-          agitator: ["Equipment GA", "Foundation Load Data", "Vendor Drawing Review", "As-Built Mechanical Drawing"],
-          blower: ["Equipment GA", "Foundation Load Data", "Vendor Drawing Review", "As-Built Mechanical Drawing"],
-          motor: ["Vendor Drawing Review", "Foundation Load Data", "As-Built Mechanical Drawing"],
+          tank: ["Equipment Datasheet", "Equipment GA", "Mechanical Design Calculation", "Fabrication Drawing", "Nozzle Orientation", "Support / Saddle Drawing", "Foundation Load Data", "Nameplate Detail", "Manufacturing / Shop Drawing", "As-Built Mechanical Drawing"],
+          column: ["Equipment Datasheet", "Equipment GA", "Mechanical Design Calculation", "Fabrication Drawing", "Nozzle Orientation", "Internals Drawing", "Tray Layout", "Platform / Ladder Drawing", "Support / Saddle Drawing", "Foundation Load Data", "Nameplate Detail", "Manufacturing / Shop Drawing", "As-Built Mechanical Drawing"],
+          pump: ["Equipment Datasheet", "Vendor GA", "Equipment GA", "Foundation Load Data", "Motor / Driver Data", "Coupling Detail", "Seal Arrangement", "Lubrication Detail", "Performance Curve", "Installation Drawing", "Alignment Requirement", "Vendor Drawing Review", "As-Built Mechanical Drawing"],
+          agitator: ["Equipment Datasheet", "Vendor GA", "Equipment GA", "Foundation Load Data", "Motor / Driver Data", "Coupling Detail", "Installation Drawing", "Alignment Requirement", "Vendor Drawing Review", "As-Built Mechanical Drawing"],
+          blower: ["Equipment Datasheet", "Vendor GA", "Equipment GA", "Foundation Load Data", "Motor / Driver Data", "Coupling Detail", "Performance Curve", "Installation Drawing", "Alignment Requirement", "Vendor Drawing Review", "As-Built Mechanical Drawing"],
+          motor: ["Vendor GA", "Motor / Driver Data", "Foundation Load Data", "Coupling Detail", "Installation Drawing", "Alignment Requirement", "Vendor Drawing Review", "As-Built Mechanical Drawing"],
           piping: []
         },
         Civil: {
-          defaultEquipment: ["Foundation Layout", "Equipment Foundation Drawing", "RCC Detail Drawing", "As-Built Civil Drawing"]
+          defaultEquipment: ["Foundation Layout", "Equipment Foundation Drawing", "RCC Drawing", "Anchor Bolt Detail", "As-Built Civil Drawing"]
         },
         Structural: {
-          defaultEquipment: ["Structural Design Calculation", "Structural General Arrangement", "Connection Detail", "Structural Fabrication Drawing", "Erection Drawing", "As-Built Structural Drawing"]
+          defaultEquipment: ["Structural Design Calculation", "Structural General Arrangement", "Structural Connection Detail", "Steel Fabrication Drawing", "Erection Drawing", "As-Built Structural Drawing"]
         },
         Piping: {
-          defaultEquipment: ["Piping General Arrangement", "Piping Layout", "Piping Isometric", "Pipe Support Drawing", "Material Take-Off / BOQ", "As-Built Isometric"]
+          defaultEquipment: ["Piping General Arrangement", "Piping Layout", "Equipment Connection Detail", "Nozzle Orientation Reference", "Piping Isometric", "Pipe Support Drawing", "Material Take-Off / BOQ", "As-Built Isometric"]
         },
         Electrical: {
-          motor: ["Load List", "Motor List", "Cable Schedule", "Cable Sizing Calculation", "Power / Control Schematic", "Earthing Layout", "As-Built Electrical Drawing"],
-          defaultEquipment: ["Load List", "Cable Schedule", "Cable Sizing Calculation", "Earthing Layout", "Power / Control Schematic", "As-Built Electrical Drawing"]
+          motor: ["Load List", "Motor List", "Single Line Diagram (SLD)", "Cable Schedule", "Cable Sizing Calculation", "Power / Control Schematic", "Earthing Layout", "As-Built Electrical Drawing"],
+          defaultEquipment: ["Load List", "Single Line Diagram (SLD)", "Cable Schedule", "Cable Sizing Calculation", "Earthing Layout", "Power / Control Schematic", "As-Built Electrical Drawing"]
         },
         Instrumentation: {
-          defaultEquipment: ["Instrument Datasheet", "I/O List", "Instrument Location Layout", "Hook-Up Drawing", "Loop Diagram", "Alarm / Trip Schedule", "As-Built Instrument Drawing"]
+          defaultEquipment: ["Instrument Datasheet", "I/O List", "Instrument Location Layout", "Hook-Up Drawing", "Loop Diagram", "Alarm / Trip Schedule", "Instrument Connection Detail", "As-Built Instrument Drawing"]
         },
         Automation: {
-          defaultEquipment: ["I/O Mapping", "Interlock Logic", "HMI Screen Design", "FAT Procedure", "SAT Procedure", "As-Built Software / Backup"]
+          defaultEquipment: ["I/O Mapping", "Interlock Logic", "HMI Screen Design", "Control Logic", "FAT Procedure", "SAT Procedure", "As-Built Software / Backup"]
         },
         Process: {
           defaultEquipment: ["Process Datasheet", "Piping & Instrumentation Diagram (P&ID)", "Equipment List"]
         },
         "Design / Layout": {
-          defaultEquipment: ["Equipment Layout", "Area General Arrangement", "3D Model Review", "Clash Review", "As-Built Layout"]
+          defaultEquipment: ["Equipment Layout", "Area General Arrangement", "Equipment Location Plan", "3D Model Review", "Clash Review", "As-Built Layout"]
         }
       };
 
@@ -3205,20 +3388,26 @@
     function renderDesignsTab() {
       const rows = mergedDesignRows();
       const savedCount = rows.filter((r) => !r.virtual).length;
+      const projectMode = state.selectedDepartment === "Project" && state.selectedEquipment?.isGeneral;
+      const noun = projectMode ? "document" : "design";
+      const title = projectMode ? "Project Department — Required Documents" : `${state.selectedDepartment} Designs`;
+      const firstHeader = projectMode ? "Document" : "Design";
+      const numberHeader = projectMode ? "Document No." : "Drawing No.";
+
       $("tabBody").innerHTML = `
         <div class="toolbar">
           <div class="toolbar-left">
-            <div class="toolbar-title">${escapeHtml(state.selectedDepartment)} Designs</div>
+            <div class="toolbar-title">${escapeHtml(title)}</div>
             <span class="status">${savedCount}/${rows.length} planned/tracked</span>
           </div>
           <div class="toolbar-right">
-            <button id="customDesignBtn" class="btn btn-secondary btn-sm" type="button">+ Custom Design</button>
-            <button id="initializeDesignsBtn" class="btn btn-soft btn-sm" type="button">Initialize All</button>
+            <button id="customDesignBtn" class="btn btn-secondary btn-sm" type="button">+ Custom ${projectMode ? "Document" : "Design"}</button>
+            <button id="initializeDesignsBtn" class="btn btn-soft btn-sm" type="button">Initialize All${projectMode ? " Documents" : ""}</button>
           </div>
         </div>
         <div class="table-wrap"><table>
-          <thead><tr><th>Design</th><th>Drawing No.</th><th>Assigned</th><th>Start</th><th>End</th><th>Revision</th><th>Status</th><th>Progress</th><th>Last Updated</th><th>Updated By</th><th>Action</th></tr></thead>
-          <tbody>${rows.map((row) => renderDesignRow(row)).join("")}</tbody>
+          <thead><tr>${projectMode ? "<th>Group</th>" : ""}<th>${firstHeader}</th><th>${numberHeader}</th><th>Assigned</th><th>Start</th><th>End</th><th>Revision</th><th>Status</th><th>Progress</th><th>Last Updated</th><th>Updated By</th><th>Action</th></tr></thead>
+          <tbody>${rows.map((row) => renderDesignRow(row, projectMode)).join("")}</tbody>
         </table></div>`;
 
       $("customDesignBtn").addEventListener("click", () => openDesignModal(null, ""));
@@ -3232,11 +3421,13 @@
       });
     }
 
-    function renderDesignRow(row) {
+    function renderDesignRow(row, projectMode = false) {
       const r = row.record;
       const status = r ? scalarValue(r[TRACKING_FIELDS.status]) || "Not Started" : "Not Started";
       const progress = r ? numberValue(r[TRACKING_FIELDS.progress]) : 0;
+      const groupCell = projectMode ? `<td><span class="status">${escapeHtml(projectDocumentGroup(row.type))}</span></td>` : "";
       return `<tr>
+        ${groupCell}
         <td class="td-title">${escapeHtml(row.type)}${row.custom ? '<div class="muted" style="font-size:10px;margin-top:2px;">Custom</div>' : ""}</td>
         <td>${escapeHtml(r ? scalarValue(r[TRACKING_FIELDS.drawingNumber]) || "—" : "—")}</td>
         <td>${escapeHtml(r ? scalarValue(r[TRACKING_FIELDS.assignedEmployeeName]) || scalarValue(r[TRACKING_FIELDS.assignedTo]) || "—" : "—")}</td>
@@ -3260,13 +3451,13 @@
         missingDesignCount: missing.length,
         targetForm: CONFIG.FORMS.designTracking
       });
-      if (!missing.length) return toast("All standard design rows are already initialized.", "success");
-      if (!confirm(`Create ${missing.length} Not Started design tracking records for ${state.selectedEquipment.name}?`)) return;
+      if (!missing.length) return toast(state.selectedDepartment === "Project" ? "All project document rows are already initialized." : "All standard design rows are already initialized.", "success");
+      if (!confirm(`Create ${missing.length} Not Started ${state.selectedDepartment === "Project" ? "project document" : "design"} tracking records for ${state.selectedEquipment.name}?`)) return;
 
       showLoading(`Initializing ${missing.length} design rows...`);
       try {
         for (let i = 0; i < missing.length; i += 1) {
-          $("loadingText").textContent = `Creating design ${i + 1} of ${missing.length}...`;
+          $("loadingText").textContent = `Creating ${state.selectedDepartment === "Project" ? "document" : "design"} ${i + 1} of ${missing.length}...`;
           const data = baseTrackingPayload(missing[i].type);
           data[TRACKING_FIELDS.status] = "Not Started";
           data[TRACKING_FIELDS.progress] = 0;
@@ -3297,6 +3488,7 @@
     // Employees from the same/similar department are shown first, but all employees remain selectable.
     function departmentKeywords(department) {
       const map = {
+        "Project": ["project", "planning", "coordination", "commercial", "dispatch", "logistics"],
         "Process": ["process"],
         "Design / Layout": ["design", "layout"],
         "Mechanical": ["mechanical", "workshop", "equipment", "design"],
@@ -3513,22 +3705,25 @@
     function baseTrackingPayload(designType) {
       const project = state.selectedProject;
       const e = state.selectedEquipment;
+      const projectMode = state.selectedDepartment === "Project" && e?.isGeneral;
       return {
         [TRACKING_FIELDS.projectCode]: project.code || "",
         [TRACKING_FIELDS.projectRecordId]: project.id || "",
         [TRACKING_FIELDS.equipmentRecordId]: e.isGeneral ? "GENERAL" : (e.id || ""),
-        [TRACKING_FIELDS.plantSectionName]: e.plantSection || "",
-        [TRACKING_FIELDS.plantSectionType]: e.plantType || "",
-        [TRACKING_FIELDS.pdsName]: e.pdsName || "",
+        [TRACKING_FIELDS.plantSectionName]: projectMode ? "" : (e.plantSection || ""),
+        [TRACKING_FIELDS.plantSectionType]: projectMode ? "" : (e.plantType || ""),
+        [TRACKING_FIELDS.pdsName]: projectMode ? "" : (e.pdsName || ""),
         [TRACKING_FIELDS.pdsRecordId]: "",
-        [TRACKING_FIELDS.tagNumber]: e.tag || "GENERAL",
-        [TRACKING_FIELDS.equipmentName]: e.name || "Project / Area General",
-        [TRACKING_FIELDS.equipmentCategory]: e.category || "",
-        [TRACKING_FIELDS.equipmentType]: e.type || "",
-        [TRACKING_FIELDS.equipmentDepartment]: e.department || "",
+        [TRACKING_FIELDS.tagNumber]: e.isGeneral ? "GENERAL" : (e.tag || ""),
+        [TRACKING_FIELDS.equipmentName]: projectMode ? "Project Department" : (e.name || "Project / Area General"),
+        [TRACKING_FIELDS.equipmentCategory]: projectMode ? "Project Document" : (e.category || ""),
+        [TRACKING_FIELDS.equipmentType]: projectMode ? "Project Level" : (e.type || ""),
+        [TRACKING_FIELDS.equipmentDepartment]: projectMode ? "Project" : (e.department || ""),
         [TRACKING_FIELDS.designDepartment]: state.selectedDepartment,
         [TRACKING_FIELDS.designType]: designType || "",
-        [TRACKING_FIELDS.designTitle]: `${e.name} - ${designType || "Design"}`,
+        [TRACKING_FIELDS.designTitle]: projectMode
+          ? `${project.code || "Project"} - ${designType || "Document"}`
+          : `${e.name} - ${designType || "Design"}`,
         [TRACKING_FIELDS.priority]: "Medium",
         [TRACKING_FIELDS.status]: "Not Started",
         [TRACKING_FIELDS.progress]: 0,
@@ -3546,7 +3741,7 @@
       const assignedOption = $("assignedToInput").selectedOptions[0];
       const payload = {
         ...baseTrackingPayload(type),
-        [TRACKING_FIELDS.designTitle]: $("designTitleInput").value.trim() || `${state.selectedEquipment.name} - ${type}`,
+        [TRACKING_FIELDS.designTitle]: $("designTitleInput").value.trim() || (state.selectedDepartment === "Project" ? `${state.selectedProject?.code || "Project"} - ${type}` : `${state.selectedEquipment.name} - ${type}`),
         [TRACKING_FIELDS.drawingNumber]: $("drawingNumberInput").value.trim(),
         [TRACKING_FIELDS.priority]: $("priorityInput").value,
         [TRACKING_FIELDS.plannedStart]: toCreatorDate(start),
@@ -3643,7 +3838,7 @@
         console.error(error);
         let message = error.message || String(error);
         if (/Invalid column value for Design_Type/i.test(message)) {
-          message += " | Creator Design_Type is not accepting this dynamic design name. Permanent fix: edit Design Tracking > Design Type and make it a Single Line field. V9 auto-fallback works when field metadata is readable.";
+          message += " | Creator Design_Type is not accepting this dynamic design name. Permanent fix: edit Design Tracking > Design Type and make it a Single Line field. V10 auto-fallback works when field metadata is readable.";
         }
         $("designModalError").textContent = message;
         $("designModalError").classList.remove("hidden");
@@ -4262,7 +4457,7 @@
           - Employees come from Employ_to_Create_ticket_Report.
           - Only NEW design tracking data is written to Design_Tracking.
 
-       2) V9 DIAGNOSTICS / OPERATION FLOW + SCHEMA SAFETY:
+       2) V10 DIAGNOSTICS / OPERATION FLOW + SCHEMA SAFETY:
           - Diagnostics now shows the CURRENT SELECTED DATA FLOW.
           - It shows exact source reports, project, plant section/type, tag,
             equipment, department, design, revision and Design_Tracking target.
@@ -4315,10 +4510,10 @@
            - It intentionally does not create separate forms for Process, Civil,
              Mechanical, Piping, Electrical, Instrumentation, etc.
 
-       11) V9 DESIGN_TYPE / SUBMIT FIX:
-           - V9 reads Design_Tracking field metadata with META.getFields().
+       11) V10 DESIGN_TYPE / SUBMIT FIX:
+           - V10 reads Design_Tracking field metadata with META.getFields().
            - If Design_Type is a Drop Down and the dynamic design name is not
-             an allowed choice, V9 temporarily omits that incompatible field,
+             an allowed choice, V10 temporarily omits that incompatible field,
              derives the type from Design_Title, and lets Save / Start Design /
              Submit for Check continue.
            - Permanent best practice: Design_Type should be Single Line.
