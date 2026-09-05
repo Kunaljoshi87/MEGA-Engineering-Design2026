@@ -1241,6 +1241,156 @@
     }
 
     /* ======================================================================
+       D2. DOCUMENT SCOPE CONFIGURATION  (V11)
+       ----------------------------------------------------------------------
+       HOW TO EDIT THIS TABLE
+       -----------------------
+       This is the ONLY place that decides whether a design/document type is
+       tracked once per PROJECT, once per PLANT SECTION, or once per
+       EQUIPMENT TAG. Per the "Drawings & Documents List" master sheet, most
+       documents are Project- or Section-scoped and only a minority are truly
+       Tag-specific (GAD, FAD, Civil Foundation Drawing, Nozzle Sheet, Name
+       Plate, Hook-Up Drawing, etc).
+
+       Rules:
+         - Any design/document name NOT listed here defaults to "tag" scope
+           (this matches the widget's original, pre-V11 behavior).
+         - Add/edit entries here directly, per your team's agreement. No
+           other function needs to change when you re-scope a document type.
+         - Keys must match the exact string used in DEPARTMENT_LIBRARY /
+           PROJECT_DOCUMENT_GROUPS above (or a custom design title typed by a
+           user, if you want to pre-classify a custom type).
+
+       Effect of each scope:
+         - "project" : one shared Design_Tracking record for the whole
+                       project (same virtual GENERAL record used by the
+                       existing "Project" department tab).
+         - "section" : one shared Design_Tracking record per Plant Section,
+                       reused by every equipment tag inside that section
+                       (new virtual "SECTION" record - see generalSectionItem()).
+         - "tag"     : one Design_Tracking record per equipment tag (original
+                       behavior, unchanged).
+       ====================================================================== */
+    const DOCUMENT_SCOPE_OVERRIDES = {
+      // ---- Process ----
+      "Design Basis": "project",
+      "Block Flow Diagram (BFD)": "project",
+      "Process Flow Diagram (PFD)": "section",
+      "Utility Flow Diagram (UFD)": "section",
+      "Heat & Material Balance": "section",
+      "Utility Balance": "project",
+      "Equipment List": "project",
+      "Piping & Instrumentation Diagram (P&ID)": "section",
+      "Line List": "section",
+      "Valve List": "section",
+      "Process Description": "project",
+      "Operating Philosophy": "project",
+      "Control Philosophy": "project",
+      "Cause & Effect Inputs": "project",
+      "HAZOP Action Closure": "project",
+
+      // ---- Design / Layout ----
+      "Overall Plot Plan": "project",
+      "Plant Layout": "project",
+      "Equipment Layout": "section",
+      "Area Layout": "section",
+      "Area General Arrangement": "section",
+      "Maintenance / Access Layout": "section",
+      "Road / Access Layout": "project",
+      "Battery Limit Layout": "project",
+      "Equipment Location Plan": "section",
+      "3D Model Review": "project",
+      "Clash Review": "project",
+
+      // ---- Civil ----
+      "Site Grading Layout": "project",
+      "Foundation Layout": "section",
+      "RCC Drawing": "section",
+      "RCC Detail Drawing": "section",
+      "Building Layout": "project",
+      "Building General Arrangement": "section",
+      "Architectural Drawing": "project",
+      "Drainage Layout": "section",
+      "Road / Paving Layout": "project",
+      "Underground Services Layout": "section",
+      "Civil General Arrangement": "section",
+
+      // ---- Structural ----
+      "Structural Design Basis": "project",
+      "Structural General Arrangement": "section",
+      "Steel Framing Plan": "section",
+      "Stair / Ladder Drawing": "section",
+      "Pipe Rack Drawing": "section",
+      "Erection Drawing": "section",
+
+      // ---- Piping ----
+      "Piping Design Basis": "project",
+      "Piping Material Specification": "project",
+      "Piping General Arrangement": "section",
+      "Piping Layout": "section",
+      "Stress Analysis": "section",
+      "Tie-In List": "project",
+
+      // ---- Electrical ----
+      "Electrical Design Basis": "project",
+      "Motor List": "project",
+      "Single Line Diagram (SLD)": "project",
+      "Power Distribution Diagram": "section",
+      "MCC / PCC General Arrangement": "project",
+      "Cable Schedule": "section",
+      "Cable Sizing Calculation": "section",
+      "Cable Tray Layout": "section",
+      "Lighting Layout": "section",
+      "Earthing Layout": "section",
+      "Lightning Protection Layout": "section",
+      "Electrical BOQ": "project",
+
+      // ---- Instrumentation ----
+      "Instrument Index": "project",
+      "I/O List": "project",
+      "Instrument Location Layout": "section",
+      "Junction Box Schedule": "section",
+      "Instrument Cable Schedule": "section",
+      "Alarm / Trip Schedule": "section",
+      "PLC / DCS Architecture": "project",
+      "Cause & Effect": "project",
+
+      // ---- Automation ----
+      "Control System Architecture": "project",
+      "PLC / DCS Hardware Configuration": "project",
+      "I/O Mapping": "section",
+      "Functional Design Specification": "project",
+      "Software Design Specification": "project",
+      "Communication / Network Architecture": "project",
+      "Interlock Logic": "section",
+      "HMI Philosophy": "project",
+      "HMI Screen Design": "section",
+      "FAT Procedure": "project",
+      "FAT Documents": "project",
+      "SAT Procedure": "project",
+      "SAT Documents": "project"
+
+      // Everything NOT listed above (Process Datasheet, all GAD/FAD/CLD/CFD
+      // equivalents, Nozzle Orientation, Name Plate, Hook-Up Drawing,
+      // Electrical Load List, Instrument Datasheet, Loop Diagram, every
+      // As-Built drawing, etc.) stays at the default "tag" scope, matching
+      // the Drawings & Documents master sheet's "Project + Section + Tag" rows.
+    };
+
+    // Returns "project" | "section" | "tag" for a given design/document name.
+    function documentScope(name) {
+      return DOCUMENT_SCOPE_OVERRIDES[String(name || "").trim()] || "tag";
+    }
+
+    // Returns the scope implied by the currently selected left-panel item.
+    function scopeForEquipment(equipment) {
+      if (!equipment) return "tag";
+      if (equipment.isGeneral) return "project";
+      if (equipment.isSection) return "section";
+      return "tag";
+    }
+
+    /* ======================================================================
        E. STATUS / WORKFLOW CONFIGURATION
        ----------------------------------------------------------------------
        The same workflow is reused for all engineering departments.
@@ -2293,6 +2443,33 @@
       };
     }
 
+    // Virtual SECTION-level item (V11). Represents documents that belong to a
+    // whole Plant Section rather than one specific equipment tag - e.g. PFD,
+    // P&ID, Cable Schedule, Erection Drawing. Every equipment tag inside the
+    // same Plant Section shares this ONE Design_Tracking record per document
+    // type, instead of each tag needing its own copy.
+    function generalSectionItem(section) {
+      const name = String(section || "").trim();
+      return {
+        raw: {},
+        id: `SECTION::${name}`,
+        projectCode: state.selectedProject?.code || "",
+        pdsName: "",
+        tag: "SECTION",
+        name: `${name || "Section"} — Section Documents`,
+        groupCode: "",
+        department: "",
+        category: "Section",
+        type: "Section Level",
+        subtype: "",
+        plantSection: name,
+        plantType: "",
+        sectionRef: "",
+        isGeneral: false,
+        isSection: true
+      };
+    }
+
     /* ======================================================================
        L. DATA LOADING
        ====================================================================== */
@@ -3010,15 +3187,30 @@
       }
 
       const items = filteredEquipment();
-      const hasPlantFilter = Boolean($("sectionFilter").value || $("sectionTypeFilter").value);
-      // When a concrete plant section/type is selected, show only real equipment
-      // tags. GENERAL remains available only at unfiltered project level.
-      const withGeneral = hasPlantFilter ? items : [generalProjectItem(), ...items];
+      const sectionValue = $("sectionFilter").value;
+      const hasPlantFilter = Boolean(sectionValue || $("sectionTypeFilter").value);
+
+      // V11: When a specific Plant Section is chosen, offer a SECTION virtual
+      // row (Section-scoped documents) instead of the whole-project GENERAL
+      // row. GENERAL (project-wide, for this department) only makes sense
+      // when nothing is filtered yet.
+      let withGeneral;
+      if (sectionValue) {
+        withGeneral = [generalSectionItem(sectionValue), ...items];
+      } else if (hasPlantFilter) {
+        withGeneral = items;
+      } else {
+        withGeneral = [generalProjectItem(), ...items];
+      }
       $("equipmentCount").textContent = String(items.length);
 
       $("equipmentList").innerHTML = withGeneral.map((e) => {
         const active = state.selectedEquipment?.id === e.id ? "active" : "";
-        const meta = e.isGeneral ? "For project/area-level engineering documents" : [equipmentSectionLabel(e), e.category, e.pdsName].filter(Boolean).join(" • ");
+        const meta = e.isGeneral
+          ? "For project-wide engineering documents in this department"
+          : e.isSection
+            ? "Shared by every tag inside this Plant Section - no need to repeat per tag"
+            : [equipmentSectionLabel(e), e.category, e.pdsName].filter(Boolean).join(" • ");
         return `
           <button class="equipment-row ${active}" data-equipment-id="${escapeHtml(e.id)}" type="button">
             <div class="equipment-tag">${escapeHtml(e.tag || "NO TAG")}</div>
@@ -3030,7 +3222,10 @@
       $("equipmentList").querySelectorAll(".equipment-row").forEach((button) => {
         button.addEventListener("click", () => {
           const id = button.dataset.equipmentId;
-          const selected = id === "GENERAL" ? generalProjectItem() : state.equipment.find((e) => String(e.id) === String(id));
+          let selected;
+          if (id === "GENERAL") selected = generalProjectItem();
+          else if (id.startsWith("SECTION::")) selected = generalSectionItem(id.slice("SECTION::".length));
+          else selected = state.equipment.find((e) => String(e.id) === String(id));
           selectEquipment(selected);
         });
       });
@@ -3074,6 +3269,18 @@
               <div class="detail-subtitle">Planning • Internal • Procurement • Manufacturing • Dispatch / Logistics • Site • Progress Control</div>
             </div>
             <span class="status brand">Project</span>
+          </div>`;
+        return;
+      }
+      if (e?.isSection) {
+        $("detailHero").innerHTML = `
+          <div class="detail-hero-top">
+            <div>
+              <div class="detail-tag">SECTION</div>
+              <div class="detail-title">${escapeHtml(e.plantSection || "Section")} — Section Documents</div>
+              <div class="detail-subtitle">Shared by every equipment tag inside this Plant Section (not tied to one tag)</div>
+            </div>
+            <span class="status brand">${escapeHtml(state.selectedDepartment)}</span>
           </div>`;
         return;
       }
@@ -3136,6 +3343,17 @@
           ["Required Document Types", DEPARTMENT_LIBRARY.Project.length],
           ["Tracked Records", selectedEquipmentTracking().length],
           ["Purpose", "Project planning, coordination, manufacturing, dispatch/logistics and site control"]
+        ];
+        $("tabBody").innerHTML = `<div class="info-grid">${fields.map(([label, value]) => `<div class="info-card"><div class="info-label">${escapeHtml(label)}</div><div class="info-value">${escapeHtml(value || "—")}</div></div>`).join("")}</div>`;
+        return;
+      }
+      if (e?.isSection) {
+        const fields = [
+          ["Project Code", state.selectedProject?.code],
+          ["Plant Section", e.plantSection],
+          ["Scope", "Section (shared across all tags in this section)"],
+          ["Department", state.selectedDepartment],
+          ["Tracked Records", selectedEquipmentTracking().length]
         ];
         $("tabBody").innerHTML = `<div class="info-grid">${fields.map(([label, value]) => `<div class="info-card"><div class="info-label">${escapeHtml(label)}</div><div class="info-value">${escapeHtml(value || "—")}</div></div>`).join("")}</div>`;
         return;
@@ -3248,9 +3466,11 @@
     function recordAppliesToSelectedEquipment(record) {
       const recordEquipmentId = scalarValue(record[TRACKING_FIELDS.equipmentRecordId]);
       const recordTag = scalarValue(record[TRACKING_FIELDS.tagNumber]);
+      const recordSection = scalarValue(record[TRACKING_FIELDS.plantSectionName]);
       const selected = state.selectedEquipment;
       if (!selected) return false;
       if (selected.isGeneral) return !recordEquipmentId || recordEquipmentId === "GENERAL" || recordTag === "GENERAL";
+      if (selected.isSection) return recordTag === "SECTION" && recordSection === (selected.plantSection || "");
       return String(recordEquipmentId) === String(selected.id) || (recordTag && recordTag === selected.tag);
     }
 
@@ -3299,13 +3519,22 @@
       return String(record.ID || record.id) !== String(latest.ID || latest.id);
     }
 
-    // Returns only design types that are relevant to the selected equipment.
-    // The department library remains the full catalogue; this function narrows
-    // it using Equipment Category / Type / Department so a pump does not get
-    // the same design list as a tank or an electric motor.
+    // Returns only design types that are relevant to the selected equipment,
+    // AND, since V11, only those whose configured Scope matches the currently
+    // selected left-panel context (Project / Section / Tag). See
+    // DOCUMENT_SCOPE_OVERRIDES near the top of this file to change a
+    // document's scope.
     function applicableDesignLibrary(department, equipment) {
       const full = DEPARTMENT_LIBRARY[department] || [];
-      if (!equipment || equipment.isGeneral) return full;
+      if (!equipment) return full;
+
+      const scope = scopeForEquipment(equipment);
+      const scoped = full.filter((name) => documentScope(name) === scope);
+
+      // Project- and Section-scoped documents apply the same way regardless
+      // of equipment category, so the category narrowing below only ever
+      // runs at Tag scope.
+      if (scope !== "tag") return scoped;
 
       const text = [equipment.category, equipment.type, equipment.subtype, equipment.department, equipment.name]
         .filter(Boolean).join(" ").toLowerCase();
@@ -3363,9 +3592,10 @@
         list = RULES[department].defaultEquipment;
       }
 
-      // If no category-specific rule exists, use the full department library.
-      // Existing saved/custom tracking rows are still appended below.
-      return Array.isArray(list) ? list : full;
+      // If no category-specific rule exists, fall back to every Tag-scoped
+      // document in this department. Existing saved/custom tracking rows are
+      // still appended by mergedDesignRows() below regardless of this list.
+      return Array.isArray(list) ? list.filter((name) => scoped.includes(name)) : scoped;
     }
 
     function mergedDesignRows() {
@@ -3389,10 +3619,18 @@
       const rows = mergedDesignRows();
       const savedCount = rows.filter((r) => !r.virtual).length;
       const projectMode = state.selectedDepartment === "Project" && state.selectedEquipment?.isGeneral;
+      const sectionMode = Boolean(state.selectedEquipment?.isSection);
       const noun = projectMode ? "document" : "design";
-      const title = projectMode ? "Project Department — Required Documents" : `${state.selectedDepartment} Designs`;
+      const title = projectMode
+        ? "Project Department — Required Documents"
+        : sectionMode
+          ? `${state.selectedDepartment} — Section Documents (${state.selectedEquipment.plantSection || ""})`
+          : `${state.selectedDepartment} Designs`;
       const firstHeader = projectMode ? "Document" : "Design";
       const numberHeader = projectMode ? "Document No." : "Drawing No.";
+      // Project docs are all project-scope by definition, so the Scope column
+      // only adds value on the normal department tabs (Tag / Section context).
+      const showScopeColumn = !projectMode;
 
       $("tabBody").innerHTML = `
         <div class="toolbar">
@@ -3406,8 +3644,8 @@
           </div>
         </div>
         <div class="table-wrap"><table>
-          <thead><tr>${projectMode ? "<th>Group</th>" : ""}<th>${firstHeader}</th><th>${numberHeader}</th><th>Assigned</th><th>Start</th><th>End</th><th>Revision</th><th>Status</th><th>Progress</th><th>Last Updated</th><th>Updated By</th><th>Action</th></tr></thead>
-          <tbody>${rows.map((row) => renderDesignRow(row, projectMode)).join("")}</tbody>
+          <thead><tr>${projectMode ? "<th>Group</th>" : ""}${showScopeColumn ? "<th>Scope</th>" : ""}<th>${firstHeader}</th><th>${numberHeader}</th><th>Assigned</th><th>Start</th><th>End</th><th>Revision</th><th>Status</th><th>Progress</th><th>Last Updated</th><th>Updated By</th><th>Action</th></tr></thead>
+          <tbody>${rows.map((row) => renderDesignRow(row, projectMode, showScopeColumn)).join("")}</tbody>
         </table></div>`;
 
       $("customDesignBtn").addEventListener("click", () => openDesignModal(null, ""));
@@ -3421,13 +3659,17 @@
       });
     }
 
-    function renderDesignRow(row, projectMode = false) {
+    function renderDesignRow(row, projectMode = false, showScopeColumn = false) {
       const r = row.record;
       const status = r ? scalarValue(r[TRACKING_FIELDS.status]) || "Not Started" : "Not Started";
       const progress = r ? numberValue(r[TRACKING_FIELDS.progress]) : 0;
       const groupCell = projectMode ? `<td><span class="status">${escapeHtml(projectDocumentGroup(row.type))}</span></td>` : "";
+      const scope = documentScope(row.type);
+      const scopeClass = scope === "project" ? "brand" : scope === "section" ? "info" : "";
+      const scopeCell = showScopeColumn ? `<td><span class="status ${scopeClass}">${escapeHtml(scope.charAt(0).toUpperCase() + scope.slice(1))}</span></td>` : "";
       return `<tr>
         ${groupCell}
+        ${scopeCell}
         <td class="td-title">${escapeHtml(row.type)}${row.custom ? '<div class="muted" style="font-size:10px;margin-top:2px;">Custom</div>' : ""}</td>
         <td>${escapeHtml(r ? scalarValue(r[TRACKING_FIELDS.drawingNumber]) || "—" : "—")}</td>
         <td>${escapeHtml(r ? scalarValue(r[TRACKING_FIELDS.assignedEmployeeName]) || scalarValue(r[TRACKING_FIELDS.assignedTo]) || "—" : "—")}</td>
@@ -3706,24 +3948,27 @@
       const project = state.selectedProject;
       const e = state.selectedEquipment;
       const projectMode = state.selectedDepartment === "Project" && e?.isGeneral;
+      const sectionMode = Boolean(e?.isSection);
       return {
         [TRACKING_FIELDS.projectCode]: project.code || "",
         [TRACKING_FIELDS.projectRecordId]: project.id || "",
-        [TRACKING_FIELDS.equipmentRecordId]: e.isGeneral ? "GENERAL" : (e.id || ""),
-        [TRACKING_FIELDS.plantSectionName]: projectMode ? "" : (e.plantSection || ""),
-        [TRACKING_FIELDS.plantSectionType]: projectMode ? "" : (e.plantType || ""),
-        [TRACKING_FIELDS.pdsName]: projectMode ? "" : (e.pdsName || ""),
+        [TRACKING_FIELDS.equipmentRecordId]: e.isGeneral ? "GENERAL" : (sectionMode ? "SECTION" : (e.id || "")),
+        [TRACKING_FIELDS.plantSectionName]: e.isGeneral ? "" : (e.plantSection || ""),
+        [TRACKING_FIELDS.plantSectionType]: (e.isGeneral || sectionMode) ? "" : (e.plantType || ""),
+        [TRACKING_FIELDS.pdsName]: (projectMode || sectionMode) ? "" : (e.pdsName || ""),
         [TRACKING_FIELDS.pdsRecordId]: "",
-        [TRACKING_FIELDS.tagNumber]: e.isGeneral ? "GENERAL" : (e.tag || ""),
-        [TRACKING_FIELDS.equipmentName]: projectMode ? "Project Department" : (e.name || "Project / Area General"),
-        [TRACKING_FIELDS.equipmentCategory]: projectMode ? "Project Document" : (e.category || ""),
-        [TRACKING_FIELDS.equipmentType]: projectMode ? "Project Level" : (e.type || ""),
+        [TRACKING_FIELDS.tagNumber]: e.isGeneral ? "GENERAL" : (sectionMode ? "SECTION" : (e.tag || "")),
+        [TRACKING_FIELDS.equipmentName]: projectMode ? "Project Department" : (sectionMode ? `${e.plantSection || "Section"} (Section Documents)` : (e.name || "Project / Area General")),
+        [TRACKING_FIELDS.equipmentCategory]: projectMode ? "Project Document" : (sectionMode ? "Section Document" : (e.category || "")),
+        [TRACKING_FIELDS.equipmentType]: projectMode ? "Project Level" : (sectionMode ? "Section Level" : (e.type || "")),
         [TRACKING_FIELDS.equipmentDepartment]: projectMode ? "Project" : (e.department || ""),
         [TRACKING_FIELDS.designDepartment]: state.selectedDepartment,
         [TRACKING_FIELDS.designType]: designType || "",
         [TRACKING_FIELDS.designTitle]: projectMode
           ? `${project.code || "Project"} - ${designType || "Document"}`
-          : `${e.name} - ${designType || "Design"}`,
+          : sectionMode
+            ? `${e.plantSection || "Section"} - ${designType || "Design"}`
+            : `${e.name} - ${designType || "Design"}`,
         [TRACKING_FIELDS.priority]: "Medium",
         [TRACKING_FIELDS.status]: "Not Started",
         [TRACKING_FIELDS.progress]: 0,
@@ -4082,8 +4327,9 @@
         lines.push(`   Equipment after current filters : ${filteredEquipment().length}`);
         lines.push("");
 
-        lines.push("4. SELECTED EQUIPMENT");
-        if (selectedEquipment && !selectedEquipment.isGeneral) {
+        lines.push("4. SELECTED EQUIPMENT / SCOPE CONTEXT");
+        lines.push(`   Current Scope       : ${scopeForEquipment(selectedEquipment)}`);
+        if (selectedEquipment && !selectedEquipment.isGeneral && !selectedEquipment.isSection) {
           lines.push(`   Equipment source ID : ${selectedEquipment.id || "—"}`);
           lines.push(`   Tag Number          : ${selectedEquipment.tag || "—"}`);
           lines.push(`   Equipment Name      : ${selectedEquipment.name || "—"}`);
@@ -4092,6 +4338,10 @@
           lines.push(`   Subtype             : ${selectedEquipment.subtype || "—"}`);
           lines.push(`   Equipment Dept      : ${selectedEquipment.department || "—"}`);
           lines.push(`   PDS Name from Equipment source : ${selectedEquipment.pdsName || "—"}`);
+        } else if (selectedEquipment && selectedEquipment.isSection) {
+          lines.push(`   Section-level virtual record for Plant Section: ${selectedEquipment.plantSection || "—"}`);
+        } else if (selectedEquipment && selectedEquipment.isGeneral) {
+          lines.push("   Project-level virtual record (GENERAL).");
         } else {
           lines.push("   No actual equipment tag selected.");
         }
@@ -4110,12 +4360,12 @@
 
         lines.push("6. DESIGN REQUIREMENTS");
         lines.push(`   Department : ${ctx.department || "(none selected)"}`);
-        lines.push(`   Rule source: Widget design library / applicability logic`);
-        lines.push(`   Inputs     : Department + Equipment Category + Type + Subtype + Equipment Department + Name`);
+        lines.push(`   Rule source: Widget design library / applicability logic + DOCUMENT_SCOPE_OVERRIDES`);
+        lines.push(`   Inputs     : Department + Scope (Project/Section/Tag) + Equipment Category/Type/Subtype/Department/Name`);
         if (selectedEquipment && ctx.department) {
           const applicable = applicableDesignLibrary(ctx.department, selectedEquipment) || [];
-          lines.push(`   Applicable standard designs now : ${applicable.length}`);
-          applicable.slice(0, 15).forEach((d) => lines.push(`      - ${typeof d === "string" ? d : (d.type || d.name || JSON.stringify(d))}`));
+          lines.push(`   Applicable standard designs now (scope = ${scopeForEquipment(selectedEquipment)}) : ${applicable.length}`);
+          applicable.slice(0, 15).forEach((d) => lines.push(`      - ${typeof d === "string" ? d : (d.type || d.name || JSON.stringify(d))} [${documentScope(d)}]`));
           if (applicable.length > 15) lines.push(`      ... ${applicable.length - 15} more`);
         }
         lines.push("");
@@ -4145,7 +4395,7 @@
         lines.push(`      -> PDS: ${CONFIG.REPORTS.pds}`);
         lines.push(`      -> BOM: ${CONFIG.REPORTS.bom}`);
         lines.push(`      -> PO: ${state.poReport || "not connected"}`);
-        lines.push(`      -> ${ctx.department || "DEPARTMENT"} design rules`);
+        lines.push(`      -> ${ctx.department || "DEPARTMENT"} design rules (scope: ${scopeForEquipment(selectedEquipment)})`);
         lines.push(`      -> ${ctx.designType || "DESIGN"} ${ctx.revision || ""}`.trimEnd());
         lines.push(`      -> SAVE/UPDATE: ${CONFIG.FORMS.designTracking}`);
         lines.push("");
@@ -4482,6 +4732,12 @@
           - All department design lists are in DEPARTMENT_LIBRARY.
           - You can add/remove items without changing the database form.
 
+       4B) DOCUMENT SCOPE (V11):
+          - Whether a document is Project-, Section-, or Tag-scoped lives in
+            DOCUMENT_SCOPE_OVERRIDES (section D2, right after DEPARTMENT_LIBRARY).
+          - Anything not listed there defaults to Tag scope.
+          - No other code needs to change when you re-scope a document type.
+
        5) STATUS FLOW:
           - workflowButtonsForStatus() defines which button is available next.
           - STATUS_PROGRESS defines the automatic progress percentage.
@@ -4519,6 +4775,20 @@
            - Permanent best practice: Design_Type should be Single Line.
            - Other dropdown mismatches are reported before the API call with
              the exact allowed values.
+
+       12) V11 DOCUMENT SCOPE (Project / Section / Tag):
+           - Added a virtual "SECTION" record (generalSectionItem), parallel
+             to the existing virtual "GENERAL" project record.
+           - DOCUMENT_SCOPE_OVERRIDES decides which of the three scopes each
+             document type in DEPARTMENT_LIBRARY uses. Defaults to "tag" for
+             anything not listed - i.e. 100% backward compatible with V10.
+           - Selecting the SECTION row in the equipment list for any normal
+             department shows only that department's Section-scoped documents,
+             and ONE Design_Tracking record covers every tag in that section.
+           - Selecting GENERAL (shown only when no Plant Section filter is
+             active) shows that department's Project-scoped documents.
+           - Selecting a real equipment tag shows only Tag-scoped documents,
+             exactly like V10.
        ====================================================================== */
   </script>
 </body>
@@ -4531,7 +4801,9 @@
      ---------
      1. Select Project.
      2. Click Department.
-     3. Select Project / Area General or an equipment Tag Number.
+     3. Select Project / Area General, a Plant Section (Section Documents), or
+        an equipment Tag Number - whichever matches the document's configured
+        Scope (see DOCUMENT_SCOPE_OVERRIDES).
 
      V5 PROJECT MATCHING NOTE
      ------------------------
