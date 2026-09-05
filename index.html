@@ -215,6 +215,57 @@
     .equipment-name { font-size: 12px; margin-top: 3px; line-height: 1.35; }
     .equipment-meta { font-size: 10px; color: var(--muted); margin-top: 5px; }
 
+    /* ==================================================================
+       V13 - FAMILY TREE / DESIGN WORK BREAKDOWN
+       Project -> Plant Section -> Plant Section Type -> Tag
+       Each node can have a direct owner. If no direct owner is assigned,
+       responsibility is inherited from the nearest parent owner.
+       ================================================================== */
+    .tree-root { display: flex; flex-direction: column; gap: 4px; padding-bottom: 8px; }
+    .tree-node { position: relative; }
+    .tree-children { margin-left: 15px; padding-left: 10px; border-left: 1px dashed #d8dde5; }
+    .tree-children.hidden-tree { display: none; }
+    .tree-row {
+      display: grid;
+      grid-template-columns: 24px minmax(0,1fr) auto;
+      align-items: center;
+      gap: 6px;
+      min-height: 44px;
+      padding: 6px 7px;
+      border: 1px solid transparent;
+      border-radius: 9px;
+      cursor: pointer;
+      transition: .12s ease;
+    }
+    .tree-row:hover { background: #fff8fb; border-color: #efd2df; }
+    .tree-row.active { background: var(--brand-soft); border-color: var(--brand); }
+    .tree-toggle {
+      width: 23px; height: 23px; border: 0; border-radius: 6px; background: transparent;
+      color: #697585; display: inline-flex; align-items: center; justify-content: center; padding: 0;
+    }
+    .tree-toggle:hover { background: #eef1f5; }
+    .tree-toggle.leaf { visibility: hidden; pointer-events: none; }
+    .tree-main { min-width: 0; }
+    .tree-title { font-size: 12px; font-weight: 800; line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .tree-subtitle { margin-top: 2px; font-size: 10px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .tree-side { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; max-width: 126px; }
+    .tree-owner { font-size: 9px; font-weight: 800; color: var(--brand-dark); max-width: 126px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .tree-owner.inherited { color: #6b7280; font-weight: 700; }
+    .tree-progress { font-size: 9px; color: var(--muted); white-space: nowrap; }
+    .tree-level-project > .tree-row .tree-title { color: var(--brand-dark); font-size: 13px; }
+    .tree-level-section > .tree-row .tree-title { color: #273444; }
+    .tree-level-section-type > .tree-row .tree-title { color: #475569; }
+    .tree-level-tag > .tree-row .tree-title { color: #334155; font-weight: 750; }
+    .tree-scope-pill {
+      display: inline-block; margin-right: 5px; padding: 2px 5px; border-radius: 999px;
+      font-size: 8px; font-weight: 800; letter-spacing: .02em; background: #eef1f5; color: #566170;
+      vertical-align: 1px;
+    }
+    .tree-empty { padding: 18px 8px; text-align: center; color: var(--muted); font-size: 11px; }
+    .owner-permission-note { margin-top: 4px; font-size: 10px; color: var(--muted); line-height: 1.35; }
+    .owner-permission-note.allowed { color: var(--success); }
+    .owner-permission-note.denied { color: var(--danger); }
+
     .detail-panel { overflow: hidden; min-width: 0; }
     .detail-hero { padding: 14px 16px; border-bottom: 1px solid var(--line); }
     .detail-hero-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; }
@@ -1261,6 +1312,13 @@
            PROJECT_DOCUMENT_GROUPS above (or a custom design title typed by a
            user, if you want to pre-classify a custom type).
 
+       V13 NOTE:
+         - The supplied "Drawings & Documents List.xlsx" NEW sheet currently
+           defines Project, Project + Plant Section, and Project + Plant Section
+           + Tag No scopes. It does NOT identify any drawing as Plant Section
+           Type scope yet. V13 supports "section_type" now; assign that value
+           only to the drawing names your team confirms at Section-Type level.
+
        Effect of each scope:
          - "project" : one shared Design_Tracking record for the whole
                        project (same virtual GENERAL record used by the
@@ -1377,18 +1435,51 @@
       // the Drawings & Documents master sheet's "Project + Section + Tag" rows.
     };
 
-    // Returns "project" | "section" | "tag" for a given design/document name.
+    // V13 SCOPE ENGINE -----------------------------------------------------
+    // Supported scopes:
+    //   project      = one task for the whole project
+    //   section      = one task per Plant Section
+    //   section_type = one task per Plant Section + Plant Section Type
+    //   tag          = one task per actual equipment/tag
+    //
+    // IMPORTANT: All Project-department documents are automatically project
+    // scope. This fixes the V11 issue where Project documents defaulted to tag.
     function documentScope(name) {
-      return DOCUMENT_SCOPE_OVERRIDES[String(name || "").trim()] || "tag";
+      const type = String(name || "").trim();
+      if ((DEPARTMENT_LIBRARY.Project || []).includes(type)) return "project";
+
+      const configured = String(DOCUMENT_SCOPE_OVERRIDES[type] || "tag").trim().toLowerCase();
+      return ["project", "section", "section_type", "tag"].includes(configured) ? configured : "tag";
     }
 
     // Returns the scope implied by the currently selected left-panel item.
     function scopeForEquipment(equipment) {
       if (!equipment) return "tag";
       if (equipment.isGeneral) return "project";
+      if (equipment.isSectionType) return "section_type";
       if (equipment.isSection) return "section";
       return "tag";
     }
+
+    function scopeDisplayName(scope) {
+      const map = {
+        project: "Project",
+        section: "Plant Section",
+        section_type: "Plant Section Type",
+        tag: "Tag"
+      };
+      return map[scope] || "Tag";
+    }
+
+    function isVirtualScope(equipment) {
+      return Boolean(equipment && (equipment.isGeneral || equipment.isSection || equipment.isSectionType));
+    }
+
+    // Work-package ownership is stored in the SAME Design_Tracking form.
+    // It is identified by a reserved Design_Title prefix and is deliberately
+    // kept out of department/design KPI calculations. No extra Creator form is
+    // required for this V13 patch.
+    const WORK_PACKAGE_TITLE_PREFIX = "__WORK_PACKAGE__::";
 
     /* ======================================================================
        E. STATUS / WORKFLOW CONFIGURATION
@@ -1484,7 +1575,11 @@
       // It exists only for the current widget session and is displayed in Diagnostics.
       operationFlow: [],
       operationSequence: 0,
-      lastOperation: "Widget loaded"
+      lastOperation: "Widget loaded",
+
+      // V13 family-tree state. Keys are work-package scope keys such as
+      // PROJECT::26011, SECTION::26011::Fermentation, etc.
+      expandedTreeNodes: new Set()
     };
 
     /* ======================================================================
@@ -2470,6 +2565,44 @@
       };
     }
 
+    // Virtual PLANT SECTION TYPE item (V13). This is the missing hierarchy
+    // level between Plant Section and Tag. A document at this scope is created
+    // once for the exact Section + Section Type combination and is shared by
+    // all tags under that combination.
+    function generalSectionTypeItem(section, sectionType) {
+      const sectionName = String(section || "").trim();
+      const typeName = String(sectionType || "").trim();
+      return {
+        raw: {},
+        id: `SECTIONTYPE::${encodeURIComponent(sectionName)}::${encodeURIComponent(typeName)}`,
+        projectCode: state.selectedProject?.code || "",
+        pdsName: "",
+        tag: "SECTION_TYPE",
+        name: `${typeName || "Section Type"} — Section Type Documents`,
+        groupCode: "",
+        department: "",
+        category: "Section Type",
+        type: "Section Type Level",
+        subtype: "",
+        plantSection: sectionName,
+        plantType: typeName,
+        sectionRef: "",
+        isGeneral: false,
+        isSection: false,
+        isSectionType: true
+      };
+    }
+
+    function parseSectionTypeVirtualId(id) {
+      const text = String(id || "");
+      if (!text.startsWith("SECTIONTYPE::")) return null;
+      const parts = text.split("::");
+      return {
+        section: decodeURIComponent(parts[1] || ""),
+        sectionType: decodeURIComponent(parts.slice(2).join("::") || "")
+      };
+    }
+
     /* ======================================================================
        L. DATA LOADING
        ====================================================================== */
@@ -2898,7 +3031,7 @@
     }
 
     async function queryEquipmentScopedReport(reportName, aliases, equipment) {
-      if (!reportName || !equipment || equipment.isGeneral) return [];
+      if (!reportName || !equipment || isVirtualScope(equipment)) return [];
       const expressions = [];
       traceFlow("SOURCE QUERY", `Prepare equipment-scoped read from ${reportName}`, {
         project: state.selectedProject?.code || "",
@@ -2949,7 +3082,7 @@
 
     // Loads PDS records ONLY for the selected equipment in the selected project.
     async function loadPdsForEquipment(equipment) {
-      if (!equipment || equipment.isGeneral) return [];
+      if (!equipment || isVirtualScope(equipment)) return [];
       const cacheKey = `${state.selectedProject?.code}|${equipment.id || equipment.tag}`;
       if (state.pdsCache.has(cacheKey)) {
         const cached = state.pdsCache.get(cacheKey);
@@ -2964,7 +3097,7 @@
 
     // Loads BOM rows ONLY for the selected equipment in the selected project.
     async function loadBomForEquipment(equipment) {
-      if (!equipment || equipment.isGeneral) return [];
+      if (!equipment || isVirtualScope(equipment)) return [];
       const cacheKey = `${state.selectedProject?.code}|${equipment.id || equipment.tag}`;
       if (state.bomCache.has(cacheKey)) {
         const cached = state.bomCache.get(cacheKey);
@@ -2981,7 +3114,7 @@
     // and can be linked to the selected equipment by Equipment Record ID or by
     // exact Tag + Project. No cross-project PO rows are shown.
     async function loadPoForEquipment(equipment) {
-      if (!equipment || equipment.isGeneral) return [];
+      if (!equipment || isVirtualScope(equipment)) return [];
       const reportName = state.poReport || await resolvePoReport();
       if (!reportName) return [];
       const cacheKey = `${state.selectedProject?.code}|${equipment.id || equipment.tag}`;
@@ -3059,8 +3192,41 @@
       $("sectionTypeFilter").value = "";
     }
 
+    function isWorkPackageRecord(record) {
+      return scalarValue(record?.[TRACKING_FIELDS.designTitle]).startsWith(WORK_PACKAGE_TITLE_PREFIX);
+    }
+
+    function logicalTrackingKey(record) {
+      return [
+        scalarValue(record?.[TRACKING_FIELDS.projectCode]),
+        scalarValue(record?.[TRACKING_FIELDS.designDepartment]),
+        getTrackingDesignType(record),
+        scalarValue(record?.[TRACKING_FIELDS.equipmentRecordId]),
+        scalarValue(record?.[TRACKING_FIELDS.plantSectionName]),
+        scalarValue(record?.[TRACKING_FIELDS.plantSectionType]),
+        scalarValue(record?.[TRACKING_FIELDS.tagNumber])
+      ].join("||");
+    }
+
+    // Management KPIs must count the CURRENT revision only. R0/R1/R2 remain
+    // visible in revision history but do not become three separate tasks.
+    function latestCurrentTrackingRows(records = state.tracking) {
+      const map = new Map();
+      (records || []).forEach((record) => {
+        if (!record || isWorkPackageRecord(record)) return;
+        const key = logicalTrackingKey(record);
+        const current = map.get(key);
+        if (!current || revisionNumber(record[TRACKING_FIELDS.revision]) > revisionNumber(current[TRACKING_FIELDS.revision])) {
+          map.set(key, record);
+        }
+      });
+      return [...map.values()];
+    }
+
     function departmentStats(department) {
-      const records = state.tracking.filter((r) => scalarValue(r[TRACKING_FIELDS.designDepartment]) === department);
+      const records = latestCurrentTrackingRows().filter((r) =>
+        scalarValue(r[TRACKING_FIELDS.designDepartment]) === department
+      );
       const total = records.length;
       const completed = records.filter((r) => isClosedStatus(scalarValue(r[TRACKING_FIELDS.status]))).length;
       const progress = total ? Math.round(records.reduce((sum, r) => sum + numberValue(r[TRACKING_FIELDS.progress]), 0) / total) : 0;
@@ -3098,7 +3264,7 @@
         $("kpiStrip").classList.add("hidden");
         return;
       }
-      const rows = state.tracking;
+      const rows = latestCurrentTrackingRows();
       const overdue = rows.filter(isOverdue).length;
       const pendingCheck = rows.filter((r) => ["Submitted for Check", "Checking"].includes(scalarValue(r[TRACKING_FIELDS.status]))).length;
       const pendingReview = rows.filter((r) => ["Submitted for Review", "Reviewing"].includes(scalarValue(r[TRACKING_FIELDS.status]))).length;
@@ -3125,34 +3291,34 @@
           ? "Project document register / PROJECT_DOCUMENT_GROUPS"
           : "Widget DESIGN_LIBRARY / equipment applicability rules"
       });
-      state.selectedEquipment = null;
-      state.activeTab = "overview";
+
       renderDepartmentCards();
       $("workspace").classList.toggle("hidden", !state.selectedProject);
+      if (!state.selectedProject) return;
 
-      // PROJECT DEPARTMENT MODE:
-      // Project documents (TA, IWO, schedules, container planning, etc.) are
-      // project-level, so the user should not have to select an equipment tag.
-      // Automatically bind them to the virtual GENERAL record and open the
-      // Designs/Documents tab immediately.
+      // V13: The left side is always the same family tree. Department is a
+      // VIEW over that tree, not the hierarchy itself. This is important:
+      // Project/Section/Section-Type/Tag ownership remains common while each
+      // department only shows the drawings that belong to that department.
       if (department === "Project") {
+        // Project-department documents are always project-level. If the user
+        // was previously inside a Tag/Section in another department, return
+        // to the Project node so the Project document register is visible.
         state.selectedEquipment = generalProjectItem();
-        $("equipmentPanelTitle").textContent = `${state.selectedProject?.code || "Project"} — Project Documents`;
-        renderEquipmentList();
-        renderEquipmentHero();
-        $("detailTabs").classList.remove("hidden");
-        state.activeTab = "designs";
-        setActiveTabButton("designs");
-        renderDesignsTab();
-        return;
+      } else if (!state.selectedEquipment) {
+        state.selectedEquipment = generalProjectItem();
       }
 
-      const section = $("sectionFilter").value;
-      const sectionType = $("sectionTypeFilter").value;
-      const hierarchy = [section, sectionType].filter(Boolean).join(" / ");
-      $("equipmentPanelTitle").textContent = `${department} — ${hierarchy || "Project"} Equipment`;
+      $("equipmentPanelTitle").textContent = `${department} — Design Work Breakdown`;
       renderEquipmentList();
-      clearDetailPanel();
+      renderEquipmentHero();
+      $("detailTabs").classList.remove("hidden");
+
+      // Show drawings immediately. A Project node displays only Project-scope
+      // drawings; Section node only Section-scope drawings; Tag only Tag-scope.
+      state.activeTab = "designs";
+      setActiveTabButton("designs");
+      renderDesignsTab();
     }
 
     function filteredEquipment() {
@@ -3167,74 +3333,248 @@
       });
     }
 
-    function renderEquipmentList() {
-      if (!state.selectedProject || !state.selectedDepartment) return;
+    // =====================================================================
+    // V13 FAMILY TREE
+    // Project -> Plant Section -> Plant Section Type -> Equipment Tag
+    // =====================================================================
 
-      // Project Department documents are not tied to equipment. Show only one
-      // project-level row and keep all equipment hidden in this department.
-      if (state.selectedDepartment === "Project") {
-        const e = generalProjectItem();
-        const active = state.selectedEquipment?.isGeneral ? "active" : "";
-        $("equipmentCount").textContent = String(DEPARTMENT_LIBRARY.Project.length);
-        $("equipmentList").innerHTML = `
-          <button class="equipment-row ${active}" data-equipment-id="GENERAL" type="button">
-            <div class="equipment-tag">PROJECT</div>
-            <div class="equipment-name">Project Department Documents</div>
-            <div class="equipment-meta">${escapeHtml(state.selectedProject.code)} • ${DEPARTMENT_LIBRARY.Project.length} required document types</div>
-          </button>`;
-        $("equipmentList").querySelector(".equipment-row").addEventListener("click", () => selectEquipment(e));
-        return;
+    function treeNodeId(equipment) {
+      return equipment?.id || "";
+    }
+
+    function treeScopeKey(equipment) {
+      return workPackageScopeKey(equipment);
+    }
+
+    function ensureDefaultTreeExpansion() {
+      if (!state.selectedProject) return;
+      const projectKey = treeScopeKey(generalProjectItem());
+      state.expandedTreeNodes.add(projectKey);
+
+      // The global filters remain useful as shortcuts. If a section/type is
+      // chosen, automatically expand that branch instead of flattening data.
+      const section = $("sectionFilter").value;
+      const sectionType = $("sectionTypeFilter").value;
+      if (section) {
+        state.expandedTreeNodes.add(treeScopeKey(generalSectionItem(section)));
+      }
+      if (section && sectionType) {
+        state.expandedTreeNodes.add(treeScopeKey(generalSectionTypeItem(section, sectionType)));
+      }
+    }
+
+    function directScopeOwner(equipment) {
+      const record = workPackageRecordFor(equipment);
+      const email = scalarValue(record?.[TRACKING_FIELDS.assignedTo]).trim();
+      if (!email) return null;
+      return {
+        email,
+        name: scalarValue(record?.[TRACKING_FIELDS.assignedEmployeeName]).trim() || email,
+        record
+      };
+    }
+
+    function trackingBelongsToBranch(record, equipment) {
+      if (!record || !equipment || isWorkPackageRecord(record)) return false;
+
+      const recSection = scalarValue(record[TRACKING_FIELDS.plantSectionName]).trim();
+      const recType = scalarValue(record[TRACKING_FIELDS.plantSectionType]).trim();
+      const recTag = scalarValue(record[TRACKING_FIELDS.tagNumber]).trim();
+      const recEquipmentId = scalarValue(record[TRACKING_FIELDS.equipmentRecordId]).trim();
+
+      if (equipment.isGeneral) return true;
+
+      if (equipment.isSection) {
+        return recSection === String(equipment.plantSection || "").trim();
       }
 
-      const items = filteredEquipment();
-      const sectionValue = $("sectionFilter").value;
-      const hasPlantFilter = Boolean(sectionValue || $("sectionTypeFilter").value);
+      if (equipment.isSectionType) {
+        return recSection === String(equipment.plantSection || "").trim() &&
+               recType === String(equipment.plantType || "").trim();
+      }
 
-      // V11: When a specific Plant Section is chosen, offer a SECTION virtual
-      // row (Section-scoped documents) instead of the whole-project GENERAL
-      // row. GENERAL (project-wide, for this department) only makes sense
-      // when nothing is filtered yet.
-      let withGeneral;
-      if (sectionValue) {
-        withGeneral = [generalSectionItem(sectionValue), ...items];
-      } else if (hasPlantFilter) {
-        withGeneral = items;
+      return (recEquipmentId && String(recEquipmentId) === String(equipment.id || "")) ||
+             (recTag && recTag === String(equipment.tag || "").trim() &&
+              (!equipment.plantSection || recSection === String(equipment.plantSection || "").trim()));
+    }
+
+    function branchStats(equipment) {
+      const rows = latestCurrentTrackingRows().filter((record) => trackingBelongsToBranch(record, equipment));
+      const total = rows.length;
+      const closed = rows.filter((r) => isClosedStatus(scalarValue(r[TRACKING_FIELDS.status]))).length;
+      const overdue = rows.filter(isOverdue).length;
+      const progress = total
+        ? Math.round(rows.reduce((sum, r) => sum + numberValue(r[TRACKING_FIELDS.progress]), 0) / total)
+        : 0;
+      return { total, closed, overdue, progress };
+    }
+
+    function ownerDisplayForTree(equipment) {
+      const direct = directScopeOwner(equipment);
+      if (direct) return { text: direct.name, inherited: false };
+      const effective = effectiveScopeOwner(equipment);
+      if (effective) return { text: `↳ ${effective.name}`, inherited: true };
+      return { text: "Unassigned", inherited: true };
+    }
+
+    function childScopeNodesForSection(sectionName, equipmentRows) {
+      const result = [];
+      const byType = new Map();
+      const withoutType = [];
+
+      equipmentRows.forEach((e) => {
+        const type = String(e.plantType || "").trim();
+        if (!type) {
+          withoutType.push(e);
+          return;
+        }
+        if (!byType.has(type)) byType.set(type, []);
+        byType.get(type).push(e);
+      });
+
+      [...byType.keys()].sort((a, b) => a.localeCompare(b)).forEach((type) => {
+        result.push({
+          node: generalSectionTypeItem(sectionName, type),
+          children: byType.get(type).sort((a, b) => String(a.tag || "").localeCompare(String(b.tag || ""), undefined, { numeric: true }))
+        });
+      });
+
+      // Some legacy equipment may not have Plant Section Type. Keep those tags
+      // directly below the Section instead of losing them.
+      withoutType.sort((a, b) => String(a.tag || "").localeCompare(String(b.tag || ""), undefined, { numeric: true }));
+      return { typed: result, untyped: withoutType };
+    }
+
+    function treeNodeHtml(equipment, level, childrenHtml = "", hasChildren = false) {
+      const id = treeNodeId(equipment);
+      const key = treeScopeKey(equipment);
+      const expanded = state.expandedTreeNodes.has(key);
+      const active = String(state.selectedEquipment?.id || "") === String(id) ? "active" : "";
+      const owner = ownerDisplayForTree(equipment);
+      const stats = branchStats(equipment);
+
+      let scopeLabel = "TAG";
+      let title = equipment.name || equipment.tag || "Unnamed";
+      let subtitle = "";
+
+      if (equipment.isGeneral) {
+        scopeLabel = "PROJECT";
+        title = `${state.selectedProject?.code || "Project"}${state.selectedProject?.customer ? ` — ${state.selectedProject.customer}` : ""}`;
+        subtitle = state.selectedProject?.description || "Overall engineering design work package";
+      } else if (equipment.isSection) {
+        scopeLabel = "SECTION";
+        title = equipment.plantSection || "Plant Section";
+        subtitle = "Section work package";
+      } else if (equipment.isSectionType) {
+        scopeLabel = "TYPE";
+        title = equipment.plantType || "Plant Section Type";
+        subtitle = `${equipment.plantSection || ""} / Section Type work package`;
       } else {
-        withGeneral = [generalProjectItem(), ...items];
+        scopeLabel = "TAG";
+        title = `${equipment.tag || "NO TAG"} — ${equipment.name || "Unnamed equipment"}`;
+        subtitle = [equipment.category, equipment.type, equipment.pdsName].filter(Boolean).join(" • ");
       }
-      $("equipmentCount").textContent = String(items.length);
 
-      $("equipmentList").innerHTML = withGeneral.map((e) => {
-        const active = state.selectedEquipment?.id === e.id ? "active" : "";
-        const meta = e.isGeneral
-          ? "For project-wide engineering documents in this department"
-          : e.isSection
-            ? "Shared by every tag inside this Plant Section - no need to repeat per tag"
-            : [equipmentSectionLabel(e), e.category, e.pdsName].filter(Boolean).join(" • ");
-        return `
-          <button class="equipment-row ${active}" data-equipment-id="${escapeHtml(e.id)}" type="button">
-            <div class="equipment-tag">${escapeHtml(e.tag || "NO TAG")}</div>
-            <div class="equipment-name">${escapeHtml(e.name || "Unnamed equipment")}</div>
-            <div class="equipment-meta">${escapeHtml(meta || "—")}</div>
-          </button>`;
+      const levelClass = level === 0 ? "tree-level-project" : level === 1 ? "tree-level-section" : level === 2 ? "tree-level-section-type" : "tree-level-tag";
+      const toggle = hasChildren
+        ? `<button class="tree-toggle" type="button" data-tree-toggle="${escapeHtml(key)}" aria-label="${expanded ? "Collapse" : "Expand"}">${expanded ? "▾" : "▸"}</button>`
+        : `<button class="tree-toggle leaf" type="button" tabindex="-1">•</button>`;
+
+      return `
+        <div class="tree-node ${levelClass}">
+          <div class="tree-row ${active}" data-tree-select="${escapeHtml(id)}">
+            ${toggle}
+            <div class="tree-main">
+              <div class="tree-title"><span class="tree-scope-pill">${escapeHtml(scopeLabel)}</span>${escapeHtml(title)}</div>
+              <div class="tree-subtitle">${escapeHtml(subtitle || "—")}</div>
+            </div>
+            <div class="tree-side">
+              <div class="tree-owner ${owner.inherited ? "inherited" : ""}" title="${escapeHtml(owner.text)}">${escapeHtml(owner.text)}</div>
+              <div class="tree-progress">${stats.total ? `${stats.progress}% • ${stats.closed}/${stats.total}` : "0 tasks"}${stats.overdue ? ` • ${stats.overdue} late` : ""}</div>
+            </div>
+          </div>
+          ${hasChildren ? `<div class="tree-children ${expanded ? "" : "hidden-tree"}">${childrenHtml}</div>` : ""}
+        </div>`;
+    }
+
+    function treeEquipmentById(id) {
+      if (id === "GENERAL") return generalProjectItem();
+      if (String(id).startsWith("SECTIONTYPE::")) {
+        const parsed = parseSectionTypeVirtualId(id);
+        return parsed ? generalSectionTypeItem(parsed.section, parsed.sectionType) : null;
+      }
+      if (String(id).startsWith("SECTION::")) return generalSectionItem(String(id).slice("SECTION::".length));
+      return state.equipment.find((e) => String(e.id) === String(id)) || null;
+    }
+
+    function buildFamilyTreeHtml() {
+      if (!state.selectedProject) return `<div class="tree-empty">Select a project first.</div>`;
+      ensureDefaultTreeExpansion();
+
+      const search = `${$("globalSearch").value} ${$("equipmentSearch").value}`.trim().toLowerCase();
+      const filterSection = $("sectionFilter").value;
+      const filterType = $("sectionTypeFilter").value;
+
+      let equipmentRows = state.equipment.filter((e) => {
+        const matchesSection = !filterSection || String(e.plantSection || "") === filterSection;
+        const matchesType = !filterType || String(e.plantType || "") === filterType;
+        const hay = [e.tag, e.name, e.category, e.type, e.subtype, e.plantSection, e.plantType, e.pdsName].join(" ").toLowerCase();
+        const matchesSearch = !search || hay.includes(search);
+        return matchesSection && matchesType && matchesSearch;
+      });
+
+      const sectionMap = new Map();
+      equipmentRows.forEach((e) => {
+        const section = String(e.plantSection || "Unmapped Section").trim() || "Unmapped Section";
+        if (!sectionMap.has(section)) sectionMap.set(section, []);
+        sectionMap.get(section).push(e);
+      });
+
+      const sectionHtml = [...sectionMap.keys()].sort((a, b) => a.localeCompare(b)).map((section) => {
+        const sectionRows = sectionMap.get(section);
+        const parts = childScopeNodesForSection(section, sectionRows);
+
+        const typeHtml = parts.typed.map(({ node, children }) => {
+          const tagHtml = children.map((tag) => treeNodeHtml(tag, 3, "", false)).join("");
+          return treeNodeHtml(node, 2, tagHtml, children.length > 0);
+        }).join("");
+
+        const untypedHtml = parts.untyped.map((tag) => treeNodeHtml(tag, 3, "", false)).join("");
+        const children = `${typeHtml}${untypedHtml}`;
+        return treeNodeHtml(generalSectionItem(section), 1, children, Boolean(children));
       }).join("");
 
-      $("equipmentList").querySelectorAll(".equipment-row").forEach((button) => {
-        button.addEventListener("click", () => {
-          const id = button.dataset.equipmentId;
-          let selected;
-          if (id === "GENERAL") selected = generalProjectItem();
-          else if (id.startsWith("SECTION::")) selected = generalSectionItem(id.slice("SECTION::".length));
-          else selected = state.equipment.find((e) => String(e.id) === String(id));
-          selectEquipment(selected);
+      return `<div class="tree-root">${treeNodeHtml(generalProjectItem(), 0, sectionHtml, Boolean(sectionHtml))}</div>`;
+    }
+
+    function renderEquipmentList() {
+      if (!state.selectedProject || !state.selectedDepartment) return;
+      $("equipmentPanelTitle").textContent = `${state.selectedDepartment} — Design Work Breakdown`;
+      $("equipmentCount").textContent = String(state.equipment.length);
+      $("equipmentList").innerHTML = buildFamilyTreeHtml();
+
+      $("equipmentList").querySelectorAll("[data-tree-toggle]").forEach((button) => {
+        button.addEventListener("click", (event) => {
+          event.stopPropagation();
+          const key = button.dataset.treeToggle;
+          if (state.expandedTreeNodes.has(key)) state.expandedTreeNodes.delete(key);
+          else state.expandedTreeNodes.add(key);
+          renderEquipmentList();
+        });
+      });
+
+      $("equipmentList").querySelectorAll("[data-tree-select]").forEach((row) => {
+        row.addEventListener("click", () => {
+          const selected = treeEquipmentById(row.dataset.treeSelect);
+          if (selected) selectEquipment(selected);
         });
       });
     }
 
     function clearDetailPanel() {
       $("detailTabs").classList.add("hidden");
-      $("detailHero").innerHTML = `<div class="empty-state"><strong>Select an equipment tag</strong>Choose a project equipment record from the left side.</div>`;
-      $("tabBody").innerHTML = `<div class="empty-state"><strong>No equipment selected</strong>Project data will appear here.</div>`;
+      $("detailHero").innerHTML = `<div class="empty-state"><strong>Select a work scope</strong>Choose Project, Plant Section, Plant Section Type, or an equipment Tag from the left side.</div>`;
+      $("tabBody").innerHTML = `<div class="empty-state"><strong>No scope selected</strong>Project/design data will appear here.</div>`;
     }
 
     function selectEquipment(equipment) {
@@ -3258,41 +3598,256 @@
       renderOverviewTab();
     }
 
+    function workPackageScopeKey(equipment) {
+      const projectCode = state.selectedProject?.code || "";
+      if (!equipment) return "";
+      if (equipment.isGeneral) return `PROJECT::${projectCode}`;
+      if (equipment.isSectionType) return `SECTION_TYPE::${projectCode}::${equipment.plantSection || ""}::${equipment.plantType || ""}`;
+      if (equipment.isSection) return `SECTION::${projectCode}::${equipment.plantSection || ""}`;
+      return `TAG::${projectCode}::${equipment.id || equipment.tag || ""}`;
+    }
+
+    function workPackageTitle(equipment) {
+      return `${WORK_PACKAGE_TITLE_PREFIX}${workPackageScopeKey(equipment)}`;
+    }
+
+    function workPackageRecordFor(equipment) {
+      const title = workPackageTitle(equipment);
+      return state.tracking.find((r) => scalarValue(r[TRACKING_FIELDS.designTitle]) === title) || null;
+    }
+
+    function parentScopeChain(equipment) {
+      const chain = [];
+      if (!equipment || equipment.isGeneral) return chain;
+
+      if (!equipment.isSection && !equipment.isSectionType) {
+        if (equipment.plantSection && equipment.plantType) chain.push(generalSectionTypeItem(equipment.plantSection, equipment.plantType));
+        if (equipment.plantSection) chain.push(generalSectionItem(equipment.plantSection));
+        chain.push(generalProjectItem());
+        return chain;
+      }
+
+      if (equipment.isSectionType) {
+        if (equipment.plantSection) chain.push(generalSectionItem(equipment.plantSection));
+        chain.push(generalProjectItem());
+        return chain;
+      }
+
+      if (equipment.isSection) {
+        chain.push(generalProjectItem());
+      }
+      return chain;
+    }
+
+    function effectiveScopeOwner(equipment) {
+      for (const candidate of [equipment, ...parentScopeChain(equipment)]) {
+        const record = workPackageRecordFor(candidate);
+        const email = scalarValue(record?.[TRACKING_FIELDS.assignedTo]).trim();
+        if (!email) continue;
+        return {
+          email,
+          name: scalarValue(record?.[TRACKING_FIELDS.assignedEmployeeName]).trim() || email,
+          sourceScope: scopeForEquipment(candidate),
+          inherited: candidate !== equipment,
+          record
+        };
+      }
+      return null;
+    }
+
+
+    function currentUserEmail() {
+      return String(state.currentUser || "").trim().toLowerCase();
+    }
+
+    // Returns true when the logged-in user owns this branch OR any ancestor
+    // branch. This is the family-tree delegation rule:
+    // Project Owner can delegate anywhere in the project;
+    // Section Owner only inside that Section;
+    // Section-Type Owner only inside that Type;
+    // Tag Owner can delegate the drawings under that Tag.
+    function canManageBranch(equipment) {
+      if (!equipment) return false;
+      const me = currentUserEmail();
+      if (!me) return false;
+
+      // Project assignment is the top-level allocation. The widget leaves it
+      // available to users who already have access to this Design Control page.
+      // Child delegation below the Project is owner-controlled.
+      if (equipment.isGeneral) return true;
+
+      const chain = [equipment, ...parentScopeChain(equipment)];
+      return chain.some((candidate) => {
+        const owner = directScopeOwner(candidate);
+        return owner && String(owner.email || "").trim().toLowerCase() === me;
+      });
+    }
+
+    function delegationAuthorityText(equipment) {
+      if (!equipment) return "No scope selected.";
+      if (equipment.isGeneral) return "Project ownership is the top-level assignment.";
+      if (canManageBranch(equipment)) return "You own this branch or one of its parent branches, so you can delegate it.";
+
+      const parentOwner = parentScopeChain(equipment)
+        .map((parent) => directScopeOwner(parent))
+        .find(Boolean);
+      return parentOwner
+        ? `Only ${parentOwner.name} or another owner above this branch can delegate this scope.`
+        : "Assign the Project owner first. Child scopes inherit responsibility from the Project.";
+    }
+
+    function scopeOwnerOptions(selectedEmail = "") {
+      return '<option value="">Select package owner...</option>' + sortedEmployeesForDepartment().map((emp) => {
+        const selected = String(emp.email || "") === String(selectedEmail || "") ? " selected" : "";
+        const label = `${emp.name || emp.email}${emp.department ? ` — ${emp.department}` : ""}`;
+        return `<option value="${escapeHtml(emp.email)}"${selected}>${escapeHtml(label)}</option>`;
+      }).join("");
+    }
+
+    function workPackageStorageContext(equipment) {
+      if (equipment.isGeneral) {
+        return { equipmentRecordId: "GENERAL", plantSection: "", plantSectionType: "", tag: "GENERAL", name: "Project Work Package" };
+      }
+      if (equipment.isSectionType) {
+        return { equipmentRecordId: "SECTION_TYPE", plantSection: equipment.plantSection || "", plantSectionType: equipment.plantType || "", tag: "SECTION_TYPE", name: `${equipment.plantSection || "Section"} / ${equipment.plantType || "Section Type"} Work Package` };
+      }
+      if (equipment.isSection) {
+        return { equipmentRecordId: "SECTION", plantSection: equipment.plantSection || "", plantSectionType: "", tag: "SECTION", name: `${equipment.plantSection || "Section"} Work Package` };
+      }
+      return { equipmentRecordId: equipment.id || "", plantSection: equipment.plantSection || "", plantSectionType: equipment.plantType || "", tag: equipment.tag || "", name: `${equipment.tag || "Tag"} Work Package` };
+    }
+
+    async function saveScopeOwner(equipment, email) {
+      if (!equipment || !email) {
+        toast("Select a package owner first.", "warning");
+        return;
+      }
+      if (!canManageBranch(equipment)) {
+        toast(delegationAuthorityText(equipment), "error");
+        return;
+      }
+
+      const employee = state.employees.find((e) => String(e.email) === String(email));
+      const ctx = workPackageStorageContext(equipment);
+      const payload = {
+        [TRACKING_FIELDS.projectCode]: state.selectedProject?.code || "",
+        [TRACKING_FIELDS.projectRecordId]: state.selectedProject?.id || "",
+        [TRACKING_FIELDS.equipmentRecordId]: ctx.equipmentRecordId,
+        [TRACKING_FIELDS.plantSectionName]: ctx.plantSection,
+        [TRACKING_FIELDS.plantSectionType]: ctx.plantSectionType,
+        [TRACKING_FIELDS.tagNumber]: ctx.tag,
+        [TRACKING_FIELDS.equipmentName]: ctx.name,
+        [TRACKING_FIELDS.designTitle]: workPackageTitle(equipment),
+        [TRACKING_FIELDS.assignedTo]: email,
+        [TRACKING_FIELDS.assignedEmployeeName]: employee?.name || email,
+        [TRACKING_FIELDS.status]: "In Progress",
+        [TRACKING_FIELDS.progress]: 0,
+        [TRACKING_FIELDS.revision]: "R0",
+        [TRACKING_FIELDS.remarks]: `${scopeDisplayName(scopeForEquipment(equipment))} work-package owner`
+      };
+
+      // Do not send blank hierarchy fields on work-package updates. This keeps
+      // the owner record compatible even if a blank lookup/choice is rejected
+      // by the live Design_Tracking schema.
+      Object.keys(payload).forEach((key) => {
+        if (payload[key] === "" || payload[key] === null || payload[key] === undefined) delete payload[key];
+      });
+
+      showLoading("Saving work-package owner...");
+      try {
+        const existing = workPackageRecordFor(equipment);
+        if (existing) {
+          const id = String(existing.ID || existing.id);
+          await creatorUpdateTracking(id, payload);
+          Object.assign(existing, payload);
+        } else {
+          const id = await creatorAddTracking(payload);
+          state.tracking.push({ ID: id, ...payload });
+        }
+        toast(`${scopeDisplayName(scopeForEquipment(equipment))} owner assigned to ${employee?.name || email}.`, "success");
+        renderEquipmentList();
+        renderEquipmentHero();
+        if (state.activeTab === "overview") renderOverviewTab();
+        if (state.activeTab === "designs") renderDesignsTab();
+      } catch (error) {
+        console.error(error);
+        toast(error.message || String(error), "error");
+      } finally {
+        hideLoading();
+      }
+    }
+
+    function scopeOwnerControlHtml(equipment) {
+      const exact = workPackageRecordFor(equipment);
+      const exactEmail = scalarValue(exact?.[TRACKING_FIELDS.assignedTo]).trim();
+      const effective = effectiveScopeOwner(equipment);
+      const allowed = canManageBranch(equipment);
+
+      const inheritedText = !exactEmail && effective
+        ? `Inherited from ${scopeDisplayName(effective.sourceScope)}: ${effective.name}`
+        : exactEmail
+          ? `Direct owner: ${scalarValue(exact?.[TRACKING_FIELDS.assignedEmployeeName]) || exactEmail}`
+          : "No owner assigned at this scope or parent scope";
+
+      return `
+        <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--line);display:grid;grid-template-columns:minmax(220px,1fr) auto;gap:8px;align-items:end;">
+          <div class="field">
+            <label>${escapeHtml(scopeDisplayName(scopeForEquipment(equipment)))} Manager / Work Package Owner</label>
+            <select id="scopeOwnerSelect" ${allowed ? "" : "disabled"}>${scopeOwnerOptions(exactEmail)}</select>
+            <div class="file-note">${escapeHtml(inheritedText)}.</div>
+            <div class="owner-permission-note ${allowed ? "allowed" : "denied"}">${escapeHtml(delegationAuthorityText(equipment))}</div>
+          </div>
+          <button id="saveScopeOwnerBtn" class="btn btn-soft" type="button" ${allowed ? "" : "disabled"}>Assign / Delegate</button>
+        </div>`;
+    }
+
+    function wireScopeOwnerControl(equipment) {
+      const button = $("saveScopeOwnerBtn");
+      if (!button) return;
+      button.addEventListener("click", () => saveScopeOwner(equipment, $("scopeOwnerSelect").value));
+    }
+
     function renderEquipmentHero() {
       const e = state.selectedEquipment;
-      if (state.selectedDepartment === "Project" && e?.isGeneral) {
-        $("detailHero").innerHTML = `
-          <div class="detail-hero-top">
-            <div>
-              <div class="detail-tag">PROJECT ${escapeHtml(state.selectedProject?.code || "")}</div>
-              <div class="detail-title">Project Department Document Register</div>
-              <div class="detail-subtitle">Planning • Internal • Procurement • Manufacturing • Dispatch / Logistics • Site • Progress Control</div>
-            </div>
-            <span class="status brand">Project</span>
-          </div>`;
-        return;
+      if (!e) return;
+
+      let tagLabel = e.tag || "NO TAG";
+      let title = e.name || "Unnamed equipment";
+      let subtitle = [e.plantSection, e.plantType, e.category, e.type].filter(Boolean).join(" • ") || "Project-level design";
+
+      if (e.isGeneral) {
+        tagLabel = `PROJECT ${state.selectedProject?.code || ""}`;
+        title = state.selectedDepartment === "Project" ? "Project Department Document Register" : `${state.selectedDepartment} — Project-Level Documents`;
+        subtitle = "One shared work package for the complete project";
+      } else if (e.isSectionType) {
+        tagLabel = "SECTION TYPE";
+        title = `${e.plantSection || "Section"} / ${e.plantType || "Section Type"}`;
+        subtitle = "One shared work package for this Plant Section + Plant Section Type";
+      } else if (e.isSection) {
+        tagLabel = "SECTION";
+        title = `${e.plantSection || "Section"} — Section Documents`;
+        subtitle = "One shared work package for every tag inside this Plant Section";
       }
-      if (e?.isSection) {
-        $("detailHero").innerHTML = `
-          <div class="detail-hero-top">
-            <div>
-              <div class="detail-tag">SECTION</div>
-              <div class="detail-title">${escapeHtml(e.plantSection || "Section")} — Section Documents</div>
-              <div class="detail-subtitle">Shared by every equipment tag inside this Plant Section (not tied to one tag)</div>
-            </div>
-            <span class="status brand">${escapeHtml(state.selectedDepartment)}</span>
-          </div>`;
-        return;
-      }
+
+      const owner = effectiveScopeOwner(e);
+      const stats = branchStats(e);
+
       $("detailHero").innerHTML = `
         <div class="detail-hero-top">
           <div>
-            <div class="detail-tag">${escapeHtml(e.tag)}</div>
-            <div class="detail-title">${escapeHtml(e.name)}</div>
-            <div class="detail-subtitle">${escapeHtml([e.plantSection, e.plantType, e.category, e.type].filter(Boolean).join(" • ") || "Project-level design")}</div>
+            <div class="detail-tag">${escapeHtml(tagLabel)}</div>
+            <div class="detail-title">${escapeHtml(title)}</div>
+            <div class="detail-subtitle">${escapeHtml(subtitle)}${owner ? ` • Responsible: ${escapeHtml(owner.name)}` : " • No owner assigned"}</div>
           </div>
-          <span class="status brand">${escapeHtml(state.selectedDepartment)}</span>
-        </div>`;
+          <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;">
+            <span class="status brand">${escapeHtml(scopeDisplayName(scopeForEquipment(e)))}</span>
+            <span class="status info">${stats.total} tasks</span>
+            <span class="status ${stats.progress >= 100 ? "success" : ""}">${stats.progress}%</span>
+          </div>
+        </div>
+        ${scopeOwnerControlHtml(e)}`;
+
+      wireScopeOwnerControl(e);
     }
 
     function setActiveTabButton(tab) {
@@ -3306,21 +3861,21 @@
       if (tab === "overview") return renderOverviewTab();
       if (tab === "designs") return renderDesignsTab();
       if (tab === "pds") {
-        if (state.selectedEquipment.isGeneral) return renderNoEquipmentData("PDS");
+        if (isVirtualScope(state.selectedEquipment)) return renderNoEquipmentData("PDS");
         showLoading("Loading PDS records...");
         try { renderPdsTab(await loadPdsForEquipment(state.selectedEquipment)); }
         catch (error) { $("tabBody").innerHTML = `<div class="error-banner">${escapeHtml(error.message)}</div>`; }
         finally { hideLoading(); }
       }
       if (tab === "bom") {
-        if (state.selectedEquipment.isGeneral) return renderNoEquipmentData("BOM");
+        if (isVirtualScope(state.selectedEquipment)) return renderNoEquipmentData("BOM");
         showLoading("Loading BOM records...");
         try { renderBomTab(await loadBomForEquipment(state.selectedEquipment)); }
         catch (error) { $("tabBody").innerHTML = `<div class="error-banner">${escapeHtml(error.message)}</div>`; }
         finally { hideLoading(); }
       }
       if (tab === "po") {
-        if (state.selectedEquipment.isGeneral) return renderNoEquipmentData("PO");
+        if (isVirtualScope(state.selectedEquipment)) return renderNoEquipmentData("PO");
         showLoading("Loading Purchase Order records...");
         try { renderPoTab(await loadPoForEquipment(state.selectedEquipment)); }
         catch (error) { $("tabBody").innerHTML = `<div class="error-banner">${escapeHtml(error.message)}</div>`; }
@@ -3334,47 +3889,60 @@
 
     function renderOverviewTab() {
       const e = state.selectedEquipment;
-      if (state.selectedDepartment === "Project" && e?.isGeneral) {
-        const fields = [
-          ["Project Code", state.selectedProject?.code],
+      if (!e) return;
+      const owner = effectiveScopeOwner(e);
+      const direct = directScopeOwner(e);
+      const stats = branchStats(e);
+
+      const common = [
+        ["Project Code", state.selectedProject?.code],
+        ["Department View", state.selectedDepartment],
+        ["Scope", scopeDisplayName(scopeForEquipment(e))],
+        ["Direct Manager", direct?.name || "Inherited / Not directly assigned"],
+        ["Effective Responsible Person", owner?.name || "Not assigned"],
+        ["Branch Tasks", stats.total],
+        ["Closed Tasks", `${stats.closed}/${stats.total}`],
+        ["Branch Progress", `${stats.progress}%`],
+        ["Overdue", stats.overdue]
+      ];
+
+      let specific = [];
+      if (e.isGeneral) {
+        specific = [
           ["Customer", state.selectedProject?.customer],
-          ["Department", "Project"],
-          ["Tracking Level", "Project Document"],
-          ["Required Document Types", DEPARTMENT_LIBRARY.Project.length],
-          ["Tracked Records", selectedEquipmentTracking().length],
-          ["Purpose", "Project planning, coordination, manufacturing, dispatch/logistics and site control"]
+          ["Work Package", "Overall Project"],
+          ["Responsibility", "Project owner can delegate Sections, Section Types, Tags and drawing tasks below this project"]
         ];
-        $("tabBody").innerHTML = `<div class="info-grid">${fields.map(([label, value]) => `<div class="info-card"><div class="info-label">${escapeHtml(label)}</div><div class="info-value">${escapeHtml(value || "—")}</div></div>`).join("")}</div>`;
-        return;
-      }
-      if (e?.isSection) {
-        const fields = [
-          ["Project Code", state.selectedProject?.code],
+      } else if (e.isSection) {
+        specific = [
           ["Plant Section", e.plantSection],
-          ["Scope", "Section (shared across all tags in this section)"],
-          ["Department", state.selectedDepartment],
-          ["Tracked Records", selectedEquipmentTracking().length]
+          ["Work Package", "Plant Section"],
+          ["Responsibility", "Section owner manages all child types/tags/drawings inside this section"]
         ];
-        $("tabBody").innerHTML = `<div class="info-grid">${fields.map(([label, value]) => `<div class="info-card"><div class="info-label">${escapeHtml(label)}</div><div class="info-value">${escapeHtml(value || "—")}</div></div>`).join("")}</div>`;
-        return;
+      } else if (e.isSectionType) {
+        specific = [
+          ["Plant Section", e.plantSection],
+          ["Plant Section Type", e.plantType],
+          ["Work Package", "Plant Section Type"],
+          ["Responsibility", "Section-Type owner manages all child tags/drawings inside this type"]
+        ];
+      } else {
+        specific = [
+          ["Plant Section", e.plantSection],
+          ["Plant Section Type", e.plantType],
+          ["Tag Number", e.tag],
+          ["Equipment Name", e.name],
+          ["PDS Name", e.pdsName],
+          ["Equipment Category", e.category],
+          ["Equipment Type", e.type],
+          ["Equipment Subtype", e.subtype],
+          ["Source Record ID", e.id],
+          ["Responsibility", "Tag owner manages the drawing tasks below this equipment tag"]
+        ];
       }
 
-      const fields = [
-        ["Project Code", state.selectedProject?.code],
-        ["Customer", state.selectedProject?.customer],
-        ["Plant Section", e.plantSection],
-        ["Plant Section Type", e.plantType],
-        ["Tag Number", e.tag],
-        ["Equipment Name", e.name],
-        ["PDS Name", e.pdsName],
-        ["Group Code", e.groupCode],
-        ["Equipment Department", e.department],
-        ["Equipment Category", e.category],
-        ["Equipment Type", e.type],
-        ["Equipment Subtype", e.subtype],
-        ["Source Record ID", e.isGeneral ? "—" : e.id]
-      ];
-      $("tabBody").innerHTML = `<div class="info-grid">${fields.map(([label, value]) => `<div class="info-card"><div class="info-label">${escapeHtml(label)}</div><div class="info-value">${escapeHtml(value || "—")}</div></div>`).join("")}</div>`;
+      const fields = [...common, ...specific];
+      $("tabBody").innerHTML = `<div class="info-grid">${fields.map(([label, value]) => `<div class="info-card"><div class="info-label">${escapeHtml(label)}</div><div class="info-value">${escapeHtml(value === 0 ? "0" : (value || "—"))}</div></div>`).join("")}</div>`;
     }
 
     function renderPdsTab(rows) {
@@ -3464,14 +4032,32 @@
        ====================================================================== */
 
     function recordAppliesToSelectedEquipment(record) {
+      if (isWorkPackageRecord(record)) return false;
+
       const recordEquipmentId = scalarValue(record[TRACKING_FIELDS.equipmentRecordId]);
       const recordTag = scalarValue(record[TRACKING_FIELDS.tagNumber]);
       const recordSection = scalarValue(record[TRACKING_FIELDS.plantSectionName]);
+      const recordSectionType = scalarValue(record[TRACKING_FIELDS.plantSectionType]);
       const selected = state.selectedEquipment;
       if (!selected) return false;
-      if (selected.isGeneral) return !recordEquipmentId || recordEquipmentId === "GENERAL" || recordTag === "GENERAL";
-      if (selected.isSection) return recordTag === "SECTION" && recordSection === (selected.plantSection || "");
-      return String(recordEquipmentId) === String(selected.id) || (recordTag && recordTag === selected.tag);
+
+      if (selected.isGeneral) {
+        return !recordEquipmentId || recordEquipmentId === "GENERAL" || recordTag === "GENERAL";
+      }
+
+      if (selected.isSectionType) {
+        return (recordTag === "SECTION_TYPE" || recordEquipmentId === "SECTION_TYPE") &&
+               recordSection === (selected.plantSection || "") &&
+               recordSectionType === (selected.plantType || "");
+      }
+
+      if (selected.isSection) {
+        return (recordTag === "SECTION" || recordEquipmentId === "SECTION") &&
+               recordSection === (selected.plantSection || "");
+      }
+
+      return String(recordEquipmentId) === String(selected.id) ||
+             (recordTag && recordTag === selected.tag);
     }
 
     function revisionNumber(revision) {
@@ -3521,7 +4107,7 @@
 
     // Returns only design types that are relevant to the selected equipment,
     // AND, since V11, only those whose configured Scope matches the currently
-    // selected left-panel context (Project / Section / Tag). See
+    // selected left-panel context (Project / Section / Section Type / Tag). See
     // DOCUMENT_SCOPE_OVERRIDES near the top of this file to change a
     // document's scope.
     function applicableDesignLibrary(department, equipment) {
@@ -3620,16 +4206,22 @@
       const savedCount = rows.filter((r) => !r.virtual).length;
       const projectMode = state.selectedDepartment === "Project" && state.selectedEquipment?.isGeneral;
       const sectionMode = Boolean(state.selectedEquipment?.isSection);
-      const noun = projectMode ? "document" : "design";
+      const sectionTypeMode = Boolean(state.selectedEquipment?.isSectionType);
+      const scope = scopeForEquipment(state.selectedEquipment);
+      const canManage = canManageBranch(state.selectedEquipment);
+
       const title = projectMode
         ? "Project Department — Required Documents"
-        : sectionMode
-          ? `${state.selectedDepartment} — Section Documents (${state.selectedEquipment.plantSection || ""})`
-          : `${state.selectedDepartment} Designs`;
-      const firstHeader = projectMode ? "Document" : "Design";
+        : sectionTypeMode
+          ? `${state.selectedDepartment} — Section Type Documents (${state.selectedEquipment.plantSection} / ${state.selectedEquipment.plantType})`
+          : sectionMode
+            ? `${state.selectedDepartment} — Section Documents (${state.selectedEquipment.plantSection || ""})`
+            : scope === "project"
+              ? `${state.selectedDepartment} — Project-Level Documents`
+              : `${state.selectedDepartment} — Tag Designs`;
+
+      const firstHeader = projectMode ? "Document" : "Design / Drawing";
       const numberHeader = projectMode ? "Document No." : "Drawing No.";
-      // Project docs are all project-scope by definition, so the Scope column
-      // only adds value on the normal department tabs (Tag / Section context).
       const showScopeColumn = !projectMode;
 
       $("tabBody").innerHTML = `
@@ -3637,18 +4229,22 @@
           <div class="toolbar-left">
             <div class="toolbar-title">${escapeHtml(title)}</div>
             <span class="status">${savedCount}/${rows.length} planned/tracked</span>
+            <span class="status brand">${escapeHtml(scopeDisplayName(scope))}</span>
           </div>
           <div class="toolbar-right">
-            <button id="customDesignBtn" class="btn btn-secondary btn-sm" type="button">+ Custom ${projectMode ? "Document" : "Design"}</button>
-            <button id="initializeDesignsBtn" class="btn btn-soft btn-sm" type="button">Initialize All${projectMode ? " Documents" : ""}</button>
+            <button id="customDesignBtn" class="btn btn-secondary btn-sm" type="button" ${canManage ? "" : "disabled"}>+ Custom ${projectMode ? "Document" : "Design"}</button>
+            <button id="initializeSelectedDesignsBtn" class="btn btn-primary btn-sm" type="button" ${canManage ? "" : "disabled"}>Initialize Selected</button>
+            <button id="initializeDesignsBtn" class="btn btn-soft btn-sm" type="button" ${canManage ? "" : "disabled"}>Initialize All</button>
           </div>
         </div>
+        <div class="file-note" style="margin-bottom:8px;">Select only the required drawing types for this ${escapeHtml(scopeDisplayName(scope))} work package. Already-created rows cannot be selected again. ${canManage ? "You can plan/delegate work in this branch." : escapeHtml(delegationAuthorityText(state.selectedEquipment))}</div>
         <div class="table-wrap"><table>
-          <thead><tr>${projectMode ? "<th>Group</th>" : ""}${showScopeColumn ? "<th>Scope</th>" : ""}<th>${firstHeader}</th><th>${numberHeader}</th><th>Assigned</th><th>Start</th><th>End</th><th>Revision</th><th>Status</th><th>Progress</th><th>Last Updated</th><th>Updated By</th><th>Action</th></tr></thead>
+          <thead><tr><th>Select</th>${projectMode ? "<th>Group</th>" : ""}${showScopeColumn ? "<th>Scope</th>" : ""}<th>${firstHeader}</th><th>${numberHeader}</th><th>Assigned</th><th>Start</th><th>End</th><th>Revision</th><th>Status</th><th>Progress</th><th>Last Updated</th><th>Updated By</th><th>Action</th></tr></thead>
           <tbody>${rows.map((row) => renderDesignRow(row, projectMode, showScopeColumn)).join("")}</tbody>
         </table></div>`;
 
       $("customDesignBtn").addEventListener("click", () => openDesignModal(null, ""));
+      $("initializeSelectedDesignsBtn").addEventListener("click", initializeSelectedDesigns);
       $("initializeDesignsBtn").addEventListener("click", initializeAllDesigns);
       $("tabBody").querySelectorAll("[data-design-open]").forEach((button) => {
         button.addEventListener("click", () => {
@@ -3665,9 +4261,14 @@
       const progress = r ? numberValue(r[TRACKING_FIELDS.progress]) : 0;
       const groupCell = projectMode ? `<td><span class="status">${escapeHtml(projectDocumentGroup(row.type))}</span></td>` : "";
       const scope = documentScope(row.type);
-      const scopeClass = scope === "project" ? "brand" : scope === "section" ? "info" : "";
-      const scopeCell = showScopeColumn ? `<td><span class="status ${scopeClass}">${escapeHtml(scope.charAt(0).toUpperCase() + scope.slice(1))}</span></td>` : "";
+      const scopeClass = scope === "project" ? "brand" : scope === "section" ? "info" : scope === "section_type" ? "warning" : "";
+      const scopeCell = showScopeColumn ? `<td><span class="status ${scopeClass}">${escapeHtml(scopeDisplayName(scope))}</span></td>` : "";
+      const selectCell = row.virtual
+        ? `<td><input type="checkbox" data-design-select="1" data-design-type="${escapeHtml(row.type)}" /></td>`
+        : `<td><span class="status success">Created</span></td>`;
+
       return `<tr>
+        ${selectCell}
         ${groupCell}
         ${scopeCell}
         <td class="td-title">${escapeHtml(row.type)}${row.custom ? '<div class="muted" style="font-size:10px;margin-top:2px;">Custom</div>' : ""}</td>
@@ -3684,43 +4285,68 @@
       </tr>`;
     }
 
-    // Creates a Not Started tracking row for every library design that does not yet exist for this equipment.
-    async function initializeAllDesigns() {
-      const missing = mergedDesignRows().filter((row) => row.virtual);
-      traceFlow("DESIGN INIT", "Initialize all missing standard designs requested", {
+    async function initializeDesignTypes(types) {
+      if (!canManageBranch(state.selectedEquipment)) {
+        toast(delegationAuthorityText(state.selectedEquipment), "error");
+        return;
+      }
+      const wanted = new Set((types || []).map(String));
+      const missing = mergedDesignRows().filter((row) => row.virtual && wanted.has(row.type));
+
+      if (!missing.length) {
+        toast("Select at least one uncreated drawing/document.", "warning");
+        return;
+      }
+
+      const scope = scopeDisplayName(scopeForEquipment(state.selectedEquipment));
+      if (!confirm(`Create ${missing.length} Not Started drawing/document task(s) at ${scope} scope for ${state.selectedEquipment.name}?`)) return;
+
+      traceFlow("DESIGN INIT", "Initialize selected drawing tasks", {
         department: state.selectedDepartment || "",
-        equipmentTag: state.selectedEquipment?.tag || "",
-        missingDesignCount: missing.length,
+        scope,
+        selectedTypes: missing.map((x) => x.type),
         targetForm: CONFIG.FORMS.designTracking
       });
-      if (!missing.length) return toast(state.selectedDepartment === "Project" ? "All project document rows are already initialized." : "All standard design rows are already initialized.", "success");
-      if (!confirm(`Create ${missing.length} Not Started ${state.selectedDepartment === "Project" ? "project document" : "design"} tracking records for ${state.selectedEquipment.name}?`)) return;
 
-      showLoading(`Initializing ${missing.length} design rows...`);
+      showLoading(`Initializing ${missing.length} drawing task(s)...`);
       try {
         for (let i = 0; i < missing.length; i += 1) {
-          $("loadingText").textContent = `Creating ${state.selectedDepartment === "Project" ? "document" : "design"} ${i + 1} of ${missing.length}...`;
+          $("loadingText").textContent = `Creating ${i + 1} of ${missing.length}: ${missing[i].type}`;
           const data = baseTrackingPayload(missing[i].type);
+
+          // Zoho-Projects style inheritance: newly generated child tasks start
+          // with the nearest Package Owner. The user can immediately delegate
+          // the drawing to Ram/Shyam/etc. from the normal Design modal.
+          const owner = effectiveScopeOwner(state.selectedEquipment);
+          if (owner) {
+            data[TRACKING_FIELDS.assignedTo] = owner.email;
+            data[TRACKING_FIELDS.assignedEmployeeName] = owner.name;
+          }
+
           data[TRACKING_FIELDS.status] = "Not Started";
           data[TRACKING_FIELDS.progress] = 0;
           data[TRACKING_FIELDS.revision] = "R0";
           const id = await creatorAddTracking(data);
           state.tracking.push({ ID: id, ...data });
-          traceFlow("DESIGN INIT", `Created ${missing[i].type} R0`, {
-            trackingRecordId: id,
-            status: "Not Started",
-            targetForm: CONFIG.FORMS.designTracking
-          });
         }
-        traceFlow("DESIGN INIT", "Initialize All completed", { createdRecords: missing.length });
-        toast(`${missing.length} design records initialized.`, "success");
+        toast(`${missing.length} drawing/document task(s) initialized.`, "success");
         renderAllTrackingViews();
       } catch (error) {
         console.error(error);
-        toast(error.message, "error");
+        toast(error.message || String(error), "error");
       } finally {
         hideLoading();
       }
+    }
+
+    async function initializeSelectedDesigns() {
+      const types = [...$("tabBody").querySelectorAll("[data-design-select]:checked")].map((el) => el.dataset.designType);
+      await initializeDesignTypes(types);
+    }
+
+    async function initializeAllDesigns() {
+      const types = mergedDesignRows().filter((row) => row.virtual).map((row) => row.type);
+      await initializeDesignTypes(types);
     }
 
     /* ======================================================================
@@ -3768,6 +4394,10 @@
 
     function openDesignModal(record, designType = "") {
       if (!state.selectedProject || !state.selectedDepartment || !state.selectedEquipment) return;
+      if (!record && !canManageBranch(state.selectedEquipment)) {
+        toast(delegationAuthorityText(state.selectedEquipment), "error");
+        return;
+      }
       traceFlow("DESIGN", record ? "Open existing design/revision" : "Open new design", {
         designType: getTrackingDesignType(record) || designType || "",
         revision: scalarValue(record?.[TRACKING_FIELDS.revision]) || "R0",
@@ -3781,7 +4411,7 @@
       populateStatusOptions();
 
       const type = record ? getTrackingDesignType(record) : designType;
-      const defaultTitle = `${state.selectedEquipment.name} - ${type || "New Design"}`;
+      const defaultTitle = baseTrackingPayload(type || "New Design")[TRACKING_FIELDS.designTitle];
 
       $("designTypeInput").value = type || "";
       $("designTitleInput").value = record ? scalarValue(record[TRACKING_FIELDS.designTitle]) : defaultTitle;
@@ -3791,7 +4421,10 @@
       $("plannedStartInput").value = record ? toInputDate(record[TRACKING_FIELDS.plannedStart]) : "";
       $("plannedEndInput").value = record ? toInputDate(record[TRACKING_FIELDS.plannedEnd]) : "";
       $("forecastEndInput").value = record ? toInputDate(record[TRACKING_FIELDS.forecastEnd]) : "";
-      $("assignedToInput").value = record ? scalarValue(record[TRACKING_FIELDS.assignedTo]) : "";
+      const inheritedOwner = !record ? effectiveScopeOwner(state.selectedEquipment) : null;
+      $("assignedToInput").value = record
+        ? scalarValue(record[TRACKING_FIELDS.assignedTo])
+        : (inheritedOwner?.email || "");
       $("checkerInput").value = record ? scalarValue(record[TRACKING_FIELDS.checker]) : "";
       $("reviewerInput").value = record ? scalarValue(record[TRACKING_FIELDS.reviewer]) : "";
       $("approverInput").value = record ? scalarValue(record[TRACKING_FIELDS.approver]) : "";
@@ -3813,6 +4446,7 @@
       renderRevisionMeta(record, type);
       renderRevisionHistory(type);
       applyRevisionEditLock(historical);
+      applyAssignmentPermissionLock(historical);
       renderWorkflowActions();
       $("designModalBackdrop").classList.remove("hidden");
     }
@@ -3849,6 +4483,16 @@
       $("saveDesignBtn").classList.toggle("hidden", Boolean(historical));
       $("workflowActions").classList.toggle("hidden", Boolean(historical));
       $("newRevisionBtn").classList.toggle("hidden", historical || !state.modalRecord);
+    }
+
+
+    function applyAssignmentPermissionLock(historical) {
+      if (historical) return;
+      const allowed = canManageBranch(state.selectedEquipment);
+      $("assignedToInput").disabled = !allowed;
+      $("assignedToInput").title = allowed
+        ? "You manage this branch and can delegate this drawing."
+        : delegationAuthorityText(state.selectedEquipment);
     }
 
     function renderRevisionHistory(designType) {
@@ -3947,28 +4591,69 @@
     function baseTrackingPayload(designType) {
       const project = state.selectedProject;
       const e = state.selectedEquipment;
-      const projectMode = state.selectedDepartment === "Project" && e?.isGeneral;
+      const projectMode = Boolean(e?.isGeneral);
       const sectionMode = Boolean(e?.isSection);
+      const sectionTypeMode = Boolean(e?.isSectionType);
+
+      let equipmentRecordId = e?.id || "";
+      let tagNumber = e?.tag || "";
+      let equipmentName = e?.name || "Project / Area General";
+      let equipmentCategory = e?.category || "";
+      let equipmentType = e?.type || "";
+      let plantSection = e?.plantSection || "";
+      let plantSectionType = e?.plantType || "";
+      let pdsName = e?.pdsName || "";
+
+      if (projectMode) {
+        equipmentRecordId = "GENERAL";
+        tagNumber = "GENERAL";
+        equipmentName = state.selectedDepartment === "Project" ? "Project Department" : `${state.selectedDepartment} Project Documents`;
+        equipmentCategory = "Project Document";
+        equipmentType = "Project Level";
+        plantSection = "";
+        plantSectionType = "";
+        pdsName = "";
+      } else if (sectionTypeMode) {
+        equipmentRecordId = "SECTION_TYPE";
+        tagNumber = "SECTION_TYPE";
+        equipmentName = `${e.plantSection || "Section"} / ${e.plantType || "Section Type"} (Section Type Documents)`;
+        equipmentCategory = "Section Type Document";
+        equipmentType = "Section Type Level";
+        pdsName = "";
+      } else if (sectionMode) {
+        equipmentRecordId = "SECTION";
+        tagNumber = "SECTION";
+        equipmentName = `${e.plantSection || "Section"} (Section Documents)`;
+        equipmentCategory = "Section Document";
+        equipmentType = "Section Level";
+        plantSectionType = "";
+        pdsName = "";
+      }
+
+      const titlePrefix = projectMode
+        ? (project.code || "Project")
+        : sectionTypeMode
+          ? `${plantSection} / ${plantSectionType}`
+          : sectionMode
+            ? plantSection
+            : (e?.name || e?.tag || "Equipment");
+
       return {
         [TRACKING_FIELDS.projectCode]: project.code || "",
         [TRACKING_FIELDS.projectRecordId]: project.id || "",
-        [TRACKING_FIELDS.equipmentRecordId]: e.isGeneral ? "GENERAL" : (sectionMode ? "SECTION" : (e.id || "")),
-        [TRACKING_FIELDS.plantSectionName]: e.isGeneral ? "" : (e.plantSection || ""),
-        [TRACKING_FIELDS.plantSectionType]: (e.isGeneral || sectionMode) ? "" : (e.plantType || ""),
-        [TRACKING_FIELDS.pdsName]: (projectMode || sectionMode) ? "" : (e.pdsName || ""),
+        [TRACKING_FIELDS.equipmentRecordId]: equipmentRecordId,
+        [TRACKING_FIELDS.plantSectionName]: plantSection,
+        [TRACKING_FIELDS.plantSectionType]: plantSectionType,
+        [TRACKING_FIELDS.pdsName]: pdsName,
         [TRACKING_FIELDS.pdsRecordId]: "",
-        [TRACKING_FIELDS.tagNumber]: e.isGeneral ? "GENERAL" : (sectionMode ? "SECTION" : (e.tag || "")),
-        [TRACKING_FIELDS.equipmentName]: projectMode ? "Project Department" : (sectionMode ? `${e.plantSection || "Section"} (Section Documents)` : (e.name || "Project / Area General")),
-        [TRACKING_FIELDS.equipmentCategory]: projectMode ? "Project Document" : (sectionMode ? "Section Document" : (e.category || "")),
-        [TRACKING_FIELDS.equipmentType]: projectMode ? "Project Level" : (sectionMode ? "Section Level" : (e.type || "")),
-        [TRACKING_FIELDS.equipmentDepartment]: projectMode ? "Project" : (e.department || ""),
+        [TRACKING_FIELDS.tagNumber]: tagNumber,
+        [TRACKING_FIELDS.equipmentName]: equipmentName,
+        [TRACKING_FIELDS.equipmentCategory]: equipmentCategory,
+        [TRACKING_FIELDS.equipmentType]: equipmentType,
+        [TRACKING_FIELDS.equipmentDepartment]: projectMode || sectionMode || sectionTypeMode ? "" : (e?.department || ""),
         [TRACKING_FIELDS.designDepartment]: state.selectedDepartment,
         [TRACKING_FIELDS.designType]: designType || "",
-        [TRACKING_FIELDS.designTitle]: projectMode
-          ? `${project.code || "Project"} - ${designType || "Document"}`
-          : sectionMode
-            ? `${e.plantSection || "Section"} - ${designType || "Design"}`
-            : `${e.name} - ${designType || "Design"}`,
+        [TRACKING_FIELDS.designTitle]: `${titlePrefix} - ${designType || "Design"}`,
         [TRACKING_FIELDS.priority]: "Medium",
         [TRACKING_FIELDS.status]: "Not Started",
         [TRACKING_FIELDS.progress]: 0,
@@ -3986,7 +4671,7 @@
       const assignedOption = $("assignedToInput").selectedOptions[0];
       const payload = {
         ...baseTrackingPayload(type),
-        [TRACKING_FIELDS.designTitle]: $("designTitleInput").value.trim() || (state.selectedDepartment === "Project" ? `${state.selectedProject?.code || "Project"} - ${type}` : `${state.selectedEquipment.name} - ${type}`),
+        [TRACKING_FIELDS.designTitle]: $("designTitleInput").value.trim() || baseTrackingPayload(type)[TRACKING_FIELDS.designTitle],
         [TRACKING_FIELDS.drawingNumber]: $("drawingNumberInput").value.trim(),
         [TRACKING_FIELDS.priority]: $("priorityInput").value,
         [TRACKING_FIELDS.plannedStart]: toCreatorDate(start),
@@ -4119,6 +4804,9 @@
     function renderAllTrackingViews() {
       renderDepartmentCards();
       renderKpis();
+      if (state.selectedProject && state.selectedDepartment) renderEquipmentList();
+      if (state.selectedEquipment) renderEquipmentHero();
+      if (state.activeTab === "overview" && state.selectedEquipment) renderOverviewTab();
       if (state.activeTab === "designs" && state.selectedEquipment) renderDesignsTab();
     }
 
@@ -4524,6 +5212,7 @@
         }
         state.selectedDepartment = "Mechanical";
         state.selectedEquipment = null;
+        state.expandedTreeNodes = new Set();
         $("globalSearch").value = "";
         $("equipmentSearch").value = "";
         $("sectionFilter").innerHTML = '<option value="">All plant sections</option>';
@@ -4548,17 +5237,15 @@
           project: state.selectedProject?.code || ""
         });
         renderSectionTypeFilter();
-        state.selectedEquipment = null;
-        if (state.selectedDepartment) selectDepartment(state.selectedDepartment);
-        else renderEquipmentList();
+        ensureDefaultTreeExpansion();
+        renderEquipmentList();
       });
       $("sectionTypeFilter").addEventListener("change", () => {
         traceFlow("FILTER", `Plant Section Type selected: ${$("sectionTypeFilter").value || "All section types"}`, {
           plantSection: $("sectionFilter").value || ""
         });
-        state.selectedEquipment = null;
-        if (state.selectedDepartment) selectDepartment(state.selectedDepartment);
-        else renderEquipmentList();
+        ensureDefaultTreeExpansion();
+        renderEquipmentList();
       });
       $("refreshBtn").addEventListener("click", async () => {
         if (state.selectedProject) {
@@ -4733,7 +5420,7 @@
           - You can add/remove items without changing the database form.
 
        4B) DOCUMENT SCOPE (V11):
-          - Whether a document is Project-, Section-, or Tag-scoped lives in
+          - Whether a document is Project-, Section-, Section-Type-, or Tag-scoped lives in
             DOCUMENT_SCOPE_OVERRIDES (section D2, right after DEPARTMENT_LIBRARY).
           - Anything not listed there defaults to Tag scope.
           - No other code needs to change when you re-scope a document type.
@@ -4776,7 +5463,7 @@
            - Other dropdown mismatches are reported before the API call with
              the exact allowed values.
 
-       12) V11 DOCUMENT SCOPE (Project / Section / Tag):
+       12) V11 DOCUMENT SCOPE (Project / Section / Section Type / Tag):
            - Added a virtual "SECTION" record (generalSectionItem), parallel
              to the existing virtual "GENERAL" project record.
            - DOCUMENT_SCOPE_OVERRIDES decides which of the three scopes each
