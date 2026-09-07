@@ -249,13 +249,26 @@ async function loadTrackingMeta(){
     S.trackingFieldMeta=new Map((r.fields||[]).map(f=>[String(f.link_name||""),f]));
   }catch(e){console.warn("Design_Tracking metadata unavailable",e);}
 }
-function assignmentCriteriaPayload(labels){
-  const arr=(Array.isArray(labels)?labels:String(labels||"").split(",")).map(x=>String(x).trim()).filter(Boolean);
-  const meta=S.trackingFieldMeta.get(AF.criteria);
-  // Creator Multi Select fields are sent as an array. Single Line / Multi Line
-  // fields are sent as readable comma-separated text.
-  if(meta && Number(meta.type)===14 && !meta.is_lookup_field)return arr;
-  return arr.join(", ");
+function assignmentCriteriaPayload(labels)
+{
+    const arr = (
+        Array.isArray(labels)
+        ? labels
+        : String(labels || "").split(",")
+    )
+    .map(v => String(v || "").trim())
+    .filter(Boolean);
+
+    const meta = S.trackingFieldMeta.get(AF.criteria);
+
+    // Multi Select field
+    if(meta && Number(meta.type) === 14 && !meta.is_lookup_field)
+    {
+        return arr;
+    }
+
+    // Single Line / Drop Down
+    return arr.join(", ");
 }
 function employeeNameFor(value){
   const v=String(value||"");
