@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="color-scheme" content="light">
-<title>MEGA Engineering | Drawing Assignment V16.4</title>
+<title>MEGA Engineering | Drawing Assignment V16.5</title>
 <script src="https://static.zohocdn.com/creator/widgets/version/2.0/widgetsdk-min.js"></script>
 <style>
 :root{
@@ -28,7 +28,7 @@ h1,h2,h3,p{margin:0}.hidden{display:none!important}.muted{color:var(--muted)}.no
 .table-wrap{width:100%;overflow:auto;border:1px solid var(--line);border-radius:10px}table{width:100%;border-collapse:collapse;min-width:760px}th,td{padding:9px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}th{position:sticky;top:0;background:#f6f8fb;color:#667085;font-size:9px;text-transform:uppercase;letter-spacing:.04em;z-index:1}td{font-size:11px}tbody tr:hover{background:#fff9fc}tbody tr.selected{background:#fff2f7}.check{width:16px;height:16px;accent-color:var(--brand)}.empty-row{text-align:center;padding:26px;color:var(--muted)}
 .bulk-bar{margin-top:12px;border:1px solid #e2e6ec;border-radius:12px;background:#fafbfd;padding:13px}.bulk-grid{display:grid;grid-template-columns:1.2fr repeat(3,minmax(130px,.8fr)) minmax(180px,1.2fr) auto;gap:9px;align-items:end}.bulk-grid .field label{font-size:10px}.bulk-grid .field input,.bulk-grid .field select{min-height:36px;padding:7px 8px}.bulk-summary{margin-top:8px;font-size:11px;color:var(--muted)}
 .register-toolbar{display:grid;grid-template-columns:repeat(5,minmax(130px,1fr));gap:8px;margin-bottom:12px}.register-toolbar input,.register-toolbar select{border:1px solid #d4dae3;border-radius:8px;padding:8px 9px}.status-select{border:1px solid #d4dae3;border-radius:7px;padding:6px 8px;background:#fff}.progress{height:5px;background:#edf0f4;border-radius:999px;overflow:hidden;margin-top:4px}.progress span{display:block;height:100%;background:var(--brand)}
-/* V16.4 - SIMPLE GROUPED ASSIGNMENT OVERVIEW */
+/* V16.5 - SIMPLE GROUPED ASSIGNMENT OVERVIEW */
 .register-toolbar.simple{grid-template-columns:minmax(220px,1.5fr) repeat(3,minmax(150px,.8fr));padding:2px 0 4px}
 .assignment-groups{display:flex;flex-direction:column;gap:12px}
 .assignment-group{border:1px solid var(--line);border-radius:14px;background:#fff;overflow:hidden;box-shadow:0 4px 18px rgba(31,41,55,.045)}
@@ -120,7 +120,7 @@ h1,h2,h3,p{margin:0}.hidden{display:none!important}.muted{color:var(--muted)}.no
 "use strict";
 
 /* ======================================================================
-   V16.4 ONE-FORM ARCHITECTURE
+   V16.5 ONE-FORM ARCHITECTURE
    ----------------------------------------------------------------------
    Existing Creator sources (READ):
      - Project master/report
@@ -148,7 +148,7 @@ const CONFIG = {
     drawings: "All_Drawing_Types",
     equipment: "Master_Equipment_List_Subform_Report",
     employees: "Employ_to_Create_ticket_Report",
-    assignments: "" // auto-discovered Design_Tracking report
+    assignments: "Design_Tracking_Report" // fixed report link: no META.getReports needed for normal users
   },
   FORMS: {
     assignment: "Design_Tracking"
@@ -336,33 +336,78 @@ async function updateRecord(report,id,data){
   return id;
 }
 
-async function bootstrap(){busy("Loading drawing assignment workspace…");try{
-  if(S.demo){S.user="rohan@mega.tc";$("demoBanner").classList.remove("hidden");CONFIG.REPORTS.assignments="Design_Tracking_Report";}
-  else{
-    const init=await Promise.race([ZOHO.CREATOR.UTIL.getInitParams(),new Promise((_,rej)=>setTimeout(()=>rej(new Error("Creator session timed out.")),8000))]);
-    S.user=init?.loginUser||"";S.app=init?.appLinkName||CONFIG.APP_NAME;
-    await resolveAssignmentReport();
-    await loadTrackingMeta();
+async function safeSource(report,label,{required=false}={}){
+  try{
+    return await fetchRecords(report);
+  }catch(e){
+    const msg=`${label} access failed (${report}). Check this user's Creator permission set.`;
+    console.error(msg,e);
+    if(required)throw new Error(`${msg} ${e.message||e}`);
+    toast(msg,"error");
+    return [];
   }
-  const [pr,dr,er,eq,ar]=await Promise.all([
-    fetchRecords(CONFIG.REPORTS.projects),
-    fetchRecords(CONFIG.REPORTS.drawings),
-    fetchRecords(CONFIG.REPORTS.employees),
-    fetchRecords(CONFIG.REPORTS.equipment),
-    fetchRecords(CONFIG.REPORTS.assignments)
+}
+
+async function bootstrap(){busy("Loading drawing assignment workspace…");try{
+  if(S.demo){
+    S.user="rohan@mega.tc";
+    $("demoBanner").classList.remove("hidden");
+  }else{
+    if(!window.ZOHO||!ZOHO.CREATOR)throw new Error("Zoho Creator Widget SDK is not available in this page.");
+    const init=await Promise.race([
+      ZOHO.CREATOR.UTIL.getInitParams(),
+      new Promise((_,rej)=>setTimeout(()=>rej(new Error("Creator session timed out.")),8000))
+    ]);
+    S.user=init?.loginUser||"";
+    S.app=init?.appLinkName||CONFIG.APP_NAME;
+    // IMPORTANT: Do not call META.getReports / META.getFields during normal-user startup.
+    // Normal users can be denied metadata access even though they can use the page and reports.
+    // CONFIG.REPORTS.assignments is fixed to Design_Tracking_Report above.
+  }
+
+  // Assignment report is the minimum required source. If this is inaccessible,
+  // the user cannot see received assignments, so show the exact permission error.
+  const ar=await safeSource(CONFIG.REPORTS.assignments,"Design Tracking assignments",{required:true});
+
+  // Master reports are loaded independently. Missing access no longer makes the
+  // whole widget look disconnected; it only disables the related planner feature.
+  const [pr,dr,er,eq]=await Promise.all([
+    safeSource(CONFIG.REPORTS.projects,"Project master"),
+    safeSource(CONFIG.REPORTS.drawings,"Drawing master"),
+    safeSource(CONFIG.REPORTS.employees,"Employee master"),
+    safeSource(CONFIG.REPORTS.equipment,"Equipment master")
   ]);
+
   S.projects=pr.map(adaptProject).filter(x=>x.code);
   S.drawings=dr.map(adaptDrawing).filter(x=>x.name);
   S.employees=er.map(adaptEmployee).filter(x=>x.email||x.name);
   S.equipment=eq.map(adaptEquipment);
   S.assignments=ar.map(adaptAssignment).filter(isAssignmentRecord);
+
   S.projects.sort((a,b)=>String(b.code).localeCompare(String(a.code),undefined,{numeric:true}));
   S.drawings.sort((a,b)=>a.name.localeCompare(b.name));
   S.employees.sort((a,b)=>a.name.localeCompare(b.name));
+
   $("sessionPill").textContent=S.user?`Signed in: ${S.user}`:"Creator session connected";
-  populateSelectors();renderRegisterFilters();
-  if(S.demo){S.project=S.projects.find(x=>x.code==="25005")||S.projects[0];S.drawing=S.drawings.find(x=>x.short==="SLP")||S.drawings[0];$("projectSelect").value=S.project?.id||"";$("drawingSelect").value=S.drawing?.id||"";openContext();}
-}catch(e){console.error(e);$("sessionPill").textContent="Creator connection error";toast(e.message||String(e),"error");}finally{idle();}}
+  populateSelectors();
+  renderRegisterFilters();
+
+  if(!S.projects.length||!S.drawings.length||!S.employees.length||!S.equipment.length){
+    toast("Some planner masters are not accessible to this user. Grant View access to Project, Drawing, Employee and Equipment reports.","error");
+  }
+
+  if(S.demo){
+    S.project=S.projects.find(x=>x.code==="25005")||S.projects[0];
+    S.drawing=S.drawings.find(x=>x.short==="SLP")||S.drawings[0];
+    $("projectSelect").value=S.project?.id||"";
+    $("drawingSelect").value=S.drawing?.id||"";
+    openContext();
+  }
+}catch(e){
+  console.error(e);
+  $("sessionPill").textContent="Creator data access error";
+  toast(e.message||String(e),"error");
+}finally{idle();}}
 
 function populateSelectors(){
   $("projectSelect").innerHTML='<option value="">Select project…</option>'+S.projects.map(p=>`<option value="${h(p.id)}">${h(p.code)}${p.name?` — ${h(p.name)}`:""}</option>`).join("");
@@ -574,7 +619,7 @@ async function saveStatus(){const s=$("statusEdit").value,p=Math.max(0,Math.min(
 
 function openModal(title,sub,body,foot){$("modalTitle").textContent=title;$("modalSub").textContent=sub||"";$("modalBody").innerHTML=body||"";$("modalFoot").innerHTML=foot||"";$("modalBackdrop").classList.remove("hidden");}
 function closeModal(){$("modalBackdrop").classList.add("hidden");}
-function setupModal(){openModal("V16.4 One-Form Setup","All assignments are stored in your existing Design_Tracking form.",`<div class="notice good"><strong>One transaction form only:</strong> the widget reads Project, Drawing and Equipment masters, then creates Primary and Further Assignment records inside <strong>Design_Tracking</strong>. The tree is reconstructed from Primary_Assignment_ID + Assigned_From_ID + Assignment_Level.</div><div class="section-title"><h3>Seven hierarchy fields used in Design_Tracking (Further_Assigned is derived, not written by API)</h3></div><div class="table-wrap"><table><thead><tr><th>Field</th><th>Link Name</th><th>Type</th></tr></thead><tbody><tr><td>Primary Assignment ID</td><td>Primary_Assignment_ID</td><td>Single Line</td></tr><tr><td>Assigned From ID</td><td>Assigned_From_ID</td><td>Single Line</td></tr><tr><td>Assignment Level</td><td>Assignment_Level</td><td>Number</td></tr><tr><td>Assigned By</td><td>Assigned_By</td><td>Email / Single Line</td></tr><tr><td>Assignment Criteria</td><td>Assignment_Criteria</td><td>Single Line</td></tr><tr><td>Responsibility</td><td>Responsibility</td><td>Multi Line</td></tr><tr><td>Further Assigned</td><td>Further_Assigned</td><td>Decision Box — optional; keep unchecked. Widget does not write this field.</td></tr><tr><td>Group Code</td><td>Group_Code</td><td>Single Line</td></tr></tbody></table></div><div class="notice warn" style="margin-top:12px"><strong>Keep Parent_Design_ID unchanged.</strong> It remains reserved for drawing revision history (R0 → R1 → R2) and is not used for assignment hierarchy.</div><div class="notice" style="margin-top:8px"><strong>Decision Box note:</strong> Further_Assigned and Active are not sent in create/update payloads. Further assignment is determined from child records; Active uses the form default.</div><div class="notice" style="margin-top:8px">Date mapping used by this widget: Planned_Start_Date = Start Date, Forecast_End_Date = Target Date, Planned_End_Date = End Date.</div>`,`<button class="btn primary" data-modal="close">Close</button>`);}
+function setupModal(){openModal("V16.5 One-Form Setup","All assignments are stored in your existing Design_Tracking form.",`<div class="notice good"><strong>One transaction form only:</strong> the widget reads Project, Drawing and Equipment masters, then creates Primary and Further Assignment records inside <strong>Design_Tracking</strong>. The tree is reconstructed from Primary_Assignment_ID + Assigned_From_ID + Assignment_Level.</div><div class="section-title"><h3>Seven hierarchy fields used in Design_Tracking (Further_Assigned is derived, not written by API)</h3></div><div class="table-wrap"><table><thead><tr><th>Field</th><th>Link Name</th><th>Type</th></tr></thead><tbody><tr><td>Primary Assignment ID</td><td>Primary_Assignment_ID</td><td>Single Line</td></tr><tr><td>Assigned From ID</td><td>Assigned_From_ID</td><td>Single Line</td></tr><tr><td>Assignment Level</td><td>Assignment_Level</td><td>Number</td></tr><tr><td>Assigned By</td><td>Assigned_By</td><td>Email / Single Line</td></tr><tr><td>Assignment Criteria</td><td>Assignment_Criteria</td><td>Single Line</td></tr><tr><td>Responsibility</td><td>Responsibility</td><td>Multi Line</td></tr><tr><td>Further Assigned</td><td>Further_Assigned</td><td>Decision Box — optional; keep unchecked. Widget does not write this field.</td></tr><tr><td>Group Code</td><td>Group_Code</td><td>Single Line</td></tr></tbody></table></div><div class="notice warn" style="margin-top:12px"><strong>Keep Parent_Design_ID unchanged.</strong> It remains reserved for drawing revision history (R0 → R1 → R2) and is not used for assignment hierarchy.</div><div class="notice" style="margin-top:8px"><strong>Decision Box note:</strong> Further_Assigned and Active are not sent in create/update payloads. Further assignment is determined from child records; Active uses the form default.</div><div class="notice" style="margin-top:8px">Date mapping used by this widget: Planned_Start_Date = Start Date, Forecast_End_Date = Target Date, Planned_End_Date = End Date.</div>`,`<button class="btn primary" data-modal="close">Close</button>`);}
 
 function switchView(v){S.view=v;document.querySelectorAll(".tab").forEach(b=>b.classList.toggle("active",b.dataset.view===v));if(v==="planner"){$("plannerView").classList.remove("hidden");$("registerView").classList.add("hidden");}else{S.regMode=v==="mine"?"mine":"all";renderRegister();}}
 
