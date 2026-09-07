@@ -283,34 +283,30 @@ function responsibilityFromData(data){
   return bits.filter(Boolean).join(" › ");
 }
 async function fetchRecords(report,criteria="",max=20){if(S.demo)return demoFetch(report,criteria);const out=[];let cursor="";for(let i=0;i<max;i++){const c=withApp({report_name:report,field_config:"all",max_records:1000});if(criteria)c.criteria=criteria;if(cursor)c.record_cursor=cursor;let r;try{r=assertResp(await ZOHO.CREATOR.DATA.getRecords(c),`Read ${report}`);}catch(e){if(/9280|No records found/i.test(String(e.message||e)))return out;throw e;}const rows=Array.isArray(r.data)?r.data:[];out.push(...rows);cursor=r.record_cursor||r.cursor||"";if(!cursor||!rows.length)break;}return out;}
-// Creator JS API v2 is backed by Creator REST API v2.1.
-// Decision Box values are safest when sent as the lowercase strings
-// "true" / "false". This normalizer prevents error 3001 for fields such as
-// Further_Assigned and Active while leaving all other field values unchanged.
-function normalizeCreatorPayload(data){
+// IMPORTANT FOR THIS APP:
+// Do not send Design_Tracking Decision Box fields through the Widget API.
+// Creator is rejecting Further_Assigned with error 3001 in this application.
+// Further_Assigned is derived from whether child assignment records exist, so
+// it does not need to be written at all. Active should use the Creator form's
+// default value (checked / true). This removes the invalid-column issue safely.
+function prepareCreatorPayload(data){
   const out={...data};
-  for(const [linkName,value] of Object.entries(out)){
-    const meta=S.trackingFieldMeta.get(linkName);
-    const isDecisionBox=(meta && Number(meta.type)===16) || linkName===AF.furtherAssigned || linkName===AF.active;
-    if(!isDecisionBox)continue;
-
-    if(value===true || value===1 || String(value).toLowerCase()==="true" || String(value).toLowerCase()==="yes") out[linkName]="true";
-    else if(value===false || value===0 || value==null || value==="" || String(value).toLowerCase()==="false" || String(value).toLowerCase()==="no") out[linkName]="false";
-  }
+  delete out[AF.furtherAssigned];
+  delete out[AF.active];
   return out;
 }
 
 async function addRecord(form,data){
   if(S.demo)return demoAdd(form,data);
   if(!CONFIG.LIVE_WRITES)throw new Error("Live writes are disabled in CONFIG.");
-  const creatorData=normalizeCreatorPayload(data);
+  const creatorData=prepareCreatorPayload(data);
   const r=assertResp(await ZOHO.CREATOR.DATA.addRecords(withApp({form_name:form,payload:{data:creatorData}})),`Create ${form}`);
   return String(r?.data?.ID||r?.data?.id||"");
 }
 async function updateRecord(report,id,data){
   if(S.demo)return demoUpdate(report,id,data);
   if(!CONFIG.LIVE_WRITES)throw new Error("Live writes are disabled in CONFIG.");
-  const creatorData=normalizeCreatorPayload(data);
+  const creatorData=prepareCreatorPayload(data);
   assertResp(await ZOHO.CREATOR.DATA.updateRecordById(withApp({report_name:report,id:String(id),payload:{data:creatorData}})),`Update ${report}`);
   return id;
 }
@@ -404,9 +400,7 @@ function buildChildPayload(parent,row,draft){
     [AF.endDate]:toCreatorDate(draft.end),
     [AF.status]:"Not Started",
     [AF.progress]:0,
-    [AF.remark]:draft.remark||"",
-    [AF.furtherAssigned]:false,
-    [AF.active]:true
+    [AF.remark]:draft.remark||""
   };
   // Inherit the received responsibility first.
   for(const c of CRITERIA){
@@ -455,9 +449,7 @@ async function createPrimary(){
       [AF.endDate]:toCreatorDate(end),
       [AF.status]:status,
       [AF.progress]:status==="Completed"?100:0,
-      [AF.remark]:remark,
-      [AF.furtherAssigned]:false,
-      [AF.active]:true
+      [AF.remark]:remark
     };
     const id=await addRecord(CONFIG.FORMS.assignment,data);
     data.ID=id;
@@ -469,7 +461,7 @@ async function createPrimary(){
     log("Primary Assignment created",{id,project:S.project.code,drawing:S.drawing.name,user});
   }finally{idle();}
 }
-async function confirmBulk(){const d=collectBulk(),rows=S.targetRows.filter(r=>S.selectedTargets.has(targetKey(r))&&!existingChildForTarget(S.current,r));if(!rows.length)return;busy(`Creating ${rows.length} assignments…`);const results=[];try{for(let i=0;i<rows.length;i++){$("loadingText").textContent=`Creating ${i+1} of ${rows.length}…`;const payload=buildChildPayload(S.current,rows[i],d);try{const id=await addRecord(CONFIG.FORMS.assignment,payload);payload.ID=id;S.assignments.push(payload);results.push({ok:true,row:rows[i],id});}catch(e){results.push({ok:false,row:rows[i],error:e.message||String(e)});} }if(results.some(x=>x.ok))await updateRecord(CONFIG.REPORTS.assignments,idOf(S.current),{[AF.furtherAssigned]:true});S.current[AF.furtherAssigned]=true;closeModal();S.selectedTargets.clear();S.bulk={};S.current.__showDelegate=true;renderContextCard();renderTree();renderDetail();const ok=results.filter(x=>x.ok).length,fail=results.length-ok;toast(`${ok} assignment${ok===1?"":"s"} created${fail?`; ${fail} failed`:""}.`,fail?"error":"good");log("Bulk further assignment",{parent:idOf(S.current),ok,fail});}finally{idle();}}
+async function confirmBulk(){const d=collectBulk(),rows=S.targetRows.filter(r=>S.selectedTargets.has(targetKey(r))&&!existingChildForTarget(S.current,r));if(!rows.length)return;busy(`Creating ${rows.length} assignments…`);const results=[];try{for(let i=0;i<rows.length;i++){$("loadingText").textContent=`Creating ${i+1} of ${rows.length}…`;const payload=buildChildPayload(S.current,rows[i],d);try{const id=await addRecord(CONFIG.FORMS.assignment,payload);payload.ID=id;S.assignments.push(payload);results.push({ok:true,row:rows[i],id});}catch(e){results.push({ok:false,row:rows[i],error:e.message||String(e)});} }closeModal();S.selectedTargets.clear();S.bulk={};S.current.__showDelegate=true;renderContextCard();renderTree();renderDetail();const ok=results.filter(x=>x.ok).length,fail=results.length-ok;toast(`${ok} assignment${ok===1?"":"s"} created${fail?`; ${fail} failed`:""}.`,fail?"error":"good");log("Bulk further assignment",{parent:idOf(S.current),ok,fail});}finally{idle();}}
 
 function canAssignFurther(a){if(S.demo)return true;const me=String(S.user||"").toLowerCase();const to=assignmentUser(a).toLowerCase();return Boolean(me&&to.includes(me));}
 function openAssignment(id){const a=S.assignments.find(x=>idOf(x)===String(id));if(!a)return;S.current=a;renderTree();renderDetail();}
@@ -484,7 +476,7 @@ async function saveStatus(){const s=$("statusEdit").value,p=Math.max(0,Math.min(
 
 function openModal(title,sub,body,foot){$("modalTitle").textContent=title;$("modalSub").textContent=sub||"";$("modalBody").innerHTML=body||"";$("modalFoot").innerHTML=foot||"";$("modalBackdrop").classList.remove("hidden");}
 function closeModal(){$("modalBackdrop").classList.add("hidden");}
-function setupModal(){openModal("V16 One-Form Setup","All assignments are stored in your existing Design_Tracking form.",`<div class="notice good"><strong>One transaction form only:</strong> the widget reads Project, Drawing and Equipment masters, then creates Primary and Further Assignment records inside <strong>Design_Tracking</strong>. The tree is reconstructed from Primary_Assignment_ID + Assigned_From_ID + Assignment_Level.</div><div class="section-title"><h3>Eight fields required in Design_Tracking (Assignment_Criteria must be Single Line)</h3></div><div class="table-wrap"><table><thead><tr><th>Field</th><th>Link Name</th><th>Type</th></tr></thead><tbody><tr><td>Primary Assignment ID</td><td>Primary_Assignment_ID</td><td>Single Line</td></tr><tr><td>Assigned From ID</td><td>Assigned_From_ID</td><td>Single Line</td></tr><tr><td>Assignment Level</td><td>Assignment_Level</td><td>Number</td></tr><tr><td>Assigned By</td><td>Assigned_By</td><td>Email / Single Line</td></tr><tr><td>Assignment Criteria</td><td>Assignment_Criteria</td><td>Single Line</td></tr><tr><td>Responsibility</td><td>Responsibility</td><td>Multi Line</td></tr><tr><td>Further Assigned</td><td>Further_Assigned</td><td>Decision Box</td></tr><tr><td>Group Code</td><td>Group_Code</td><td>Single Line</td></tr></tbody></table></div><div class="notice warn" style="margin-top:12px"><strong>Keep Parent_Design_ID unchanged.</strong> It remains reserved for drawing revision history (R0 → R1 → R2) and is not used for assignment hierarchy.</div><div class="notice" style="margin-top:8px">Date mapping used by this widget: Planned_Start_Date = Start Date, Forecast_End_Date = Target Date, Planned_End_Date = End Date.</div>`,`<button class="btn primary" data-modal="close">Close</button>`);}
+function setupModal(){openModal("V16 One-Form Setup","All assignments are stored in your existing Design_Tracking form.",`<div class="notice good"><strong>One transaction form only:</strong> the widget reads Project, Drawing and Equipment masters, then creates Primary and Further Assignment records inside <strong>Design_Tracking</strong>. The tree is reconstructed from Primary_Assignment_ID + Assigned_From_ID + Assignment_Level.</div><div class="section-title"><h3>Seven hierarchy fields used in Design_Tracking (Further_Assigned is derived, not written by API)</h3></div><div class="table-wrap"><table><thead><tr><th>Field</th><th>Link Name</th><th>Type</th></tr></thead><tbody><tr><td>Primary Assignment ID</td><td>Primary_Assignment_ID</td><td>Single Line</td></tr><tr><td>Assigned From ID</td><td>Assigned_From_ID</td><td>Single Line</td></tr><tr><td>Assignment Level</td><td>Assignment_Level</td><td>Number</td></tr><tr><td>Assigned By</td><td>Assigned_By</td><td>Email / Single Line</td></tr><tr><td>Assignment Criteria</td><td>Assignment_Criteria</td><td>Single Line</td></tr><tr><td>Responsibility</td><td>Responsibility</td><td>Multi Line</td></tr><tr><td>Further Assigned</td><td>Further_Assigned</td><td>Decision Box — optional; keep unchecked. Widget does not write this field.</td></tr><tr><td>Group Code</td><td>Group_Code</td><td>Single Line</td></tr></tbody></table></div><div class="notice warn" style="margin-top:12px"><strong>Keep Parent_Design_ID unchanged.</strong> It remains reserved for drawing revision history (R0 → R1 → R2) and is not used for assignment hierarchy.</div><div class="notice" style="margin-top:8px"><strong>Decision Box note:</strong> Further_Assigned and Active are not sent in create/update payloads. Further assignment is determined from child records; Active uses the form default.</div><div class="notice" style="margin-top:8px">Date mapping used by this widget: Planned_Start_Date = Start Date, Forecast_End_Date = Target Date, Planned_End_Date = End Date.</div>`,`<button class="btn primary" data-modal="close">Close</button>`);}
 
 function switchView(v){S.view=v;document.querySelectorAll(".tab").forEach(b=>b.classList.toggle("active",b.dataset.view===v));if(v==="planner"){$("plannerView").classList.remove("hidden");$("registerView").classList.add("hidden");}else{S.regMode=v==="mine"?"mine":"all";renderRegister();}}
 
