@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="color-scheme" content="light">
-<title>MEGA Engineering | Drawing Assignment V16</title>
+<title>MEGA Engineering | Drawing Assignment V16.4</title>
 <script src="https://static.zohocdn.com/creator/widgets/version/2.0/widgetsdk-min.js"></script>
 <style>
 :root{
@@ -28,6 +28,29 @@ h1,h2,h3,p{margin:0}.hidden{display:none!important}.muted{color:var(--muted)}.no
 .table-wrap{width:100%;overflow:auto;border:1px solid var(--line);border-radius:10px}table{width:100%;border-collapse:collapse;min-width:760px}th,td{padding:9px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}th{position:sticky;top:0;background:#f6f8fb;color:#667085;font-size:9px;text-transform:uppercase;letter-spacing:.04em;z-index:1}td{font-size:11px}tbody tr:hover{background:#fff9fc}tbody tr.selected{background:#fff2f7}.check{width:16px;height:16px;accent-color:var(--brand)}.empty-row{text-align:center;padding:26px;color:var(--muted)}
 .bulk-bar{margin-top:12px;border:1px solid #e2e6ec;border-radius:12px;background:#fafbfd;padding:13px}.bulk-grid{display:grid;grid-template-columns:1.2fr repeat(3,minmax(130px,.8fr)) minmax(180px,1.2fr) auto;gap:9px;align-items:end}.bulk-grid .field label{font-size:10px}.bulk-grid .field input,.bulk-grid .field select{min-height:36px;padding:7px 8px}.bulk-summary{margin-top:8px;font-size:11px;color:var(--muted)}
 .register-toolbar{display:grid;grid-template-columns:repeat(5,minmax(130px,1fr));gap:8px;margin-bottom:12px}.register-toolbar input,.register-toolbar select{border:1px solid #d4dae3;border-radius:8px;padding:8px 9px}.status-select{border:1px solid #d4dae3;border-radius:7px;padding:6px 8px;background:#fff}.progress{height:5px;background:#edf0f4;border-radius:999px;overflow:hidden;margin-top:4px}.progress span{display:block;height:100%;background:var(--brand)}
+/* V16.4 - SIMPLE GROUPED ASSIGNMENT OVERVIEW */
+.register-toolbar.simple{grid-template-columns:minmax(220px,1.5fr) repeat(3,minmax(150px,.8fr));padding:2px 0 4px}
+.assignment-groups{display:flex;flex-direction:column;gap:12px}
+.assignment-group{border:1px solid var(--line);border-radius:14px;background:#fff;overflow:hidden;box-shadow:0 4px 18px rgba(31,41,55,.045)}
+.assignment-group:hover{border-color:#e5bfd1}
+.assignment-group-head{display:grid;grid-template-columns:48px minmax(220px,1.5fr) minmax(145px,.7fr) minmax(110px,.55fr) auto;gap:12px;align-items:center;padding:14px 16px}
+.group-icon{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;background:var(--brand-soft);color:var(--brand-dark);font-weight:900;font-size:13px}
+.group-project{font-size:11px;color:var(--brand-dark);font-weight:850;text-transform:uppercase;letter-spacing:.04em}
+.group-drawing{font-size:15px;font-weight:850;margin-top:1px}.group-sub{font-size:10px;color:var(--muted);margin-top:3px}
+.group-owner .label,.group-stat .label{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}.group-owner .value,.group-stat .value{font-size:12px;font-weight:800;margin-top:3px}
+.group-buttons{display:flex;align-items:center;justify-content:flex-end;gap:7px;flex-wrap:wrap}
+.group-family{border-top:1px solid var(--line);padding:16px;background:linear-gradient(180deg,#fbfcfe,#fff)}
+.group-family-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px}.group-family-title{font-weight:850;font-size:13px}.group-family-sub{font-size:10px;color:var(--muted);margin-top:2px}
+.family-tree{padding:3px 2px 5px;max-height:620px;overflow:auto}
+.family-item{position:relative}.family-children{margin-left:28px;padding-left:22px;border-left:2px solid #ead2de}.family-children>.family-item:before{content:"";position:absolute;left:-22px;top:26px;width:21px;border-top:2px solid #ead2de}
+.family-node{display:grid;grid-template-columns:38px minmax(0,1fr) auto;gap:10px;align-items:center;margin:6px 0;padding:10px 11px;border:1px solid #e6e8ed;border-radius:11px;background:#fff;box-shadow:0 2px 8px rgba(31,41,55,.035)}
+.family-node.primary{border-color:#e7afca;background:#fff8fb}.family-node.mine{box-shadow:0 0 0 2px rgba(196,39,112,.12)}
+.family-avatar{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:#f0f2f6;color:#334155;font-size:11px;font-weight:900}.family-node.primary .family-avatar{background:var(--brand);color:#fff}
+.family-name{display:flex;align-items:center;gap:7px;flex-wrap:wrap;font-weight:850}.level-badge{font-size:9px;font-weight:800;color:#667085;background:#f1f3f6;border-radius:999px;padding:3px 6px}.family-scope{font-size:11px;color:#475467;margin-top:2px}.family-meta{font-size:9px;color:var(--muted);margin-top:3px}.family-side{display:flex;align-items:center;gap:7px;flex-wrap:wrap;justify-content:flex-end}
+.group-empty{padding:42px 18px;text-align:center;color:var(--muted);border:1px dashed #d9dee6;border-radius:12px}.group-empty strong{display:block;color:var(--ink);font-size:15px;margin-bottom:4px}
+@media(max-width:1000px){.assignment-group-head{grid-template-columns:44px minmax(180px,1fr) 1fr auto}.group-stat{display:none}.register-toolbar.simple{grid-template-columns:1fr 1fr}.register-toolbar.simple input{grid-column:1/-1}}
+@media(max-width:680px){.assignment-group-head{grid-template-columns:42px minmax(0,1fr);padding:12px}.group-owner,.group-stat,.group-buttons{grid-column:1/-1}.group-buttons{justify-content:flex-start}.register-toolbar.simple{grid-template-columns:1fr}.register-toolbar.simple input{grid-column:auto}.group-family{padding:12px}.family-children{margin-left:14px;padding-left:16px}.family-children>.family-item:before{left:-16px;width:15px}.family-node{grid-template-columns:34px minmax(0,1fr)}.family-side{grid-column:2;justify-content:flex-start}}
+
 .modal-backdrop{position:fixed;inset:0;background:#11182788;z-index:90;display:flex;align-items:center;justify-content:center;padding:18px}.modal{width:min(1180px,97vw);max-height:94vh;background:#fff;border-radius:16px;box-shadow:0 30px 90px #0004;display:flex;flex-direction:column;overflow:hidden}.modal-head{padding:16px 18px;border-bottom:1px solid var(--line);display:flex;align-items:flex-start;justify-content:space-between;gap:12px}.modal-title{font-size:17px;font-weight:850}.modal-sub{font-size:11px;color:var(--muted);margin-top:3px}.modal-body{padding:16px 18px;overflow:auto}.modal-foot{padding:12px 18px;border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}.icon-btn{width:34px;height:34px;border:0;border-radius:8px;background:#f0f2f5;font-size:19px}.review-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:12px}.review-metric{border:1px solid var(--line);border-radius:10px;padding:12px}.review-metric .n{font-size:24px;font-weight:850}.review-metric .l{font-size:10px;color:var(--muted)}
 .loading{position:fixed;inset:0;background:#ffffffd9;backdrop-filter:blur(2px);z-index:120;display:flex;align-items:center;justify-content:center}.loading-box{background:#fff;border:1px solid var(--line);border-radius:13px;padding:18px 21px;box-shadow:var(--shadow);min-width:280px}.spinner{width:22px;height:22px;border-radius:50%;border:3px solid #efd2df;border-top-color:var(--brand);animation:spin .8s linear infinite;margin-bottom:8px}@keyframes spin{to{transform:rotate(360deg)}}.toasts{position:fixed;right:18px;bottom:18px;z-index:150;max-width:440px}.toast{margin-top:7px;padding:10px 12px;border-radius:9px;background:#263447;color:#fff;font-size:12px;box-shadow:var(--shadow)}.toast.error{background:#a22d3b}.toast.good{background:#16663e}
 @media(max-width:1200px){.workspace{grid-template-columns:330px minmax(0,1fr)}.bulk-grid{grid-template-columns:1fr 1fr 1fr}.bulk-grid .field:last-of-type{grid-column:1/-1}.summary-grid{grid-template-columns:repeat(2,1fr)}}
@@ -73,16 +96,18 @@ h1,h2,h3,p{margin:0}.hidden{display:none!important}.muted{color:var(--muted)}.no
   </section>
 
   <section id="registerView" class="panel hidden">
-    <div class="panel-head"><div><h2 id="registerTitle">Assignments</h2><p>Every row is an independent Design_Tracking assignment record with its own dates, status and remark.</p></div><span id="registerCount" class="pill">0</span></div>
+    <div class="panel-head">
+      <div><h2 id="registerTitle">Drawing Assignments</h2><p>Each Project + Drawing appears once. Open it to see the complete assignment family tree.</p></div>
+      <span id="registerCount" class="pill">0 drawings</span>
+    </div>
     <div class="panel-body">
-      <div class="register-toolbar">
-        <input id="regSearch" placeholder="Search project, drawing, user…">
+      <div class="register-toolbar simple">
+        <input id="regSearch" placeholder="Search project, drawing or person…">
         <select id="regProject"><option value="">All projects</option></select>
         <select id="regDrawing"><option value="">All drawings</option></select>
-        <select id="regCriteria"><option value="">All criteria</option></select>
         <select id="regStatus"><option value="">All statuses</option><option>Not Started</option><option>In Progress</option><option>On Hold</option><option>Completed</option><option>Cancelled</option></select>
       </div>
-      <div id="registerTable" class="table-wrap"></div>
+      <div id="registerCards" class="assignment-groups"></div>
     </div>
   </section>
 </main>
@@ -95,7 +120,7 @@ h1,h2,h3,p{margin:0}.hidden{display:none!important}.muted{color:var(--muted)}.no
 "use strict";
 
 /* ======================================================================
-   V16 ONE-FORM ARCHITECTURE
+   V16.4 ONE-FORM ARCHITECTURE
    ----------------------------------------------------------------------
    Existing Creator sources (READ):
      - Project master/report
@@ -202,7 +227,7 @@ const EQ_ALIASES={
 const S={
   demo:CONFIG.DEMO,user:"",app:CONFIG.APP_NAME,view:"planner",projects:[],drawings:[],employees:[],equipment:[],assignments:[],trackingFieldMeta:new Map(),
   project:null,drawing:null,current:null,selectedCriteria:new Set(),targetRows:[],selectedTargets:new Set(),rowDrafts:new Map(),expanded:new Set(),
-  regMode:"all",logs:[]
+  registerExpanded:new Set(),regMode:"all",logs:[]
 };
 const $=id=>document.getElementById(id);
 const h=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
@@ -343,25 +368,28 @@ function populateSelectors(){
   $("projectSelect").innerHTML='<option value="">Select project…</option>'+S.projects.map(p=>`<option value="${h(p.id)}">${h(p.code)}${p.name?` — ${h(p.name)}`:""}</option>`).join("");
   $("drawingSelect").innerHTML='<option value="">Select drawing / document…</option>'+S.drawings.map(d=>`<option value="${h(d.id)}">${h(d.name)}${d.short?` (${h(d.short)})`:""}</option>`).join("");
 }
-function renderRegisterFilters(){const po='<option value="">All projects</option>'+S.projects.map(p=>`<option>${h(p.code)}</option>`).join("");$("regProject").innerHTML=po;$("regDrawing").innerHTML='<option value="">All drawings</option>'+S.drawings.map(d=>`<option>${h(d.name)}</option>`).join("");$("regCriteria").innerHTML='<option value="">All criteria</option>'+CRITERIA.map(c=>`<option>${h(c.label)}</option>`).join("");}
+function renderRegisterFilters(){const po='<option value="">All projects</option>'+S.projects.map(p=>`<option>${h(p.code)}</option>`).join("");$("regProject").innerHTML=po;$("regDrawing").innerHTML='<option value="">All drawings</option>'+S.drawings.map(d=>`<option>${h(d.name)}</option>`).join("");}
 function selectedPairAssignments(){if(!S.project||!S.drawing)return[];return S.assignments.filter(a=>scalar(a[AF.projectCode])===S.project.code&&(scalar(a[AF.drawingMasterId])===S.drawing.id||scalar(a[AF.drawingDocument])===S.drawing.name));}
 function primaryAssignment(){return selectedPairAssignments().find(a=>num(a[AF.assignmentLevel],-1)===0 && !scalar(a[AF.assignedFrom]))||null;}
 function childrenOf(id){return selectedPairAssignments().filter(a=>scalar(a[AF.assignedFrom])===String(id));}
 function assignmentUser(a){return scalar(a?.[AF.assignedTo])||"Unassigned";}
+function personDisplay(value){const raw=scalar(value).trim();if(!raw)return"";const emp=S.employees.find(e=>String(e.email||"").toLowerCase()===raw.toLowerCase()||String(e.id||"")===raw);return emp?.name||raw;}
+function assignmentDisplayUser(a){return scalar(a?.[AF.assignedEmployeeName])||personDisplay(a?.[AF.assignedTo])||"Unassigned";}
 function assignmentBy(a){return scalar(a?.[AF.assignedBy])||"—";}
+function assignmentByDisplay(a){return personDisplay(a?.[AF.assignedBy])||assignmentBy(a);}
 function assignmentCriteria(a){return scalar(a?.[AF.criteria])||"Project";}
 function assignmentPath(a){if(!a)return"";const parts=[S.project?.code,S.drawing?.short||S.drawing?.name];for(const c of CRITERIA){const v=scalar(a[c.field]);if(v)parts.push(`${c.label}: ${v}`);}return parts.filter(Boolean).join(" › ");}
 function scopeSummary(a){if(!a)return"Entire Project";const stored=scalar(a[AF.responsibility]);if(stored)return stored;const bits=[];for(const c of CRITERIA){if(c.key==="tag"){const t=scalar(a[AF.tagNo]),n=scalar(a[AF.equipmentName]);if(t||n)bits.push(`Tag: ${[t,n].filter(Boolean).join(" — ")}`);}else{const v=scalar(a[c.field]);if(v)bits.push(`${c.label}: ${v}`);}}return bits.length?bits.join(" • "):"Entire Project";}
 function statusPill(s){const cls=s==="Completed"?"green":s==="On Hold"?"amber":s==="Cancelled"?"red":s==="In Progress"?"blue":"";return `<span class="pill ${cls}">${h(s||"Not Started")}</span>`;}
 
 function openContext(){const pid=$("projectSelect").value,did=$("drawingSelect").value;S.project=S.projects.find(x=>x.id===pid)||null;S.drawing=S.drawings.find(x=>x.id===did)||null;if(!S.project||!S.drawing){toast("Select Project Code and Drawing / Document first.","error");return;}S.current=primaryAssignment();S.selectedCriteria.clear();S.selectedTargets.clear();S.rowDrafts.clear();S.expanded.clear();const p=primaryAssignment();if(p)S.expanded.add(idOf(p));renderContextCard();$("workspace").classList.remove("hidden");renderTree();renderDetail();}
-function renderContextCard(){const p=primaryAssignment(),all=selectedPairAssignments();$("contextCard").innerHTML=`<div class="context-main"><div class="context-icon">${h(S.drawing?.short||"DR")}</div><div><div class="context-title">${h(S.project.code)} — ${h(S.drawing.name)}${S.drawing.short?` (${h(S.drawing.short)})`:""}</div><div class="context-sub">${p?`Primary Assignment: ${h(assignmentUser(p))}`:"Primary Assignment is not created yet."}</div></div></div><div class="actions"><span class="pill brand">${all.length} assignment${all.length===1?"":"s"}</span>${p?statusPill(scalar(p[AF.status])):'<span class="pill amber">Yet to Assign</span>'}</div>`;$("contextCard").classList.remove("hidden");}
+function renderContextCard(){const p=primaryAssignment(),all=selectedPairAssignments();$("contextCard").innerHTML=`<div class="context-main"><div class="context-icon">${h(S.drawing?.short||"DR")}</div><div><div class="context-title">${h(S.project.code)} — ${h(S.drawing.name)}${S.drawing.short?` (${h(S.drawing.short)})`:""}</div><div class="context-sub">${p?`Primary Assignment: ${h(assignmentDisplayUser(p))}`:"Primary Assignment is not created yet."}</div></div></div><div class="actions"><span class="pill brand">${all.length} assignment${all.length===1?"":"s"}</span>${p?statusPill(scalar(p[AF.status])):'<span class="pill amber">Yet to Assign</span>'}</div>`;$("contextCard").classList.remove("hidden");}
 
 function buildTreeFiltered(){const rows=selectedPairAssignments();const q=$("treeSearch")?.value.toLowerCase().trim()||"",st=$("treeStatus")?.value||"";if(!q&&!st)return rows;const keep=new Set();const map=new Map(rows.map(r=>[idOf(r),r]));for(const r of rows){const hay=[assignmentUser(r),assignmentBy(r),scopeSummary(r),assignmentCriteria(r)].join(" ").toLowerCase();if((!q||hay.includes(q))&&(!st||scalar(r[AF.status])===st)){let cur=r;while(cur){keep.add(idOf(cur));const pid=scalar(cur[AF.assignedFrom]);cur=pid?map.get(pid):null;}}}return rows.filter(r=>keep.has(idOf(r)));}
-function renderTree(){const rows=buildTreeFiltered(),p=rows.find(r=>num(r[AF.assignmentLevel],-1)===0&&!scalar(r[AF.assignedFrom]));$("treeCount").textContent=String(rows.length);if(!p){$("tree").innerHTML='<div class="tree-empty"><strong>No Primary Assignment</strong>Create the mandatory project-level assignment to start the structure.</div>';return;}const allowed=new Set(rows.map(idOf));const renderNode=(r)=>{const id=idOf(r),kids=childrenOf(id).filter(k=>allowed.has(idOf(k))),open=S.expanded.has(id),active=idOf(S.current)===id;return `<div class="tree-node"><div class="node-row ${active?"active":""}" data-node="${h(id)}"><button class="expander ${kids.length?"":"blank"}" data-expand="${h(id)}">${open?"−":"+"}</button><div class="avatar">${h(initials(assignmentUser(r)))}</div><div class="node-main"><div class="node-user">${h(assignmentUser(r))}</div><div class="node-scope">${h(scopeSummary(r))}</div></div><div class="node-side">${statusPill(scalar(r[AF.status]))}<div class="node-level">Level ${num(r[AF.assignmentLevel])}</div></div></div>${open&&kids.length?`<div class="tree-children">${kids.map(renderNode).join("")}</div>`:""}</div>`;};$("tree").innerHTML=renderNode(p);}
+function renderTree(){const rows=buildTreeFiltered(),p=rows.find(r=>num(r[AF.assignmentLevel],-1)===0&&!scalar(r[AF.assignedFrom]));$("treeCount").textContent=String(rows.length);if(!p){$("tree").innerHTML='<div class="tree-empty"><strong>No Primary Assignment</strong>Create the mandatory project-level assignment to start the structure.</div>';return;}const allowed=new Set(rows.map(idOf));const renderNode=(r)=>{const id=idOf(r),kids=childrenOf(id).filter(k=>allowed.has(idOf(k))),open=S.expanded.has(id),active=idOf(S.current)===id;return `<div class="tree-node"><div class="node-row ${active?"active":""}" data-node="${h(id)}"><button class="expander ${kids.length?"":"blank"}" data-expand="${h(id)}">${open?"−":"+"}</button><div class="avatar">${h(initials(assignmentDisplayUser(r)))}</div><div class="node-main"><div class="node-user">${h(assignmentDisplayUser(r))}</div><div class="node-scope">${h(scopeSummary(r))}</div></div><div class="node-side">${statusPill(scalar(r[AF.status]))}<div class="node-level">Level ${num(r[AF.assignmentLevel])}</div></div></div>${open&&kids.length?`<div class="tree-children">${kids.map(renderNode).join("")}</div>`:""}</div>`;};$("tree").innerHTML=renderNode(p);}
 
 function renderDetail(){const p=primaryAssignment();if(!p){renderPrimaryCreate();return;}if(!S.current)S.current=p;const a=S.current;$("detailHeading").textContent=num(a[AF.assignmentLevel])===0?"Primary Assignment":"Responsibility";$("detailSubtitle").textContent=assignmentPath(a);$("detailActions").innerHTML=`<button class="btn sm" data-act="edit-status">Update Status</button><button class="btn primary sm" data-act="assign-further">Assign Further</button>`;
-  const target=toInputDate(a[AF.targetDate]);const childCount=childrenOf(idOf(a)).length;$("detailBody").innerHTML=`<div class="detail-head"><div><div class="detail-title">${h(assignmentUser(a))}</div><div class="detail-path">${h(scopeSummary(a))}</div></div><div class="actions"><span class="pill brand">Level ${num(a[AF.assignmentLevel])}</span>${statusPill(scalar(a[AF.status]))}</div></div><div class="summary-grid"><div class="summary-card"><div class="label">Assigned By</div><div class="value">${h(assignmentBy(a))}</div></div><div class="summary-card"><div class="label">Start Date</div><div class="value">${h(displayDate(a[AF.startDate]))}</div></div><div class="summary-card"><div class="label">Target Date</div><div class="value">${h(displayDate(a[AF.targetDate]))}</div></div><div class="summary-card"><div class="label">Further Assignments</div><div class="value">${childCount}</div></div></div><div class="notice good"><strong>Current responsibility is locked as the maximum scope.</strong> Any further assignment can only refine this responsibility; it cannot expand outside it.</div><div class="section-title"><h3>Responsibility Scope</h3></div><div class="scope-lock">${scopeLockHtml(a)}</div>${scalar(a[AF.remark])?`<div class="section-title"><h3>Remark</h3></div><div class="notice">${h(scalar(a[AF.remark]))}</div>`:""}<div id="delegationArea"></div>`;
+  const target=toInputDate(a[AF.targetDate]);const childCount=childrenOf(idOf(a)).length;$("detailBody").innerHTML=`<div class="detail-head"><div><div class="detail-title">${h(assignmentDisplayUser(a))}</div><div class="detail-path">${h(scopeSummary(a))}</div></div><div class="actions"><span class="pill brand">Level ${num(a[AF.assignmentLevel])}</span>${statusPill(scalar(a[AF.status]))}</div></div><div class="summary-grid"><div class="summary-card"><div class="label">Assigned By</div><div class="value">${h(assignmentByDisplay(a))}</div></div><div class="summary-card"><div class="label">Start Date</div><div class="value">${h(displayDate(a[AF.startDate]))}</div></div><div class="summary-card"><div class="label">Target Date</div><div class="value">${h(displayDate(a[AF.targetDate]))}</div></div><div class="summary-card"><div class="label">Further Assignments</div><div class="value">${childCount}</div></div></div><div class="notice good"><strong>Current responsibility is locked as the maximum scope.</strong> Any further assignment can only refine this responsibility; it cannot expand outside it.</div><div class="section-title"><h3>Responsibility Scope</h3></div><div class="scope-lock">${scopeLockHtml(a)}</div>${scalar(a[AF.remark])?`<div class="section-title"><h3>Remark</h3></div><div class="notice">${h(scalar(a[AF.remark]))}</div>`:""}<div id="delegationArea"></div>`;
   if(a.__showDelegate)renderDelegationBuilder(a);
 }
 function scopeLockHtml(a){const chips=[`Project: ${S.project.code}`];for(const c of CRITERIA){if(c.key==="tag"){const t=scalar(a[AF.tagNo]),n=scalar(a[AF.equipmentName]);if(t||n)chips.push(`Tag: ${[t,n].filter(Boolean).join(" — ")}`);}else{const v=scalar(a[c.field]);if(v)chips.push(`${c.label}: ${v}`);}}return chips.map(x=>`<span class="lock-chip">${h(x)}</span>`).join("");}
@@ -468,7 +496,77 @@ function openAssignment(id){const a=S.assignments.find(x=>idOf(x)===String(id));
 function toggleExpand(id){S.expanded.has(id)?S.expanded.delete(id):S.expanded.add(id);renderTree();}
 function showAssignFurther(){if(!canAssignFurther(S.current)){toast("Only the user who received this responsibility can assign further in the POC.","error");return;}S.current.__showDelegate=true;S.selectedCriteria.clear();S.selectedTargets.clear();S.bulk={};renderDetail();}
 
-function renderRegister(){S.view=S.regMode==="mine"?"mine":"all";$("plannerView").classList.add("hidden");$("registerView").classList.remove("hidden");$("registerTitle").textContent=S.regMode==="mine"?"My Assignments":"All Assignments";let rows=S.assignments.filter(a=>S.regMode!=="mine"||assignmentUser(a).toLowerCase().includes(String(S.user||"").toLowerCase()));const q=$("regSearch").value.toLowerCase().trim(),p=$("regProject").value,d=$("regDrawing").value,c=$("regCriteria").value,st=$("regStatus").value;rows=rows.filter(a=>(!q||[scalar(a[AF.projectCode]),scalar(a[AF.drawingDocument]),assignmentUser(a),scopeSummary(a),assignmentBy(a)].join(" ").toLowerCase().includes(q))&&(!p||scalar(a[AF.projectCode])===p)&&(!d||scalar(a[AF.drawingDocument])===d)&&(!c||scalar(a[AF.criteria]).includes(c))&&(!st||scalar(a[AF.status])===st));$("registerCount").textContent=String(rows.length);$("registerTable").innerHTML=`<table><thead><tr><th>Assignment</th><th>Project / Drawing</th><th>Responsibility</th><th>Assigned By</th><th>Assigned To</th><th>Level</th><th>Target</th><th>Status</th><th>Progress</th><th></th></tr></thead><tbody>${rows.length?rows.map(a=>`<tr><td class="strong">${h(idOf(a))}</td><td><div class="strong">${h(scalar(a[AF.projectCode]))}</div><div class="tiny muted">${h(scalar(a[AF.drawingDocument]))}</div></td><td>${h(scopeSummary(a))}</td><td>${h(assignmentBy(a))}</td><td>${h(assignmentUser(a))}</td><td>Level ${num(a[AF.assignmentLevel])}</td><td>${h(displayDate(a[AF.targetDate]))}</td><td>${statusPill(scalar(a[AF.status]))}</td><td>${num(a[AF.progress])}%<div class="progress"><span style="width:${Math.max(0,Math.min(100,num(a[AF.progress])))}%"></span></div></td><td><button class="btn sm" data-open-reg="${h(idOf(a))}">Open</button></td></tr>`).join(""):'<tr><td colspan="10" class="empty-row">No assignments match the filters.</td></tr>'}</tbody></table>`;}
+function registerRootId(a,idMap){
+  let cur=a,guard=0;
+  while(cur&&guard++<100){
+    const from=scalar(cur[AF.assignedFrom]);
+    if(!from)return idOf(cur);
+    const parent=idMap.get(from);
+    if(!parent)break;
+    cur=parent;
+  }
+  const stored=scalar(a[AF.primaryAssignment]);
+  return stored||idOf(a);
+}
+function registerGroups(){
+  const groups=new Map();
+  for(const a of S.assignments){
+    const project=scalar(a[AF.projectCode]);
+    const drawingId=scalar(a[AF.drawingMasterId]);
+    const drawing=scalar(a[AF.drawingDocument]);
+    const key=`${project}|||${drawingId||drawing}`;
+    if(!groups.has(key))groups.set(key,{groupKey:key,rows:[],project,drawing,drawingId});
+    groups.get(key).rows.push(a);
+  }
+  for(const g of groups.values()){
+    g.roots=g.rows.filter(a=>num(a[AF.assignmentLevel],-1)===0&&!scalar(a[AF.assignedFrom]));
+    if(!g.roots.length)g.roots=[g.rows.slice().sort((a,b)=>num(a[AF.assignmentLevel])-num(b[AF.assignmentLevel]))[0]];
+    g.root=g.roots[0];
+    g.project=g.project||scalar(g.root?.[AF.projectCode]);
+    g.drawing=g.drawing||scalar(g.root?.[AF.drawingDocument]);
+    g.short=scalar(g.root?.[AF.shortName])||"DR";
+  }
+  return [...groups.values()].sort((a,b)=>`${b.project}|${b.drawing}`.localeCompare(`${a.project}|${a.drawing}`,undefined,{numeric:true}));
+}
+function registerGroupMatches(g){
+  const q=$("regSearch").value.toLowerCase().trim(),p=$("regProject").value,d=$("regDrawing").value,st=$("regStatus").value;
+  if(p&&g.project!==p)return false;
+  if(d&&g.drawing!==d)return false;
+  if(S.regMode==="mine"){
+    const me=String(S.user||"").toLowerCase();
+    if(!g.rows.some(a=>assignmentUser(a).toLowerCase().includes(me)||assignmentBy(a).toLowerCase().includes(me)))return false;
+  }
+  if(st&&!g.rows.some(a=>scalar(a[AF.status])===st))return false;
+  if(q){
+    const hay=[g.project,g.drawing,...g.rows.flatMap(a=>[assignmentDisplayUser(a),assignmentByDisplay(a),scopeSummary(a),scalar(a[AF.status])])].join(" ").toLowerCase();
+    if(!hay.includes(q))return false;
+  }
+  return true;
+}
+function renderRegisterFamilyNode(a,rows,childrenMap){
+  const id=idOf(a),kids=(childrenMap.get(id)||[]).sort((x,y)=>num(x[AF.assignmentLevel])-num(y[AF.assignmentLevel])||assignmentDisplayUser(x).localeCompare(assignmentDisplayUser(y)));
+  const mine=String(assignmentUser(a)).toLowerCase().includes(String(S.user||"").toLowerCase());
+  const primary=num(a[AF.assignmentLevel])===0&&!scalar(a[AF.assignedFrom]);
+  return `<div class="family-item"><div class="family-node ${primary?"primary":""} ${mine?"mine":""}"><div class="family-avatar">${h(initials(assignmentDisplayUser(a)))}</div><div><div class="family-name">${h(assignmentDisplayUser(a))}<span class="level-badge">Level ${num(a[AF.assignmentLevel])}</span>${primary?'<span class="pill brand">Primary</span>':""}</div><div class="family-scope">${h(scopeSummary(a))}</div><div class="family-meta">Assigned by ${h(assignmentByDisplay(a))} • Target ${h(displayDate(a[AF.targetDate]))}</div></div><div class="family-side">${statusPill(scalar(a[AF.status]))}<button class="btn sm" data-open-reg="${h(id)}">Open</button></div></div>${kids.length?`<div class="family-children">${kids.map(k=>renderRegisterFamilyNode(k,rows,childrenMap)).join("")}</div>`:""}</div>`;
+}
+function renderRegisterGroup(g){
+  const open=S.registerExpanded.has(g.groupKey),root=g.root||g.rows[0];
+  const childrenMap=new Map();
+  g.rows.forEach(a=>{const pid=scalar(a[AF.assignedFrom]);if(pid){if(!childrenMap.has(pid))childrenMap.set(pid,[]);childrenMap.get(pid).push(a);}});
+  const maxLevel=Math.max(0,...g.rows.map(a=>num(a[AF.assignmentLevel]))),completed=g.rows.filter(a=>scalar(a[AF.status])==="Completed").length;
+  const progress=g.rows.length?Math.round(g.rows.reduce((s,a)=>s+num(a[AF.progress]),0)/g.rows.length):0;
+  const primaryNames=[...new Set(g.roots.map(assignmentDisplayUser))].join(", ");
+  const treeHtml=g.roots.map(r=>renderRegisterFamilyNode(r,g.rows,childrenMap)).join("");
+  return `<article class="assignment-group"><div class="assignment-group-head"><div class="group-icon">${h(g.short||"DR")}</div><div><div class="group-project">Project ${h(g.project)}</div><div class="group-drawing">${h(g.drawing)}</div><div class="group-sub">Primary responsibility: ${h(primaryNames||assignmentDisplayUser(root))}</div></div><div class="group-owner"><div class="label">Primary Assigned To</div><div class="value">${h(primaryNames||assignmentDisplayUser(root))}</div></div><div class="group-stat"><div class="label">Structure</div><div class="value">${g.rows.length} assignments • ${maxLevel+1} levels</div><div class="group-sub">${completed}/${g.rows.length} completed • ${progress}% avg.</div></div><div class="group-buttons">${statusPill(scalar(root[AF.status]))}<button class="btn ${open?"soft":"primary"} sm" data-group-toggle="${h(g.groupKey)}">${open?"Hide Structure":"View Structure"}</button></div></div>${open?`<div class="group-family"><div class="group-family-head"><div><div class="group-family-title">Assignment Family Tree</div><div class="group-family-sub">This Project + Drawing is shown once. All further assignments appear underneath their immediate assignment.</div></div><button class="btn sm" data-open-reg="${h(idOf(root))}">Open Primary Assignment</button></div><div class="family-tree">${treeHtml}</div></div>`:""}</article>`;
+}
+function renderRegister(){
+  S.view=S.regMode==="mine"?"mine":"all";
+  $("plannerView").classList.add("hidden");$("registerView").classList.remove("hidden");
+  $("registerTitle").textContent=S.regMode==="mine"?"My Drawing Responsibilities":"Drawing Assignment Overview";
+  const groups=registerGroups().filter(registerGroupMatches);
+  $("registerCount").textContent=`${groups.length} drawing${groups.length===1?"":"s"}`;
+  $("registerCards").innerHTML=groups.length?groups.map(renderRegisterGroup).join(""):'<div class="group-empty"><strong>No drawing assignments found</strong>Try changing the project, drawing, status or search filter.</div>';
+}
 function openRegisterAssignment(id){const a=S.assignments.find(x=>idOf(x)===String(id));if(!a)return;const p=S.projects.find(x=>x.code===scalar(a[AF.projectCode])),d=S.drawings.find(x=>x.id===scalar(a[AF.drawingMasterId])||x.name===scalar(a[AF.drawingDocument]));if(p&&d){S.project=p;S.drawing=d;$("projectSelect").value=p.id;$("drawingSelect").value=d.id;S.current=a;S.expanded.add(idOf(primaryAssignment()));switchView("planner");renderContextCard();$("workspace").classList.remove("hidden");renderTree();renderDetail();}}
 
 function updateStatusModal(){const a=S.current;openModal("Update Assignment Status",`${assignmentUser(a)} — ${scopeSummary(a)}`,`<div class="grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px"><div class="field"><label>Status</label><select id="statusEdit">${STATUSES.map(s=>`<option ${s===scalar(a[AF.status])?"selected":""}>${h(s)}</option>`).join("")}</select></div><div class="field"><label>Progress %</label><input id="progressEdit" type="number" min="0" max="100" value="${num(a[AF.progress])}"></div><div class="field" style="grid-column:1/-1"><label>Remark</label><textarea id="remarkEdit">${h(scalar(a[AF.remark]))}</textarea></div></div>`,`<button class="btn" data-modal="close">Cancel</button><button class="btn primary" data-modal="save-status">Save Status</button>`);}
@@ -476,7 +574,7 @@ async function saveStatus(){const s=$("statusEdit").value,p=Math.max(0,Math.min(
 
 function openModal(title,sub,body,foot){$("modalTitle").textContent=title;$("modalSub").textContent=sub||"";$("modalBody").innerHTML=body||"";$("modalFoot").innerHTML=foot||"";$("modalBackdrop").classList.remove("hidden");}
 function closeModal(){$("modalBackdrop").classList.add("hidden");}
-function setupModal(){openModal("V16 One-Form Setup","All assignments are stored in your existing Design_Tracking form.",`<div class="notice good"><strong>One transaction form only:</strong> the widget reads Project, Drawing and Equipment masters, then creates Primary and Further Assignment records inside <strong>Design_Tracking</strong>. The tree is reconstructed from Primary_Assignment_ID + Assigned_From_ID + Assignment_Level.</div><div class="section-title"><h3>Seven hierarchy fields used in Design_Tracking (Further_Assigned is derived, not written by API)</h3></div><div class="table-wrap"><table><thead><tr><th>Field</th><th>Link Name</th><th>Type</th></tr></thead><tbody><tr><td>Primary Assignment ID</td><td>Primary_Assignment_ID</td><td>Single Line</td></tr><tr><td>Assigned From ID</td><td>Assigned_From_ID</td><td>Single Line</td></tr><tr><td>Assignment Level</td><td>Assignment_Level</td><td>Number</td></tr><tr><td>Assigned By</td><td>Assigned_By</td><td>Email / Single Line</td></tr><tr><td>Assignment Criteria</td><td>Assignment_Criteria</td><td>Single Line</td></tr><tr><td>Responsibility</td><td>Responsibility</td><td>Multi Line</td></tr><tr><td>Further Assigned</td><td>Further_Assigned</td><td>Decision Box — optional; keep unchecked. Widget does not write this field.</td></tr><tr><td>Group Code</td><td>Group_Code</td><td>Single Line</td></tr></tbody></table></div><div class="notice warn" style="margin-top:12px"><strong>Keep Parent_Design_ID unchanged.</strong> It remains reserved for drawing revision history (R0 → R1 → R2) and is not used for assignment hierarchy.</div><div class="notice" style="margin-top:8px"><strong>Decision Box note:</strong> Further_Assigned and Active are not sent in create/update payloads. Further assignment is determined from child records; Active uses the form default.</div><div class="notice" style="margin-top:8px">Date mapping used by this widget: Planned_Start_Date = Start Date, Forecast_End_Date = Target Date, Planned_End_Date = End Date.</div>`,`<button class="btn primary" data-modal="close">Close</button>`);}
+function setupModal(){openModal("V16.4 One-Form Setup","All assignments are stored in your existing Design_Tracking form.",`<div class="notice good"><strong>One transaction form only:</strong> the widget reads Project, Drawing and Equipment masters, then creates Primary and Further Assignment records inside <strong>Design_Tracking</strong>. The tree is reconstructed from Primary_Assignment_ID + Assigned_From_ID + Assignment_Level.</div><div class="section-title"><h3>Seven hierarchy fields used in Design_Tracking (Further_Assigned is derived, not written by API)</h3></div><div class="table-wrap"><table><thead><tr><th>Field</th><th>Link Name</th><th>Type</th></tr></thead><tbody><tr><td>Primary Assignment ID</td><td>Primary_Assignment_ID</td><td>Single Line</td></tr><tr><td>Assigned From ID</td><td>Assigned_From_ID</td><td>Single Line</td></tr><tr><td>Assignment Level</td><td>Assignment_Level</td><td>Number</td></tr><tr><td>Assigned By</td><td>Assigned_By</td><td>Email / Single Line</td></tr><tr><td>Assignment Criteria</td><td>Assignment_Criteria</td><td>Single Line</td></tr><tr><td>Responsibility</td><td>Responsibility</td><td>Multi Line</td></tr><tr><td>Further Assigned</td><td>Further_Assigned</td><td>Decision Box — optional; keep unchecked. Widget does not write this field.</td></tr><tr><td>Group Code</td><td>Group_Code</td><td>Single Line</td></tr></tbody></table></div><div class="notice warn" style="margin-top:12px"><strong>Keep Parent_Design_ID unchanged.</strong> It remains reserved for drawing revision history (R0 → R1 → R2) and is not used for assignment hierarchy.</div><div class="notice" style="margin-top:8px"><strong>Decision Box note:</strong> Further_Assigned and Active are not sent in create/update payloads. Further assignment is determined from child records; Active uses the form default.</div><div class="notice" style="margin-top:8px">Date mapping used by this widget: Planned_Start_Date = Start Date, Forecast_End_Date = Target Date, Planned_End_Date = End Date.</div>`,`<button class="btn primary" data-modal="close">Close</button>`);}
 
 function switchView(v){S.view=v;document.querySelectorAll(".tab").forEach(b=>b.classList.toggle("active",b.dataset.view===v));if(v==="planner"){$("plannerView").classList.remove("hidden");$("registerView").classList.add("hidden");}else{S.regMode=v==="mine"?"mine":"all";renderRegister();}}
 
@@ -487,8 +585,8 @@ function wire(){
   $("loadContextBtn").onclick=()=>openContext();$("refreshBtn").onclick=()=>location.reload();$("setupBtn").onclick=setupModal;$("modalClose").onclick=closeModal;$("modalBackdrop").addEventListener("click",e=>{if(e.target===$("modalBackdrop"))closeModal();});
   document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>switchView(b.dataset.view));
   $("treeSearch").oninput=renderTree;$("treeStatus").onchange=renderTree;
-  ["regSearch","regProject","regDrawing","regCriteria","regStatus"].forEach(id=>$(id).addEventListener(id==="regSearch"?"input":"change",renderRegister));
-  document.addEventListener("click",e=>{const expand=e.target.closest("[data-expand]");if(expand){e.stopPropagation();return toggleExpand(expand.dataset.expand);}const node=e.target.closest("[data-node]");if(node)return openAssignment(node.dataset.node);const a=e.target.closest("[data-act]");if(a)return guarded(()=>handleAction(a.dataset.act,a));const c=e.target.closest("[data-criterion]");if(c){const k=c.dataset.criterion;S.selectedCriteria.has(k)?S.selectedCriteria.delete(k):S.selectedCriteria.add(k);S.selectedTargets.clear();return renderDetail();}const rr=e.target.closest("[data-open-reg]");if(rr)return openRegisterAssignment(rr.dataset.openReg);const m=e.target.closest("[data-modal]");if(m)return guarded(()=>handleModal(m.dataset.modal));});
+  ["regSearch","regProject","regDrawing","regStatus"].forEach(id=>$(id).addEventListener(id==="regSearch"?"input":"change",renderRegister));
+  document.addEventListener("click",e=>{const expand=e.target.closest("[data-expand]");if(expand){e.stopPropagation();return toggleExpand(expand.dataset.expand);}const node=e.target.closest("[data-node]");if(node)return openAssignment(node.dataset.node);const a=e.target.closest("[data-act]");if(a)return guarded(()=>handleAction(a.dataset.act,a));const c=e.target.closest("[data-criterion]");if(c){const k=c.dataset.criterion;S.selectedCriteria.has(k)?S.selectedCriteria.delete(k):S.selectedCriteria.add(k);S.selectedTargets.clear();return renderDetail();}const gt=e.target.closest("[data-group-toggle]");if(gt){const id=gt.dataset.groupToggle;S.registerExpanded.has(id)?S.registerExpanded.delete(id):S.registerExpanded.add(id);return renderRegister();}const rr=e.target.closest("[data-open-reg]");if(rr)return openRegisterAssignment(rr.dataset.openReg);const m=e.target.closest("[data-modal]");if(m)return guarded(()=>handleModal(m.dataset.modal));});
   document.addEventListener("change",e=>{if(e.target.classList.contains("target-check")){const k=e.target.dataset.target;e.target.checked?S.selectedTargets.add(k):S.selectedTargets.delete(k);renderDetail();}});
   document.addEventListener("input",e=>{if(e.target.id==="targetSearch"){S.targetSearch=e.target.value;const area=$("targetArea");if(area)area.innerHTML=renderTargetArea(S.current);}});
   document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("modalBackdrop").classList.contains("hidden"))closeModal();});
