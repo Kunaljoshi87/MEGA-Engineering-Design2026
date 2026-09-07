@@ -1,573 +1,344 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="color-scheme" content="light">
-<title>MEGA Engineering | Drawing Planner V14</title>
-<script defer src="https://static.zohocdn.com/creator/widgets/version/2.0/widgetsdk-min.js"></script>
+<title>MEGA Engineering | Drawing Assignment V15</title>
+<script src="https://static.zohocdn.com/creator/widgets/version/2.0/widgetsdk-min.js"></script>
 <style>
-:root{--brand:#bb286c;--brand-dark:#941c54;--soft:#fff0f6;--ink:#202735;--muted:#677486;--line:#e5e8ee;--surface:#f6f7fb;--green:#18724d;--amber:#865905;--red:#af2935;--shadow:0 8px 30px #15223808}
-*{box-sizing:border-box}body{margin:0;background:var(--surface);font:14px/1.5 "Segoe UI",Arial,sans-serif;color:var(--ink)}button,input,select,textarea{font:inherit}button{cursor:pointer}button:disabled{cursor:not-allowed;opacity:.5}a{color:var(--brand)}.hidden,[hidden]{display:none!important}button,input,select,textarea{outline-offset:3px}button:focus-visible,a:focus-visible{outline:3px solid #cf77a1}button{border:0}h1,h2,h3,p{margin:0}h1{font-size:21px;line-height:1.25}h2{font-size:24px;line-height:1.3;letter-spacing:-.5px}h3{font-size:16px}small,.small{font-size:12px}.muted{color:var(--muted)}.upper{font-size:10px;letter-spacing:1.5px;font-weight:800;text-transform:uppercase}
-.topbar{background:white;border-bottom:1px solid var(--line);padding:17px 26px;display:flex;gap:18px;align-items:center;flex-wrap:wrap}.logo{height:42px;width:42px;border-radius:12px;background:var(--brand);color:white;display:grid;place-items:center;font-size:25px;font-weight:900}.branding{display:flex;align-items:center;gap:12px;margin-right:auto}.header-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.session{font-size:11px;padding:7px 11px;background:var(--surface);border:1px solid var(--line);border-radius:30px;max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.app{max-width:1520px;margin:auto;padding:22px 26px 45px}.navline{display:flex;align-items:center;gap:16px;justify-content:space-between;margin-bottom:20px}.switch{padding:4px;border:1px solid var(--line);background:#fff;border-radius:11px;display:flex;gap:3px}.switch button{background:transparent;color:var(--muted);padding:9px 17px;border-radius:8px;font-weight:700}.switch button.active{background:var(--brand);color:white}.pill{display:inline-flex;gap:5px;align-items:center;font-size:11px;padding:4px 9px;border-radius:30px;background:var(--soft);color:var(--brand-dark);font-weight:700}.pill.green{background:#eaf6ef;color:var(--green)}.pill.amber{background:#fff5df;color:var(--amber)}.pill.gray{background:#eff1f5;color:var(--muted)}
-.layout{display:grid;grid-template-columns:230px minmax(0,1fr);gap:24px;align-items:start}.rail{background:white;border:1px solid var(--line);border-radius:15px;overflow:hidden}.rail-head{padding:18px 18px 13px;border-bottom:1px solid var(--line)}.stepnav{padding:12px}.step-item{display:flex;align-items:center;gap:10px;border-radius:9px;padding:10px 9px;margin:2px 0;color:var(--muted)}.step-item.active{background:var(--soft);color:var(--brand-dark);font-weight:700}.step-item.done{color:var(--green)}.step-num{width:25px;height:25px;flex:none;border:1px solid var(--line);border-radius:8px;display:grid;place-items:center;font-size:11px;background:white}.step-item.active .step-num{background:var(--brand);color:white;border-color:var(--brand)}.rail-summary{padding:16px 18px;background:#fafbfd;border-top:1px solid var(--line);font-size:12px}.rail-summary strong{display:block;margin:3px 0 12px;overflow-wrap:anywhere}.rail-note{font-size:11px;padding:16px 18px;color:var(--muted)}
-.card{background:white;border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);overflow:hidden}.card-head{padding:26px 28px 20px;border-bottom:1px solid var(--line)}.card-head p{margin-top:8px;color:var(--muted);max-width:780px}.stepbody{padding:25px 28px;min-height:350px}.card-foot{border-top:1px solid var(--line);padding:16px 28px;display:flex;align-items:center;justify-content:space-between;gap:14px;background:#fcfcfe}.btn{border-radius:8px;border:1px solid var(--line);background:white;padding:9px 15px;font-weight:650;display:inline-flex;align-items:center;justify-content:center;gap:7px;color:var(--ink);min-height:39px}.btn:hover{background:#f6f7fa}.btn.primary{background:var(--brand);border-color:var(--brand);color:white}.btn.primary:hover{background:var(--brand-dark)}.btn.soft{background:var(--soft);border-color:#f0c8db;color:var(--brand-dark)}.btn.danger{color:var(--red);background:#fff2f3}.btn.small{padding:5px 10px;min-height:32px;font-size:12px}.actions{display:flex;align-items:center;gap:9px;flex-wrap:wrap}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:19px}.grid.three{grid-template-columns:repeat(3,minmax(0,1fr))}.span{grid-column:1/-1}.field{display:flex;flex-direction:column;gap:7px}.field label{font-weight:650;font-size:12px}.field input:not([type=checkbox]),.field select,.field textarea,.search{border:1px solid #d3d9e3;border-radius:8px;background:white;min-height:43px;padding:10px 12px;color:var(--ink);width:100%}.field input:focus,.field select:focus,.field textarea:focus,.search:focus{outline:2px solid #e5b3cb;border-color:var(--brand)}.field select:disabled{background:#f4f5f8}.field textarea{min-height:85px;resize:vertical}.hint{font-size:11px;color:var(--muted)}.notice{padding:13px 15px;background:#f5f8fc;border:1px solid #e1e8f1;border-radius:10px;color:#445366;font-size:12px;line-height:1.6}.notice.warn{background:#fff8e9;border-color:#f3dfb1;color:var(--amber)}.notice.error{background:#fff0f2;border-color:#f1c3c9;color:var(--red)}.notice.good{background:#ecf8f1;border-color:#bfe5ce;color:var(--green)}.mb{margin-bottom:17px}.mt{margin-top:17px}.empty{padding:44px 18px;text-align:center;color:var(--muted)}.empty strong{display:block;font-size:17px;color:var(--ink);margin-bottom:7px}.scope-card{padding:20px;border:1px solid #ebd0dd;border-radius:12px;background:linear-gradient(130deg,#fff5f9,white);margin-top:21px}.scope-card .big{font-size:22px;font-weight:750;margin:4px 0}.chips{display:flex;gap:7px;flex-wrap:wrap;margin-top:14px}.chip{padding:4px 9px;border:1px solid var(--line);border-radius:6px;font-size:11px;background:white}.filterbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.filterbar .search{flex:1;min-width:180px}.filterbar select{border:1px solid #d3d9e3;padding:10px;border-radius:8px;background:white;max-width:260px}.filters{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px;margin-top:15px}.filter-label{display:flex;align-items:center;justify-content:space-between}.linkbtn{background:transparent;color:var(--brand);font-size:11px;padding:0 4px}.selectionbar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin:18px 0 12px}.selectionbar strong{color:var(--brand-dark)}.table-wrap{width:100%;overflow:auto;border:1px solid var(--line);border-radius:10px}table{border-collapse:collapse;width:100%;min-width:700px}th{background:#f5f7fa;font-size:10px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);font-weight:750;text-align:left}th,td{padding:11px 12px;border-bottom:1px solid var(--line);vertical-align:middle}td{font-size:12px}tbody tr:last-child td{border-bottom:0}tbody tr:hover{background:#fff9fc}tbody tr.selected{background:var(--soft)}input[type=checkbox]{width:16px;height:16px;accent-color:var(--brand);cursor:pointer;vertical-align:middle}.checkcol{width:37px}.primary-text{font-weight:700}.secondary-text{font-size:11px;color:var(--muted);margin-top:2px;max-width:380px;overflow-wrap:anywhere}.pagination{display:flex;justify-content:space-between;align-items:center;margin-top:12px;font-size:12px;gap:10px}.metric-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:13px;margin-bottom:18px}.metric{border:1px solid var(--line);border-radius:10px;padding:15px;background:#fafbfd}.metric .n{font-size:26px;font-weight:750}.metric .label{font-size:11px;color:var(--muted)}details{border:1px solid var(--line);border-radius:9px;background:white;margin-top:20px}summary{cursor:pointer;font-weight:650;padding:12px 14px;font-size:12px}details>.inside{padding:6px 15px 16px}.checkline{display:flex;align-items:center;gap:9px;font-size:12px}.batch-result{max-height:270px;overflow:auto}.callout-icon{font-size:20px;color:var(--brand);margin-bottom:6px}.result-title{font-size:23px;font-weight:750}.nowrap{white-space:nowrap}
-.modal-backdrop{position:fixed;inset:0;background:#0f172a88;z-index:60;display:flex;align-items:center;justify-content:center;padding:20px}.modal{background:white;max-height:94vh;overflow:hidden;width:min(1120px,97vw);border-radius:16px;display:flex;flex-direction:column;box-shadow:0 30px 90px #0004}.modal-head{padding:18px 23px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:15px}.modal-body{padding:22px;overflow:auto}.modal-footer{padding:14px 23px;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}.close{border-radius:8px;padding:5px 11px;font-size:23px;background:#f3f5f8}.loading{position:fixed;inset:0;background:#ffffffdc;backdrop-filter:blur(3px);z-index:100;display:flex;align-items:center;justify-content:center}.loading-box{background:white;border:1px solid var(--line);border-radius:14px;padding:24px;box-shadow:var(--shadow);min-width:290px;max-width:90vw}.spinner{width:25px;height:25px;border:3px solid #f1d3e1;border-top-color:var(--brand);border-radius:50%;animation:spin .8s linear infinite;margin-bottom:13px}@keyframes spin{to{transform:rotate(360deg)}}.toasts{position:fixed;bottom:22px;right:22px;z-index:200;max-width:440px}.toast{padding:13px 17px;background:#243146;color:white;margin-top:8px;border-radius:10px;box-shadow:var(--shadow);font-size:12px}.toast.error{background:#a12f3c}.demo{background:#fff5de;color:var(--amber);padding:7px 20px;text-align:center;font-size:11px}pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:11px;background:#f5f7fb;padding:16px;border-radius:8px}progress{width:100%;height:9px;accent-color:var(--brand)}
-@media(max-width:1050px){.layout{grid-template-columns:190px minmax(0,1fr);gap:15px}.filters,.grid.three{grid-template-columns:repeat(2,minmax(0,1fr))}.app{padding:18px}.stepbody,.card-head{padding:21px}.session{max-width:210px}}@media(max-width:760px){.layout{display:block}.rail{margin-bottom:15px}.rail-head,.rail-summary,.rail-note{display:none}.stepnav{display:flex;justify-content:space-between;padding:6px}.step-item{font-size:10px;gap:5px;padding:7px 4px}.step-num{width:20px;height:20px}.grid,.grid.three,.filters{grid-template-columns:1fr}.topbar{padding:13px}.header-actions{gap:6px}.session{display:none}.app{padding:12px}.card-head,.stepbody{padding:18px}.card-foot{padding:14px 18px}.navline{gap:8px}.navline>.small{display:none}.metric-grid{gap:7px}.metric{padding:10px}.modal-backdrop{padding:7px}.modal-body{padding:15px}h2{font-size:21px}}
-#targetsArea .table-wrap{max-height:420px}#regTable .table-wrap{max-height:560px}.table-wrap th{position:sticky;top:0;z-index:1}.card-foot{position:sticky;bottom:0;z-index:2}.scope-card p{max-width:750px}@media(max-width:760px){#targetsArea .table-wrap{max-height:390px}.step-item{flex-direction:column;text-align:center}.card-foot{position:static}}
+:root{
+  --brand:#c42770;--brand-dark:#982054;--brand-soft:#fff0f7;--ink:#1f2937;--muted:#667085;
+  --line:#e5e7eb;--surface:#f6f7fb;--panel:#fff;--green:#18794e;--green-soft:#ebf8f1;
+  --amber:#8a5b08;--amber-soft:#fff7e5;--red:#b42335;--red-soft:#fff1f3;--blue:#245ea8;--blue-soft:#edf5ff;
+  --shadow:0 12px 36px rgba(31,41,55,.07);--radius:16px
+}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--surface);color:var(--ink)}
+body{font:14px/1.48 Inter,"Segoe UI",Arial,sans-serif}button,input,select,textarea{font:inherit}button{cursor:pointer}button:disabled{cursor:not-allowed;opacity:.5}
+h1,h2,h3,p{margin:0}.hidden{display:none!important}.muted{color:var(--muted)}.nowrap{white-space:nowrap}.small{font-size:12px}.tiny{font-size:11px}.strong{font-weight:800}
+.topbar{position:sticky;top:0;z-index:30;background:linear-gradient(135deg,var(--brand),var(--brand-dark));color:#fff;padding:14px 22px;box-shadow:0 4px 16px rgba(100,20,60,.2)}
+.topbar-row{max-width:1700px;margin:auto;display:flex;align-items:center;gap:14px}.logo{width:42px;height:42px;border-radius:11px;background:#fff;color:var(--brand-dark);display:grid;place-items:center;font-weight:900;font-size:18px}.brand{flex:1}.brand small{opacity:.8;letter-spacing:.13em;font-weight:800}.brand h1{font-size:20px;margin-top:1px}.session{max-width:330px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:7px 11px;border-radius:999px;background:#ffffff18;border:1px solid #ffffff35;font-size:12px}
+.demo-banner{padding:7px 16px;text-align:center;background:#fff1c9;color:#6a4b00;font-size:12px;border-bottom:1px solid #ead28c}
+.app{max-width:1700px;margin:auto;padding:18px 22px 44px}.nav{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px}.tabs{display:flex;gap:4px;padding:4px;background:#fff;border:1px solid var(--line);border-radius:12px}.tab{border:0;background:transparent;color:var(--muted);font-weight:750;padding:9px 14px;border-radius:9px}.tab.active{background:var(--brand);color:#fff}.btn{min-height:38px;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:9px;padding:8px 13px;font-weight:750;display:inline-flex;align-items:center;justify-content:center;gap:7px}.btn:hover{background:#f8f9fb}.btn.primary{background:var(--brand);border-color:var(--brand);color:#fff}.btn.primary:hover{background:var(--brand-dark)}.btn.soft{background:var(--brand-soft);border-color:#efc4d8;color:var(--brand-dark)}.btn.success{background:var(--green);border-color:var(--green);color:#fff}.btn.danger{background:var(--red-soft);border-color:#f2c5cb;color:var(--red)}.btn.sm{min-height:31px;padding:5px 9px;font-size:12px}.btn.link{border:0;background:transparent;color:var(--brand);padding:4px 6px;min-height:0}.actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}.panel-head{padding:16px 18px;border-bottom:1px solid var(--line);display:flex;align-items:flex-start;justify-content:space-between;gap:12px}.panel-head h2{font-size:16px}.panel-head p{font-size:12px;color:var(--muted);margin-top:3px}.panel-body{padding:18px}.selector{display:grid;grid-template-columns:minmax(220px,1fr) minmax(260px,1.35fr) auto;gap:12px;align-items:end;margin-bottom:14px}.field{display:flex;flex-direction:column;gap:6px}.field label{font-size:12px;font-weight:800;color:#344054}.field input:not([type=checkbox]),.field select,.field textarea{width:100%;min-height:40px;border:1px solid #cfd5de;border-radius:9px;background:#fff;padding:9px 10px;outline:none}.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(196,39,112,.1)}.field textarea{min-height:78px;resize:vertical}.field .hint{font-size:10px;color:var(--muted)}
+.context-card{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;padding:13px 15px;border:1px solid #e4d3dc;border-radius:12px;background:linear-gradient(120deg,#fff5f9,#fff)}.context-main{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.context-icon{width:38px;height:38px;border-radius:10px;background:var(--brand-soft);color:var(--brand-dark);display:grid;place-items:center;font-weight:900}.context-title{font-weight:850}.context-sub{font-size:11px;color:var(--muted);margin-top:2px}.pill{display:inline-flex;align-items:center;gap:5px;padding:4px 8px;border-radius:999px;background:#f1f3f6;color:#475467;font-size:10px;font-weight:800}.pill.brand{background:var(--brand-soft);color:var(--brand-dark)}.pill.green{background:var(--green-soft);color:var(--green)}.pill.amber{background:var(--amber-soft);color:var(--amber)}.pill.blue{background:var(--blue-soft);color:var(--blue)}.pill.red{background:var(--red-soft);color:var(--red)}
+.workspace{display:grid;grid-template-columns:390px minmax(0,1fr);gap:14px;margin-top:14px}.tree-panel{min-width:0;overflow:hidden}.tree-scroll{max-height:710px;overflow:auto;padding:10px}.tree-empty{padding:36px 18px;text-align:center;color:var(--muted)}.tree-empty strong{display:block;color:var(--ink);font-size:15px;margin-bottom:4px}.tree-node{margin:3px 0}.node-row{display:grid;grid-template-columns:28px 34px minmax(0,1fr) auto;gap:7px;align-items:center;padding:8px 8px;border:1px solid transparent;border-radius:10px;cursor:pointer}.node-row:hover{background:#faf4f7}.node-row.active{background:var(--brand-soft);border-color:#efc3d7}.expander{width:26px;height:26px;border:0;background:#f1f3f6;border-radius:7px;color:#667085}.expander.blank{visibility:hidden}.avatar{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;background:#eef2f6;color:#334155;font-size:11px;font-weight:900}.node-main{min-width:0}.node-user{font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.node-scope{font-size:10px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.node-side{text-align:right}.node-level{font-size:9px;color:var(--muted);margin-top:2px}.tree-children{margin-left:24px;padding-left:10px;border-left:1px dashed #d7dce3}.tree-filter{padding:12px;border-bottom:1px solid var(--line);display:grid;grid-template-columns:1fr 1fr;gap:8px}.tree-filter input,.tree-filter select{border:1px solid #d4dae3;border-radius:8px;padding:8px 9px;min-width:0}.tree-filter input{grid-column:1/-1}
+.detail-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px}.detail-title{font-size:19px;font-weight:850}.detail-path{color:var(--muted);font-size:12px;margin-top:4px}.summary-grid{display:grid;grid-template-columns:repeat(4,minmax(125px,1fr));gap:9px;margin-bottom:14px}.summary-card{border:1px solid var(--line);border-radius:10px;padding:11px;background:#fafbfd}.summary-card .label{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}.summary-card .value{font-weight:800;margin-top:3px;word-break:break-word}.notice{padding:11px 13px;border:1px solid #dce3ec;border-radius:10px;background:#f7f9fc;color:#475467;font-size:12px}.notice.good{background:var(--green-soft);border-color:#c8e6d6;color:#166340}.notice.warn{background:var(--amber-soft);border-color:#f1ddb1;color:#77510a}.notice.error{background:var(--red-soft);border-color:#f0c5cb;color:#9f2432}.notice + .notice{margin-top:8px}
+.primary-box{border:1px solid #efc7da;background:linear-gradient(135deg,#fff4f9,#fff);border-radius:13px;padding:16px}.section-title{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:18px 0 9px}.section-title:first-child{margin-top:0}.section-title h3{font-size:14px}.criteria-grid{display:flex;gap:8px;flex-wrap:wrap}.criteria-chip{border:1px solid #d8dde5;background:#fff;border-radius:999px;padding:8px 11px;font-size:12px;font-weight:750;color:#475467}.criteria-chip.active{background:var(--brand);border-color:var(--brand);color:#fff}.criteria-chip.locked{opacity:.55}.scope-lock{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px}.lock-chip{padding:5px 8px;border-radius:7px;background:#f0f2f5;color:#475467;font-size:10px;font-weight:750}.lock-chip::before{content:"🔒 ";font-size:9px}.target-toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:10px 0}.search{min-width:220px;flex:1;border:1px solid #d4dae3;border-radius:9px;padding:9px 10px}.selection-note{font-size:12px;color:var(--muted)}.selection-note strong{color:var(--brand-dark)}
+.table-wrap{width:100%;overflow:auto;border:1px solid var(--line);border-radius:10px}table{width:100%;border-collapse:collapse;min-width:760px}th,td{padding:9px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}th{position:sticky;top:0;background:#f6f8fb;color:#667085;font-size:9px;text-transform:uppercase;letter-spacing:.04em;z-index:1}td{font-size:11px}tbody tr:hover{background:#fff9fc}tbody tr.selected{background:#fff2f7}.check{width:16px;height:16px;accent-color:var(--brand)}.empty-row{text-align:center;padding:26px;color:var(--muted)}
+.bulk-bar{margin-top:12px;border:1px solid #e2e6ec;border-radius:12px;background:#fafbfd;padding:13px}.bulk-grid{display:grid;grid-template-columns:1.2fr repeat(3,minmax(130px,.8fr)) minmax(180px,1.2fr) auto;gap:9px;align-items:end}.bulk-grid .field label{font-size:10px}.bulk-grid .field input,.bulk-grid .field select{min-height:36px;padding:7px 8px}.bulk-summary{margin-top:8px;font-size:11px;color:var(--muted)}
+.register-toolbar{display:grid;grid-template-columns:repeat(5,minmax(130px,1fr));gap:8px;margin-bottom:12px}.register-toolbar input,.register-toolbar select{border:1px solid #d4dae3;border-radius:8px;padding:8px 9px}.status-select{border:1px solid #d4dae3;border-radius:7px;padding:6px 8px;background:#fff}.progress{height:5px;background:#edf0f4;border-radius:999px;overflow:hidden;margin-top:4px}.progress span{display:block;height:100%;background:var(--brand)}
+.modal-backdrop{position:fixed;inset:0;background:#11182788;z-index:90;display:flex;align-items:center;justify-content:center;padding:18px}.modal{width:min(1180px,97vw);max-height:94vh;background:#fff;border-radius:16px;box-shadow:0 30px 90px #0004;display:flex;flex-direction:column;overflow:hidden}.modal-head{padding:16px 18px;border-bottom:1px solid var(--line);display:flex;align-items:flex-start;justify-content:space-between;gap:12px}.modal-title{font-size:17px;font-weight:850}.modal-sub{font-size:11px;color:var(--muted);margin-top:3px}.modal-body{padding:16px 18px;overflow:auto}.modal-foot{padding:12px 18px;border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}.icon-btn{width:34px;height:34px;border:0;border-radius:8px;background:#f0f2f5;font-size:19px}.review-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:12px}.review-metric{border:1px solid var(--line);border-radius:10px;padding:12px}.review-metric .n{font-size:24px;font-weight:850}.review-metric .l{font-size:10px;color:var(--muted)}
+.loading{position:fixed;inset:0;background:#ffffffd9;backdrop-filter:blur(2px);z-index:120;display:flex;align-items:center;justify-content:center}.loading-box{background:#fff;border:1px solid var(--line);border-radius:13px;padding:18px 21px;box-shadow:var(--shadow);min-width:280px}.spinner{width:22px;height:22px;border-radius:50%;border:3px solid #efd2df;border-top-color:var(--brand);animation:spin .8s linear infinite;margin-bottom:8px}@keyframes spin{to{transform:rotate(360deg)}}.toasts{position:fixed;right:18px;bottom:18px;z-index:150;max-width:440px}.toast{margin-top:7px;padding:10px 12px;border-radius:9px;background:#263447;color:#fff;font-size:12px;box-shadow:var(--shadow)}.toast.error{background:#a22d3b}.toast.good{background:#16663e}
+@media(max-width:1200px){.workspace{grid-template-columns:330px minmax(0,1fr)}.bulk-grid{grid-template-columns:1fr 1fr 1fr}.bulk-grid .field:last-of-type{grid-column:1/-1}.summary-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:850px){.app{padding:12px}.workspace{grid-template-columns:1fr}.tree-scroll{max-height:360px}.selector{grid-template-columns:1fr}.summary-grid{grid-template-columns:1fr 1fr}.bulk-grid,.register-toolbar,.review-grid{grid-template-columns:1fr}.session{display:none}.topbar{padding:11px 13px}.panel-body{padding:13px}}
 </style>
 </head>
 <body>
-<div id="demoBanner" class="demo hidden">DEMO PREVIEW &mdash; sample records only. Nothing is read from or written to Zoho Creator.</div>
-<header class="topbar"><div class="branding"><div class="logo">M</div><div><div class="upper muted">MEGA ENGINEERING</div><h1>Drawing Planner</h1></div></div><div class="header-actions"><span id="session" class="session">Connecting to Creator...</span><button id="reload" class="btn small">Refresh</button><button id="setup" class="btn small">Setup &amp; diagnostics</button></div></header>
+<div id="demoBanner" class="demo-banner hidden">DEMO MODE — sample Creator data is loaded. Add <strong>?demo=1</strong> to preview this widget outside Zoho Creator.</div>
+<header class="topbar"><div class="topbar-row"><div class="logo">ME</div><div class="brand"><small>MEGA ENGINEERING</small><h1>Drawing & Document Assignment</h1></div><div id="sessionPill" class="session">Connecting to Zoho Creator…</div></div></header>
 <main class="app">
-<div class="navline"><div class="switch"><button id="navPlan" class="active">Plan &amp; assign</button><button id="navRegister">Drawing register</button></div><div class="small muted">V14 &nbsp;&middot;&nbsp; Select only what you need</div></div>
-<div id="globalError" class="notice error mb hidden" role="alert"></div>
-<div id="setupBanner" class="notice warn mb hidden"></div>
-<section id="planner" class="layout"><aside class="rail"><div class="rail-head"><div class="upper muted">NEW DRAWING PLAN</div><h3 class="mt" style="margin-top:5px">One step at a time</h3></div><div id="stepNav" class="stepnav"></div><div id="railSummary" class="rail-summary"></div><div class="rail-note">One drawing record per selected target. Selecting a section does not create copies for every tag.</div></aside><div class="card"><div class="card-head"><div id="stepKicker" class="upper muted mb"></div><h2 id="stepTitle"></h2><p id="stepDescription"></p></div><div id="stepBody" class="stepbody"></div><div class="card-foot"><button id="back" class="btn">Back</button><span id="stepFootnote" class="small muted"></span><button id="next" class="btn primary">Continue</button></div></div></section>
-<section id="register" class="card hidden"><div class="card-head"><div class="upper muted mb">PROJECT DRAWING REGISTER</div><h2>Review work. Reassign in bulk.</h2><p>Current revisions only. Select a few tasks or a full filtered list, then assign them together.</p></div><div class="stepbody"><div id="registerBody"></div></div></section>
+  <div class="nav">
+    <div class="tabs">
+      <button class="tab active" data-view="planner">Assignment Planner</button>
+      <button class="tab" data-view="mine">My Assignments</button>
+      <button class="tab" data-view="all">All Assignments</button>
+    </div>
+    <div class="actions"><button id="refreshBtn" class="btn">↻ Refresh</button><button id="setupBtn" class="btn">⚙ Setup</button></div>
+  </div>
+
+  <section id="plannerView">
+    <div class="panel">
+      <div class="panel-body">
+        <div class="selector">
+          <div class="field"><label>Project Code</label><select id="projectSelect"><option value="">Select project…</option></select></div>
+          <div class="field"><label>Drawing / Document</label><select id="drawingSelect"><option value="">Select drawing / document…</option></select><div class="hint">Select once. Primary project responsibility is mandatory; further delegation is optional.</div></div>
+          <button id="loadContextBtn" class="btn primary">Open Assignment</button>
+        </div>
+        <div id="contextCard" class="context-card hidden"></div>
+      </div>
+    </div>
+
+    <div id="workspace" class="workspace hidden">
+      <aside class="panel tree-panel">
+        <div class="panel-head"><div><h2>Assignment Structure</h2><p>Expand any responsibility and assign further.</p></div><span id="treeCount" class="pill">0</span></div>
+        <div class="tree-filter"><input id="treeSearch" placeholder="Search user / scope…"><select id="treeStatus"><option value="">All statuses</option><option>Not Started</option><option>In Progress</option><option>On Hold</option><option>Completed</option><option>Cancelled</option></select></div>
+        <div id="tree" class="tree-scroll"></div>
+      </aside>
+      <section class="panel">
+        <div class="panel-head"><div><h2 id="detailHeading">Responsibility</h2><p id="detailSubtitle">Select an assignment from the structure.</p></div><div id="detailActions" class="actions"></div></div>
+        <div id="detailBody" class="panel-body"></div>
+      </section>
+    </div>
+  </section>
+
+  <section id="registerView" class="panel hidden">
+    <div class="panel-head"><div><h2 id="registerTitle">Assignments</h2><p>Every row is an independent Drawing_Assignment record with its own dates, status and remark.</p></div><span id="registerCount" class="pill">0</span></div>
+    <div class="panel-body">
+      <div class="register-toolbar">
+        <input id="regSearch" placeholder="Search project, drawing, user…">
+        <select id="regProject"><option value="">All projects</option></select>
+        <select id="regDrawing"><option value="">All drawings</option></select>
+        <select id="regCriteria"><option value="">All criteria</option></select>
+        <select id="regStatus"><option value="">All statuses</option><option>Not Started</option><option>In Progress</option><option>On Hold</option><option>Completed</option><option>Cancelled</option></select>
+      </div>
+      <div id="registerTable" class="table-wrap"></div>
+    </div>
+  </section>
 </main>
-<div id="modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><section class="modal"><header class="modal-head"><div><h3 id="modalTitle"></h3><div id="modalSubtitle" class="small muted"></div></div><button id="closeModal" class="close" aria-label="Close dialog">&times;</button></header><div id="modalBody" class="modal-body"></div><footer id="modalFooter" class="modal-footer"></footer></section></div>
-<div id="loading" class="loading hidden" aria-live="polite"><div class="loading-box"><div class="spinner"></div><strong id="loadingText">Loading...</strong><div id="loadingSub" class="small muted mt"></div><progress id="batchProgress" class="hidden mt" max="100" value="0"></progress><button id="stopBatch" class="btn small mt hidden">Stop after current record</button></div></div>
-<div id="toasts" class="toasts" aria-live="polite"></div>
+
+<div id="modalBackdrop" class="modal-backdrop hidden"><div class="modal"><div class="modal-head"><div><div id="modalTitle" class="modal-title"></div><div id="modalSub" class="modal-sub"></div></div><button id="modalClose" class="icon-btn">×</button></div><div id="modalBody" class="modal-body"></div><div id="modalFoot" class="modal-foot"></div></div></div>
+<div id="loading" class="loading hidden"><div class="loading-box"><div class="spinner"></div><div id="loadingText" class="strong">Loading…</div></div></div>
+<div id="toasts" class="toasts"></div>
+
 <script>
 "use strict";
-// Source-adapted: field links and value/date helpers from your V13 widget.
-    const F = {
-      projectCode: "Project_Code",
-      projectRecordId: "Project_Record_ID",
-      equipmentRecordId: "Equipment_Record_ID",
-      plantSectionName: "Plant_Section_Name",
-      plantSectionType: "Plant_Section_Type",
-      pdsName: "PDS_Name",
-      pdsRecordId: "PDS_Record_ID",
-      tagNumber: "Tag_Number",
-      equipmentName: "Equipment_Name",
-      equipmentCategory: "Equipment_Category",
-      equipmentType: "Equipment_Type",
-      equipmentDepartment: "Equipment_Department",
-      designDepartment: "Design_Department",
-      designType: "Design_Type",
-      designTitle: "Design_Title",
-      drawingNumber: "Drawing_Number",
-      priority: "Priority",
-      plannedStart: "Planned_Start_Date",
-      plannedEnd: "Planned_End_Date",
-      actualStart: "Actual_Start_Date",
-      forecastEnd: "Forecast_End_Date",
-      actualEnd: "Actual_End_Date",
-      assignedTo: "Assigned_To",
-      assignedEmployeeName: "Assigned_Employee_Name",
-      checker: "Checker",
-      reviewer: "Reviewer",
-      approver: "Approver",
-      status: "Status",
-      progress: "Progress",
-      revision: "Revision",
-      revisionDescription: "Revision_Description",
-      drawingFile: "Drawing_File",
-      nativeFile: "Native_File",
-      supportingFile: "Supporting_File",
-      remarks: "Remarks",
-      returnReason: "Return_Reason",
-      parentDesignId: "Parent_Design_ID",
-      startedBy: "Started_By",
-      completedBy: "Completed_By"
-    };
-    const FIELD_ALIASES = {
-      projects: {
-        id: ["ID"],
-        code: ["Project_Code", "Project_Code1", "ProjectCode", "Project"],
-        customer: ["Customer_Name", "Customer", "Client_Name", "Client"],
-        description: ["Project_Description", "Description", "Project_Desc"],
-        country: ["Country", "Country1"]
-      },
-      equipment: {
-        id: ["ID"],
-        projectCode: [
-          "Project_Code", "Project_Code1", "Project_Code2", "Project_Code3",
-          "Project", "Project1", "Project_Lookup", "Project_Code_Lookup",
-          "Project_Details", "Project_Detail", "Associated_Project", "Associated_Projects",
-          "Project_Name", "Project_No", "Project_Number", "Project_ID"
-        ],
-        pdsName: ["PDS_Name", "PDS_Name1", "PDS", "PDS_Type"],
-        tag: ["Tag_Number", "Tag_No", "Tag_Number1", "Equipment_Tag"],
-        name: ["Equipment_Name", "Equipment_Name1", "Equipment", "Name"],
-        groupCode: ["Group_Code", "Group_Code1", "Group"],
-        department: ["Department_Code", "Department_Code1", "Department"],
-        category: ["Equipment_Category", "Equipment_Category1", "Category"],
-        type: ["Equipment_Type", "Equipment_Type1", "Type"],
-        subtype: ["Equipment_Subtype", "Equipment_Sub_Type", "Subtype"],
-        plantSection: [
-          "Plant_Section_Name", "Plant_Section_Name1", "Plant_Section_Name2",
-          "Plant_Section", "Plant_Section1", "Section_Name", "Section_Name1",
-          "Plant_Name", "Plant_Section_Lookup"
-        ],
-        plantType: [
-          "Plant_Section_Type", "Plant_Section_Type1", "Plant_Section_Type2",
-          "Section_Type", "Section_Type1", "Plant_Type"
-        ],
-        sectionRef: ["Section_Ref", "Section_Reference"]
-      },
-      pds: {
-        id: ["ID"],
-        projectCode: ["Project_Code", "Project_Code1", "Project"],
-        masterEquipmentId: ["Master_Equipments_Report_ID", "Master_Equipment_Report_ID", "Master_Equipment_ID"],
-        pdsName: ["PDS_Name", "PDS_Name1", "PDS"],
-        tag: ["Tag_Number", "Tag_No", "Equipment_Tag"],
-        name: ["Equipment_Name", "Equipment_Name1", "Equipment"],
-        plantSection: ["Plant_Section_Name", "Plant_Section", "Section_Name"],
-        plantType: ["Plant_Section_Type", "Section_Type"],
-        groupCode: ["Group_Code", "Group"],
-        department: ["Department_Code", "Department"],
-        category: ["Equipment_Category", "Category"],
-        type: ["Equipment_Type", "Type"],
-        subtype: ["Equipment_Subtype", "Subtype"],
-        status: ["Equipment_PDS_Status", "PDS_Status", "Status"],
-        sectionRef: ["Section_Ref", "Section_Reference"],
-        approver: ["Approver_User", "Approver", "Approved_By"],
-        approvedTime: ["Approved_Time", "Approval_Time", "Approved_Date"]
-      },
-      bom: {
-        id: ["ID"],
-        projectCode: ["Project_Code", "Project_Code1", "Project"],
-        masterEquipmentId: ["Master_Equipments_Report_ID", "Master_Equipment_Report_ID", "Master_Equipment_ID"],
-        tag: ["Tag_Number", "Tag_No", "Equipment_Tag"],
-        name: ["Equipment_Name", "Equipment"],
-        location: ["Location_Name", "Location"],
-        indent: ["Indent_No", "Indent_Number"],
-        priority: ["Priority"],
-        itemName: ["Item_Name", "Item"],
-        generalStandard: ["General_Standard", "Standard"],
-        mocStandard: ["MOC_Standard", "Material_Standard"],
-        mocGrade: ["MOC_Grade", "Grade"],
-        itemUnit: ["Item_Unit", "Unit"],
-        itemSize: ["Item_Size", "Size"],
-        itemType: ["Item_Type", "Type"],
-        itemSubtype: ["Item_Subtype", "Subtype"],
-        dimensionalStandard: ["Dimensional_Standard"],
-        itemFinish: ["Item_Finish", "Finish"],
-        specialSpecs: ["Special_Specs", "Special_Specification"],
-        thickness: ["Thickness"],
-        quantity: ["Quantity", "Qty"],
-        remainingQty: ["Remaining_Qty", "Balance_Qty"],
-        finishLength: ["Finish_Length"],
-        rawLength: ["Raw_Length"],
-        finishWeight: ["Finish_Weight"],
-        rawWeight: ["Raw_Weight"]
-      },
-      po: {
-        id: ["ID"],
-        projectCode: ["Project_Code", "Project_Code1", "Project"],
-        masterEquipmentId: ["Master_Equipments_Report_ID", "Master_Equipment_Report_ID", "Master_Equipment_ID", "Equipment_Record_ID"],
-        tag: ["Tag_Number", "Tag_No", "Equipment_Tag"],
-        poNumber: ["PO_Number", "Purchase_Order_No", "Purchase_Order_Number", "PO_No", "Order_No"],
-        vendor: ["Vendor_Name", "Vendor", "Supplier_Name", "Supplier"],
-        poDate: ["PO_Date", "Purchase_Order_Date", "Order_Date", "Date"],
-        status: ["PO_Status", "Purchase_Order_Status", "Status"],
-        amount: ["PO_Amount", "Order_Amount", "Total_Amount", "Grand_Total", "Amount"],
-        item: ["Item_Name", "Description", "Item", "Material_Name"],
-        indent: ["Indent_No", "Indent_Number", "Indent"]
-      },
-      plantSections: {
-        id: ["ID"],
-        section: [
-          "Plant_Section_Name", "Plant_Section", "Section_Name", "Plant_Section_Master",
-          "Plant_Section_Lookup", "Plant_Section_Ref", "Parent_Section", "Name"
-        ],
-        type: ["Plant_Section_Type", "Plant_Section_Type1", "Section_Type", "Type"]
-      },
-      employees: {
-        id: ["ID"],
-        name: ["Employee_Name", "Name", "Employee"],
-        email: ["Email", "Employee_Email"],
-        supportEmail: ["Support_Email"],
-        department: ["Department", "Department_Name"]
-      }
-    };
-const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-    function scalarValue(value) {
-      if (value === null || value === undefined) return "";
-      if (typeof value !== "object") return String(value);
 
-      // Creator V2.1 may return display_value / zc_display_value either as a
-      // string OR as a nested object. Recurse instead of producing "[object Object]".
-      if (value.display_value !== undefined) {
-        const text = scalarValue(value.display_value);
-        if (text) return text;
-      }
-      if (value.zc_display_value !== undefined) {
-        const text = scalarValue(value.zc_display_value);
-        if (text) return text;
-      }
+/* ======================================================================
+   V15 POC ARCHITECTURE
+   ----------------------------------------------------------------------
+   Permanent Creator forms:
+     Drawing_Document_Master   (master)
+     Project_Drawing_Register  (transaction header / project drawing existence)
+     Drawing_Assignment        (self-referencing N-level transaction)
 
-      const fullName = [value.prefix, value.first_name, value.last_name, value.suffix].filter(Boolean).join(" ").trim();
-      if (fullName) return fullName;
-      if (value.ID !== undefined) return String(value.ID);
-
-      // Last readable fallback: concatenate primitive values from the object.
-      const parts = [];
-      Object.values(value).forEach((child) => {
-        if (child === null || child === undefined) return;
-        if (typeof child !== "object") parts.push(String(child));
-      });
-      if (parts.length) return parts.join(" ");
-      try { return JSON.stringify(value); } catch (_) { return String(value); }
-    }
-
-    function escapeHtml(value) {
-      return String(value ?? "").replace(/[&<>"']/g, (ch) => ({
-        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;"
-      }[ch]));
-    }
-
-    function normalizeKey(value) {
-      return String(value ?? "").toLowerCase().replace(/[^a-z0-9]/g, "");
-    }
-
-    function numberValue(value, fallback = 0) {
-      const n = Number(String(value ?? "").replace(/,/g, ""));
-      return Number.isFinite(n) ? n : fallback;
-    }
-
-    function criteriaText(value) {
-      return String(value ?? "").replace(/\\/g, "\\\\").replace(/"/g, '\\"');
-    }
-
-    function deepScalarEntries(value, topKey = "", out = [], depth = 0) {
-      if (depth > 5 || value === null || value === undefined) return out;
-      if (typeof value !== "object") {
-        out.push({ key: topKey, value: String(value) });
-        return out;
-      }
-      if (Array.isArray(value)) {
-        value.forEach((item) => deepScalarEntries(item, topKey, out, depth + 1));
-        return out;
-      }
-      for (const [key, child] of Object.entries(value)) {
-        const root = topKey || key;
-        if (child !== null && typeof child === "object") {
-          deepScalarEntries(child, root, out, depth + 1);
-        } else if (child !== null && child !== undefined) {
-          out.push({ key: root, value: String(child) });
-        }
-      }
-      return out;
-    }
-
-    function valueContainsExactCode(value, projectCode) {
-      const code = String(projectCode || "").trim();
-      if (!code) return false;
-      const entries = deepScalarEntries(value, "Project_Code");
-      if (!entries.length && value !== null && value !== undefined) {
-        entries.push({ key: "Project_Code", value: scalarValue(value) });
-      }
-      return entries.some(({ value: item }) => {
-        const text = String(item || "").trim();
-        if (text === code) return true;
-        const tokens = text.split(/[^A-Za-z0-9]+/).filter(Boolean);
-        return tokens.includes(code);
-      });
-    }
-
-    function toCreatorDate(isoDate) {
-      if (!isoDate) return "";
-      const parts = String(isoDate).split("-");
-      if (parts.length !== 3) return isoDate;
-      return `${parts[2]}-${MONTHS[Number(parts[1]) - 1]}-${parts[0]}`;
-    }
-
-    function toCreatorDateTime(date = new Date()) {
-      const pad = (n) => String(n).padStart(2, "0");
-      return `${pad(date.getDate())}-${MONTHS[date.getMonth()]}-${date.getFullYear()} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
-    }
-
-    function toInputDate(value) {
-      if (!value) return "";
-      const text = scalarValue(value).trim();
-      if (/^\d{4}-\d{2}-\d{2}$/.test(text)) return text;
-      const match = text.match(/^(\d{1,2})-([A-Za-z]{3})-(\d{4})/);
-      if (match) {
-        const month = MONTHS.findIndex((m) => m.toLowerCase() === match[2].toLowerCase()) + 1;
-        if (month > 0) return `${match[3]}-${String(month).padStart(2,"0")}-${String(match[1]).padStart(2,"0")}`;
-      }
-      const parsed = new Date(text);
-      if (!Number.isNaN(parsed.getTime())) {
-        return `${parsed.getFullYear()}-${String(parsed.getMonth()+1).padStart(2,"0")}-${String(parsed.getDate()).padStart(2,"0")}`;
-      }
-      return "";
-    }
-
-    function displayDate(value) {
-      if (!value) return "—";
-      const text = scalarValue(value);
-      const iso = toInputDate(text);
-      return iso ? toCreatorDate(iso) : text;
-    }
-/*
- V14 GUIDED DRAWING PLANNER
- Reuses the app/report/field links and value helpers from the supplied V13.
- No hard-coded production drawing library. Drawing choices come from All_Drawing_Types.
- No API writes on load, selection, preview, filter change, or diagnostics.
- Required new fields on Design_Tracking are documented in SETUP_V14.txt.
- Creator permissions and server-side validations remain authoritative.
-*/
+   The widget grid is only a bulk-assignment UX. Each submitted row creates
+   an independent Drawing_Assignment record.
+   ====================================================================== */
 const CONFIG = {
   APP_NAME: "mega-engineering-sales",
-  REPORTS: {projects:"All_Associated_Projects",equipment:"Master_Equipment_List_Subform_Report",drawings:"All_Drawing_Types",employees:"Employ_to_Create_ticket_Report",plantSections:"All_Plant_Section_Types",tracking:"",engineeringProjects:""},
-  TRACKING_FORM: "Design_Tracking",
-  TRACKING_REPORT_CANDIDATES: ["Design_Tracking_Report","All_Design_Tracking","Design_Tracking"],
-  ENGINEERING_PROJECT_CANDIDATES: ["All_Projects","All_Projects_Report","Project_Report","Projects"],
-  MAX_BATCHES:100, PAGE_SIZE:25, TIMEOUT_MS:30000, MAX_FILE_BYTES:50*1024*1024,
-  // Existing V13 date convention. Verify against the Creator application date format.
-  DATE_FORMAT:"dd-MMM-yyyy",
-  // Empty = rely on Creator's actual form/report permissions. Not an authorization layer.
-  DRAWING_ALIASES: {
-    name:["Drawing_Name","Drawing_Name1","Drawing_Document_Name","Name"],
-    abbreviation:["Drawing_Abbreviation","Drawing_Abbrevation","Drawing_Abbrivation","Abbreviation","Drawing_Code"],
-    scope:["Default_Scope","Drawing_Type","Drawing_Scope","Scope"],
-    allowed:["Allowed_Scopes","Allowed_Scope"], department:["Default_Department","Design_Department"],active:["Active","Is_Active"]
-  }
+  DEMO: new URLSearchParams(location.search).get("demo") === "1",
+  LIVE_WRITES: true,
+  REPORTS: {
+    projects: "All_Projects",
+    drawings: "All_Drawing_Types",
+    equipment: "Master_Equipment_List_Subform_Report",
+    employees: "All_Employees",
+    projectDrawings: "All_Project_Drawing_Registers",
+    assignments: "All_Drawing_Assignments"
+  },
+  FORMS: {
+    projectDrawing: "Project_Drawing_Register",
+    assignment: "Drawing_Assignment"
+  },
+  PAGE_SIZE: 100,
+  MAX_BATCH: 250
 };
-const NF={master:"Drawing_Master_ID",scope:"Scope_Level",logical:"Logical_Task_Key",revisionKey:"Revision_Key"};
-const SCOPES={project:"Project",section:"Plant Section",section_type:"Plant Section Type",tag:"Tag"};
-const FILTERS={section:"Plant Section",sectionType:"Plant Section Type",department:"Department Code",group:"Group Code",category:"Equipment Category",type:"Equipment Type",subtype:"Equipment Subtype"};
-const STATUS_PROGRESS={"Not Started":0,"In Progress":10,"Submitted for Check":50,"Checking":55,"Returned":30,"Checked":60,"Submitted for Review":65,"Reviewing":70,"Reviewed":80,"Submitted for Approval":85,"Approving":90,"Approved":95,"Issued":100,"Completed":100,"On Hold":0,"Cancelled":0,"Not Required":100};
-const TRANSITIONS={"Not Started":[["Start work","In Progress"]],"In Progress":[["Submit for check","Submitted for Check"],["Put on hold","On Hold"]],"Submitted for Check":[["Begin checking","Checking"]],"Checking":[["Mark checked","Checked"],["Return","Returned"]],"Returned":[["Resume work","In Progress"]],"Checked":[["Submit for review","Submitted for Review"]],"Submitted for Review":[["Begin review","Reviewing"]],"Reviewing":[["Mark reviewed","Reviewed"],["Return","Returned"]],"Reviewed":[["Submit for approval","Submitted for Approval"]],"Submitted for Approval":[["Begin approval","Approving"]],"Approving":[["Approve","Approved"],["Return","Returned"]],"Approved":[["Issue","Issued"]],"Issued":[["Complete","Completed"]],"On Hold":[["Resume work","In Progress"]]};
-const S={demo:new URLSearchParams(location.search).get("demo")==="1",app:CONFIG.APP_NAME,user:"",projects:[],drawings:[],employees:[],equipment:[],tracking:[],project:null,drawing:null,scope:"",step:1,filters:{},activeFilters:[],search:"",page:1,selected:new Set(),targets:[],assignment:{employee:"",dates:false,start:"",end:"",priority:"Medium",remarks:"",department:""},preview:[],results:[],schema:new Map(),setupIssues:[],trackingReport:CONFIG.REPORTS.tracking,engineeringProjectReport:CONFIG.REPORTS.engineeringProjects,projectMap:null,equipmentCache:null,plantMap:new Map(),reports:[],busy:false,stop:false,logs:[],view:"plan",regSearch:"",regScope:"",regStatus:"",regMine:false,regPage:1,regSelected:new Set(),modalRecord:null,modalSnapshot:"",modalMode:"",focusBeforeModal:null,batchReassign:[],batchDefaults:null};
-const $=id=>document.getElementById(id),h=escapeHtml;
-const normalize=value=>String(value??"").trim().replace(/\s+/g," ").toLowerCase();
-const isTrue=v=>v===true||v===1||v==="true";
-function raw(row,aliases){if(!row)return undefined;for(const name of aliases||[]){if(Object.hasOwn(row,name)&&row[name]!==""&&row[name]!=null)return row[name];}const keys=new Map(Object.keys(row).map(k=>[normalizeKey(k),k]));for(const name of aliases||[]){const key=keys.get(normalizeKey(name));if(key&&row[key]!==""&&row[key]!=null)return row[key];}return undefined;}
-function pick(row,aliases,fallback=""){const value=raw(row,aliases);return value===undefined?fallback:scalarValue(value);}
-function idOf(v){if(v&&typeof v==="object")return String(v.ID??v.id??"");return String(v??"");}
-function lookupId(row,aliases){return idOf(raw(row,aliases));}
-function asList(v){if(Array.isArray(v))return v.map(scalarValue);return v?String(v).split(/[,;\n]/).map(x=>x.trim()).filter(Boolean):[];}
-function msg(error){if(typeof error==="string")return error;if(!error)return "Unknown Creator error";if(error.message)return error.message;try{return JSON.stringify(error);}catch{return String(error);}}
-function log(action,data={}){S.logs.push({time:new Date().toISOString(),action,data});if(S.logs.length>150)S.logs.shift();}
-function toast(message,error=false){const div=document.createElement("div");div.className="toast"+(error?" error":"");div.textContent=message;$("toasts").appendChild(div);setTimeout(()=>div.remove(),6500);}
-function showError(message){$("globalError").textContent=message;$("globalError").classList.toggle("hidden",!message);}
-function busy(message,sub="",batch=false){S.busy=true;$("loadingText").textContent=message;$("loadingSub").textContent=sub;$("batchProgress").classList.toggle("hidden",!batch);$("stopBatch").classList.toggle("hidden",!batch);$("stopBatch").disabled=false;$("loading").classList.remove("hidden");}
-function idle(){S.busy=false;$("loading").classList.add("hidden");}
-async function guarded(fn){if(S.busy)return;try{await fn();}catch(e){log("ERROR",{message:msg(e)});toast(msg(e),true);showError(msg(e));}finally{idle();}}
-function parseResponse(value){if(typeof value==="string"){try{return JSON.parse(value);}catch{return value;}}return value;}
-function assertResponse(response,label){const r=parseResponse(response);if(!r||typeof r!=="object")throw new Error(label+": empty or unexpected response");if(r.code!=null&&Number(r.code)!==3000)throw new Error(label+": "+msg(r));return r;}
-async function timed(promise,label,write=false){let timer;try{return await Promise.race([promise,new Promise((_,reject)=>{timer=setTimeout(()=>{const error=new Error(label+" timed out. "+(write?"Save outcome is unknown. Refresh and verify before retrying.":"Please retry the read."));error.uncertain=write;reject(error);},CONFIG.TIMEOUT_MS);})]);}finally{clearTimeout(timer);}}
-async function api(group,method,config={},write=false){log(group+"."+method,{report:config.report_name,form:config.form_name,id:config.id});return await timed(ZOHO.CREATOR[group][method]({app_name:S.app,...config}),method,write);}
-function noRecords(error){return /9280|No records found/i.test(msg(error));}
-async function fetchAll(report,criteria=""){
-  if(S.demo)return demoRead(report,criteria);
-  if(!report)throw new Error("Report link name is missing. Open Setup & diagnostics.");
-  const result=[],seen=new Set();let cursor="";
-  for(let batch=0;batch<CONFIG.MAX_BATCHES;batch++){
-    let r;try{r=assertResponse(await api("DATA","getRecords",{report_name:report,field_config:"all",max_records:1000,...(criteria?{criteria}:{}),...(cursor?{record_cursor:cursor}:{})}),report);}catch(e){if(noRecords(e))return result;throw e;}
-    const rows=Array.isArray(r.data)?r.data:[];result.push(...rows);
-    cursor=r.record_cursor||r.cursor||r.headers?.record_cursor||r.headers?.["record-cursor"]||"";
-    if(!cursor||!rows.length)return result;
-    if(seen.has(cursor))throw new Error(report+": repeated record cursor. Stopped rather than using an incomplete list.");seen.add(cursor);
-  }
-  throw new Error(report+": maximum page limit reached. Narrow the server criteria; no partial results will be used.");
-}
-function extractSavedId(response,label){const r=assertResponse(response,label);let entry=r;if(Array.isArray(r.result)){if(r.result.length!==1)throw new Error(label+": unexpected number of save results");entry=assertResponse(r.result[0],label);}const data=Array.isArray(entry.data)?entry.data[0]:entry.data;const id=idOf(data);if(!id){const e=new Error(label+": no saved record ID returned. Refresh to verify the outcome.");e.uncertain=true;throw e;}return id;}
-async function addRecord(payload){const data=validatePayload(payload,false);if(S.demo){const record={ID:"DT"+Date.now()+Math.floor(Math.random()*100000),...data,Added_Time:toCreatorDateTime(),Modified_Time:toCreatorDateTime(),Added_User:S.user,Modified_User:S.user};if(DEMO.tracking.some(r=>r[NF.revisionKey]===record[NF.revisionKey]))throw new Error("Duplicate Revision_Key");DEMO.tracking.push(record);return record;}
-  const id=extractSavedId(await api("DATA","addRecords",{form_name:CONFIG.TRACKING_FORM,payload:{data}},true),"Add drawing");return {ID:id,...data};}
-async function updateRecord(id,payload){const data=validatePayload(payload,true);if(S.demo){const r=DEMO.tracking.find(r=>idOf(r)===String(id));if(!r)throw new Error("Record no longer exists");Object.assign(r,data,{Modified_Time:toCreatorDateTime(),Modified_User:S.user});return {...r};}
-  assertResponse(await api("DATA","updateRecordById",{report_name:S.trackingReport,id:String(id),payload:{data}},true),"Update drawing");return null;}
-async function getRecord(id){if(S.demo){const r=DEMO.tracking.find(r=>idOf(r)===String(id));if(!r)throw new Error("Record not found");return {...r};}const r=assertResponse(await api("DATA","getRecordById",{report_name:S.trackingReport,id:String(id),field_config:"all"}),"Read drawing");return Array.isArray(r.data)?r.data[0]:r.data;}
-function normalizeScope(value){const v=normalizeKey(scalarValue(value));const map={project:"project",projectcode:"project",projectwise:"project",section:"section",plantsection:"section",projectcodeplantsection:"section",projectplantsection:"section",sectionwise:"section",sectiontype:"section_type",plantsectiontype:"section_type",projectcodeplantsectionplantsectiontype:"section_type",projectplantsectionplantsectiontype:"section_type",projectcodeplantsectionsectiontype:"section_type",tag:"tag",tagnumber:"tag",tagno:"tag",tagwise:"tag",projectcodeplantsectiontagno:"tag",projectcodeplantsectiontagnumber:"tag",projectplantsectiontagno:"tag",projectcodeplantsectionplantsectiontypetagno:"tag"};return map[v]||"";}
-function adaptDrawing(r){const a=CONFIG.DRAWING_ALIASES;const requested=asList(raw(r,a.allowed));const allowed=requested.length?[...new Set(requested.map(normalizeScope).filter(Boolean))]:Object.keys(SCOPES);return {raw:r,id:idOf(r),name:pick(r,a.name),abbr:pick(r,a.abbreviation),defaultScope:normalizeScope(raw(r,a.scope)),rawScope:pick(r,a.scope),allowed,invalidAllowed:requested.length>0&&requested.some(v=>!normalizeScope(v)),department:pick(r,a.department)};}
-function adaptProject(r){return {raw:r,id:idOf(r),code:pick(r,FIELD_ALIASES.projects.code),customer:pick(r,FIELD_ALIASES.projects.customer),description:pick(r,FIELD_ALIASES.projects.description)};}
-function adaptEmployee(r){return {raw:r,id:idOf(r),name:pick(r,FIELD_ALIASES.employees.name),email:pick(r,FIELD_ALIASES.employees.email),department:pick(r,FIELD_ALIASES.employees.department)};}
-function adaptEquipment(r){const a=FIELD_ALIASES.equipment;const plantType=pick(r,a.plantType);return {raw:r,id:idOf(r),projectCode:pick(r,a.projectCode),plantSection:pick(r,a.plantSection)||S.plantMap.get(normalize(plantType))||"",plantType,tag:pick(r,a.tag),name:pick(r,a.name),group:pick(r,a.groupCode),department:pick(r,a.department),category:pick(r,a.category),type:pick(r,a.type),subtype:pick(r,a.subtype),pdsName:pick(r,a.pdsName),sectionRef:pick(r,a.sectionRef)};}
-function resolveReport(candidates){for(const name of candidates){const match=S.reports.find(r=>normalizeKey(r.link_name)===normalizeKey(name));if(match)return match.link_name;}return "";}
-function choices(meta){return Array.isArray(meta?.choices)?meta.choices.map(v=>scalarValue(v?.value??v?.key??v)).filter(Boolean):[];}
-function schemaCheck(){const problems=[];if(!S.trackingReport)problems.push("Set CONFIG.REPORTS.tracking to the report for Design_Tracking.");if(!S.schema.size)problems.push("Design_Tracking metadata is unavailable; ask the app administrator to check form access.");
- for(const [key,field] of Object.entries(NF)){const m=S.schema.get(field);if(!m){problems.push("Add "+field+" to Design_Tracking (see setup file).");continue;}if(key!=="scope"&&Number(m.type)!==1)problems.push(field+" must be a Single Line field.");if(key==="scope"&&![1,12,13].includes(Number(m.type)))problems.push("Scope_Level must be Single Line or a non-lookup dropdown.");if(key==="scope"&&isTrue(m.is_lookup_field))problems.push("Scope_Level must not be a lookup.");if(key==="scope"&&Number(m.type)!==1&&Object.values(SCOPES).some(v=>!choices(m).includes(v)))problems.push("Scope_Level must allow: "+Object.values(SCOPES).join(", "));
- if(key==="revisionKey"&&!isTrue(m.unique))problems.push("Enable No duplicate values on Revision_Key before saving.");}
- for(const f of [F.projectCode,F.equipmentRecordId,F.designType]){const m=S.schema.get(f);if(!m||Number(m.type)!==1)problems.push(f+" must be a Single Line field for this planner.");}
- if(!S.schema.has(F.assignedTo))problems.push("Assigned_To field is missing.");
- S.setupIssues=problems;$("setupBanner").classList.toggle("hidden",!problems.length);$("setupBanner").innerHTML=problems.length?'<strong>Preview is available. Saving is locked until setup is complete.</strong> '+h(problems[0])+' <button data-action="setup" class="linkbtn">View setup</button>':"";
-}
-function assertWritable(){if(S.setupIssues.length)throw new Error("Setup required: "+S.setupIssues.join(" "));}
-function validatePayload(payload,update){assertWritable();const out={};for(const [key,value] of Object.entries(payload)){const meta=S.schema.get(key);if(!meta){if(Object.values(NF).includes(key))throw new Error("Missing "+key);continue;}if(value===undefined||value===null||(!update&&value===""))continue;const t=Number(meta.type);if([9,20,24].includes(t))continue;if([12,13].includes(t)&&!isTrue(meta.is_lookup_field)&&value!==""){const allowed=choices(meta);if(allowed.length&&!allowed.includes(String(value)))throw new Error((meta.display_name||key)+' does not allow "'+value+'". Check the Creator field choices.');}if(t===1&&String(value).length>Number(meta.max_char??meta.max_length??255))throw new Error(key+" exceeds the field length.");out[key]=value;}return out;}
-function personValue(field,employee){if(!employee)return "";const meta=S.schema.get(field);if(isTrue(meta?.is_lookup_field))return employee.id;if(!employee.email)throw new Error(employee.name+" has no email in the employee report. An email is required by "+field+".");return employee.email;}
-function employeeForField(value){const id=idOf(value),text=normalize(scalarValue(value));return S.employees.find(e=>e.id===id||normalize(e.email)===text)||null;}
-function ownerLabel(record){return pick(record,[F.assignedEmployeeName])||employeeForField(record[F.assignedTo])?.name||scalarValue(record[F.assignedTo])||"Unassigned";}
-async function loadTracking(){if(!S.project)return [];const rows=await fetchAll(S.trackingReport,`${F.projectCode} == "${criteriaText(S.project.code)}"`);S.tracking=rows.filter(r=>!scalarValue(r[F.designTitle]).startsWith("__WORK_PACKAGE__::"));return S.tracking;}
-async function loadEquipment(project){if(S.demo)return DEMO.equipment.filter(r=>r.Project_Code===project.code).map(adaptEquipment);
- if(!S.projectMap){S.projectMap=new Map();if(S.engineeringProjectReport){const rows=await fetchAll(S.engineeringProjectReport);for(const r of rows){const code=pick(r,FIELD_ALIASES.projects.code).trim();if(!code)continue;if(S.projectMap.has(code)&&S.projectMap.get(code)!==idOf(r))throw new Error("Engineering project code "+code+" is duplicated. Resolve the master before continuing.");S.projectMap.set(code,idOf(r));}}}
- const legacyID=S.projectMap.get(project.code);let rows;
- if(legacyID){rows=await fetchAll(CONFIG.REPORTS.equipment,'Project_Code == '+legacyID);log("Equipment lookup resolved",{code:project.code,lookupId:legacyID,count:rows.length});}
- else{if(!S.equipmentCache)S.equipmentCache=await fetchAll(CONFIG.REPORTS.equipment);rows=S.equipmentCache.filter(r=>FIELD_ALIASES.equipment.projectCode.some(k=>Object.hasOwn(r,k)&&valueContainsExactCode(r[k],project.code)));log("Equipment fallback: exact project display code",{code:project.code,count:rows.length});}
- const map=new Map();rows.map(adaptEquipment).filter(e=>e.id&&(e.tag||e.name)).forEach(e=>map.set(e.id,e));return [...map.values()].sort((a,b)=>a.tag.localeCompare(b.tag,undefined,{numeric:true}));
-}
-async function loadProject(id){const p=S.projects.find(p=>p.id===id);S.project=p||null;S.equipment=[];S.tracking=[];S.regSelected.clear();resetTargets();S.preview=[];if(!p)return;busy("Loading project "+p.code,"Reading this project's equipment and current drawing records.");const eq=await loadEquipment(p);let rows=[];if(S.trackingReport)rows=await loadTracking();S.equipment=eq;S.tracking=rows;log("Project ready",{code:p.code,equipment:eq.length,tracking:rows.length});idle();}
-async function bootstrap(){busy("Loading projects and drawing master...");showError("");try{
- if(S.demo){S.user="demo.user@example.com";S.trackingReport="Design_Tracking_Report";S.schema=demoSchema();$("demoBanner").classList.remove("hidden");S.projects=DEMO.projects.map(adaptProject);S.drawings=DEMO.drawings.map(adaptDrawing);S.employees=DEMO.employees.map(adaptEmployee);}
- else{if(!window.ZOHO?.CREATOR)throw new Error("Open this widget inside Zoho Creator. For an offline UI preview, append ?demo=1 to the HTML URL.");const init=await timed(ZOHO.CREATOR.UTIL.getInitParams(),"Creator session detection");S.user=scalarValue(init.loginUser);S.app=init.appLinkName||CONFIG.APP_NAME;
- try{const response=assertResponse(await api("META","getReports"),"Get reports");S.reports=response.reports||[];}catch(e){log("Report metadata unavailable",{error:msg(e)});}
- S.trackingReport=CONFIG.REPORTS.tracking||resolveReport(CONFIG.TRACKING_REPORT_CANDIDATES);S.engineeringProjectReport=CONFIG.REPORTS.engineeringProjects||resolveReport(CONFIG.ENGINEERING_PROJECT_CANDIDATES);
- const [projects,drawings,employees]=await Promise.all([fetchAll(CONFIG.REPORTS.projects),fetchAll(CONFIG.REPORTS.drawings),fetchAll(CONFIG.REPORTS.employees)]);
- S.projects=projects.map(adaptProject).filter(p=>p.id&&p.code);S.drawings=drawings.filter(r=>!([false,"false","No","Inactive"].includes(raw(r,CONFIG.DRAWING_ALIASES.active)))).map(adaptDrawing).filter(d=>d.id&&d.name);S.employees=employees.map(adaptEmployee).filter(e=>e.id&&(e.name||e.email));
- log("Master field samples",{drawings:drawings[0]?Object.keys(drawings[0]):[],employees:employees[0]?Object.keys(employees[0]):[]});
- if(drawings.length&&!S.drawings.length)throw new Error("Drawing records were returned, but Drawing Name could not be mapped. Check CONFIG.DRAWING_ALIASES against the actual field link names.");
- try{const meta=assertResponse(await api("META","getFields",{form_name:CONFIG.TRACKING_FORM}),"Get tracking fields");S.schema=new Map((meta.fields||[]).map(f=>[f.link_name,f]));}catch(e){log("Tracking schema unavailable",{error:msg(e)});}
- try{const rows=await fetchAll(CONFIG.REPORTS.plantSections);const candidates=new Map();for(const r of rows){const t=pick(r,FIELD_ALIASES.plantSections.type),sec=pick(r,FIELD_ALIASES.plantSections.section);if(t&&sec){const key=normalize(t);if(!candidates.has(key))candidates.set(key,new Set());candidates.get(key).add(sec);}}for(const [k,v] of candidates)if(v.size===1)S.plantMap.set(k,[...v][0]);}catch(e){log("Optional section master unavailable",{error:msg(e)});}
- }
- S.projects.sort((a,b)=>b.code.localeCompare(a.code,undefined,{numeric:true}));S.drawings.sort((a,b)=>a.name.localeCompare(b.name));S.employees.sort((a,b)=>a.name.localeCompare(b.name));schemaCheck();$("session").textContent=S.demo?"Demo preview":(S.user||"Creator connected");render();
- }catch(e){showError(msg(e));$("session").textContent="Connection / configuration check needed";render();}finally{idle();}}
 
-// TARGET ENGINE: the chosen scope is stored on each task; it is not derived again on reload.
-function resetTargets(){S.selected.clear();S.targets=[];S.filters={};S.activeFilters=[];S.search="";S.page=1;S.preview=[];S.results=[];}
-function setDrawing(id){S.drawing=S.drawings.find(d=>d.id===id)||null;S.scope=S.drawing&&S.drawing.allowed.includes(S.drawing.defaultScope)?S.drawing.defaultScope:"";S.assignment.department=S.drawing?.department||"";resetTargets();}
-function filterValue(e,key){return key==="section"?e.plantSection:key==="sectionType"?JSON.stringify([e.plantSection,e.plantType]):e[key]||"";}
-function equipmentFiltered(ignoreKey=""){return S.equipment.filter(e=>S.activeFilters.every(key=>key===ignoreKey||!S.filters[key]||filterValue(e,key)===S.filters[key]));}
-function targetKey(scope,{section="",sectionType="",id=""}={}){return JSON.stringify([scope,...(scope==="project"?[]:scope==="section"?[section]:scope==="section_type"?[section,sectionType]:[id])]);}
-function projectTarget(){return {key:targetKey("project"),scope:"project",id:"GENERAL",section:"",sectionType:"",tag:"GENERAL",label:"Entire project "+S.project.code,subtitle:S.project.customer||S.project.description||"One shared drawing for this project"};}
-function targetsNow(){if(!S.project||!S.scope)return [];if(S.scope==="project")return [projectTarget()];const eq=equipmentFiltered(),map=new Map();for(const e of eq){let t;
- if(S.scope==="section"){if(!e.plantSection)continue;t={scope:"section",id:"SECTION",section:e.plantSection,sectionType:"",tag:"SECTION",label:e.plantSection,subtitle:"Shared by the whole plant section"};}
- else if(S.scope==="section_type"){if(!e.plantSection||!e.plantType)continue;t={scope:"section_type",id:"SECTION_TYPE",section:e.plantSection,sectionType:e.plantType,tag:"SECTION_TYPE",label:e.plantType,subtitle:e.plantSection};}
- else{t={scope:"tag",id:e.id,section:e.plantSection,sectionType:e.plantType,tag:e.tag,label:e.tag||e.name,subtitle:e.name,equipment:e};}
- t.key=targetKey(t.scope,t);if(!map.has(t.key))map.set(t.key,{...t,matchingEquipment:0});map.get(t.key).matchingEquipment++;}
- const terms=normalize(S.search).split(" ").filter(Boolean);return [...map.values()].filter(t=>terms.every(term=>normalize([t.label,t.subtitle,t.section,t.sectionType,t.equipment?.department].join(" ")).includes(term))).sort((a,b)=>a.label.localeCompare(b.label,undefined,{numeric:true}));}
-function recordScope(r){return normalizeScope(r[NF.scope])||(scalarValue(r[F.equipmentRecordId])==="GENERAL"||scalarValue(r[F.tagNumber])==="GENERAL"?"project":scalarValue(r[F.equipmentRecordId])==="SECTION_TYPE"||scalarValue(r[F.tagNumber])==="SECTION_TYPE"?"section_type":scalarValue(r[F.equipmentRecordId])==="SECTION"||scalarValue(r[F.tagNumber])==="SECTION"?"section":"tag");}
-function recordTarget(r){const scope=recordScope(r),id=scalarValue(r[F.equipmentRecordId]),section=scalarValue(r[F.plantSectionName]),sectionType=scalarValue(r[F.plantSectionType]),tag=scalarValue(r[F.tagNumber]);return {scope,id,section,sectionType,tag,key:targetKey(scope,{section,sectionType,id}),label:scope==="project"?"Entire project "+scalarValue(r[F.projectCode]):scope==="section"?section:scope==="section_type"?sectionType:tag,subtitle:scope==="tag"?scalarValue(r[F.equipmentName]):scope==="section_type"?section:""};}
-function recordType(r){return scalarValue(r[F.designType])||S.drawings.find(d=>d.id===scalarValue(r[NF.master]))?.name||scalarValue(r[F.designTitle])||"Unnamed drawing";}
-function revNum(r){return Number(String(typeof r==="object"?r[F.revision]:r||"R0").match(/\d+/)?.[0]||0);}
-function newer(a,b){const d=revNum(a)-revNum(b);if(d)return d>0;const aDate=Date.parse(scalarValue(a.Modified_Time)),bDate=Date.parse(scalarValue(b.Modified_Time));if(Number.isFinite(aDate)&&Number.isFinite(bDate)&&aDate!==bDate)return aDate>bDate;return idOf(a).localeCompare(idOf(b),undefined,{numeric:true})>0;}
-function groupKey(r){return scalarValue(r[NF.logical])||JSON.stringify([scalarValue(r[F.projectCode]),recordTarget(r).key,recordType(r),scalarValue(r[F.designDepartment])]);}
-function currentRecords(){const map=new Map();for(const r of S.tracking){const key=groupKey(r),old=map.get(key);if(!old||newer(r,old))map.set(key,r);}return [...map.values()];}
-function revisionsOf(r){return S.tracking.filter(x=>groupKey(x)===groupKey(r)).sort((a,b)=>newer(a,b)?-1:1);}
-function sameTarget(r,t){if(recordScope(r)!==t.scope)return false;if(t.scope==="project")return true;if(t.scope==="tag"&&scalarValue(r[F.equipmentRecordId]))return scalarValue(r[F.equipmentRecordId])===t.id;if(scalarValue(r[F.plantSectionName])!==t.section)return false;if(t.scope==="section")return true;if(t.scope==="section_type")return scalarValue(r[F.plantSectionType])===t.sectionType;const rid=scalarValue(r[F.equipmentRecordId]);if(rid)return rid===t.id;return scalarValue(r[F.tagNumber])===t.tag&&scalarValue(r[F.plantSectionType])===t.sectionType;}
-function existingFor(t,d=S.drawing){if(!d)return null;return S.tracking.filter(r=>{const master=scalarValue(r[NF.master]);return (master?master===d.id:normalize(recordType(r))===normalize(d.name))&&sameTarget(r,t);}).reduce((best,r)=>!best||newer(r,best)?r:best,null);}
-function selectedTargets(){const keys=S.selected;return S.targets.filter(t=>keys.has(t.key));}
-async function logicalKey(d,t){if(!crypto.subtle)throw new Error("Secure browser hashing is unavailable. Serve this widget over HTTPS or localhost.");const bytes=new TextEncoder().encode(JSON.stringify(["V14",S.project.code,d.id,t.key]));const hash=await crypto.subtle.digest("SHA-256",bytes);return "EDC14_"+[...new Uint8Array(hash)].map(b=>b.toString(16).padStart(2,"0")).join("");}
-function isFrozen(r){return ["Approved","Issued","Completed","Cancelled","Not Required"].includes(scalarValue(r[F.status]));}
-function overdue(r){const date=toInputDate(r[F.plannedEnd]);return date&&!isFrozen(r)&&new Date(date+"T23:59:59").getTime()<Date.now();}
-function statusPill(status){const klass=["Completed","Issued","Approved"].includes(status)?"green":status==="Returned"||status==="On Hold"?"amber":"gray";return '<span class="pill '+klass+'">'+h(status||"Not Started")+'</span>';}
-function options(items,value,placeholder="Select..."){return '<option value="">'+h(placeholder)+'</option>'+items.map(([id,label])=>'<option value="'+h(id)+'" '+(String(id)===String(value)?"selected":"")+'>'+h(label)+'</option>').join("");}
-function employeeOptions(value){return options(S.employees.map(e=>[e.id,(e.name||e.email)+(e.department?" - "+e.department:"")]),value,"Select team member...");}
-function dateFields(prefix,start="",end=""){return '<div class="grid"><div class="field"><label for="'+prefix+'Start">Planned start</label><input id="'+prefix+'Start" type="date" value="'+h(start)+'"></div><div class="field"><label for="'+prefix+'End">Target / planned end date</label><input id="'+prefix+'End" type="date" value="'+h(end)+'"><div class="hint">Uses your existing Planned_End_Date field.</div></div></div>';}
-function step1(){return '<div class="grid"><div class="field"><label for="projectInput">Project Code <span class="muted">*</span></label><select id="projectInput">'+options(S.projects.map(p=>[p.id,p.code+(p.customer?" - "+p.customer:"")]),S.project?.id,"Select a project...")+'</select><div class="hint">Only records from this project will be used.</div></div><div class="field"><label for="drawingInput">Drawing / Document <span class="muted">*</span></label><select id="drawingInput" '+(!S.project?"disabled":"")+'>'+options(S.drawings.map(d=>[d.id,d.name+(d.abbr?" - "+d.abbr:"")]),S.drawing?.id,"Select from Drawing Master...")+'</select><div class="hint">Live source: '+h(CONFIG.REPORTS.drawings)+'. No separate coded drawing list.</div></div></div>'+(S.drawing?'<div class="scope-card"><div class="upper muted">SELECTED FROM YOUR MASTER</div><div class="big">'+h(S.drawing.name)+'</div><div class="chips"><span class="chip">'+h(S.drawing.abbr||"No abbreviation")+'</span><span class="chip">Default: '+h(SCOPES[S.drawing.defaultScope]||"Not configured")+'</span></div><p class="small muted mt">'+(S.drawing.defaultScope?'The next step will use this default. You can change it to another allowed level.':'This master row has no recognized default scope. Choose the level in the next step; nothing will be guessed.')+'</p></div>':'<div class="empty"><strong>Start with the drawing, not a tag.</strong>Project, section and tag options will appear only when they are relevant.</div>');}
-function step2(){const d=S.drawing;const descriptions={project:"One shared record for the entire selected project. No section or tag copies.",section:"One record per selected plant section. Every tag in a selected section refers to the same section-level requirement.",section_type:"One record per selected Plant Section + Plant Section Type combination. Identically named types under different sections stay separate.",tag:"One independent record per selected equipment record / tag. You can choose 10 tags and assign them together."};return '<div class="grid"><div class="field"><label for="scopeInput">Apply this drawing at <span class="muted">*</span></label><select id="scopeInput">'+options(d.allowed.map(s=>[s,SCOPES[s]]),S.scope,"Choose an applicable level...")+'</select><div class="hint">Drawing Master default: '+h(SCOPES[d.defaultScope]||"Not set")+'</div></div></div>'+(d.invalidAllowed?'<div class="notice error mt">An Allowed Scopes value in the master is not recognized. Correct the master before continuing.</div>':'')+(S.scope?'<div class="scope-card"><div class="upper muted">'+h(SCOPES[S.scope])+'-LEVEL DRAWING</div><div class="big">'+h(d.abbr||d.name)+'</div><p>'+h(descriptions[S.scope])+'</p><p class="hint mt">Department Code is an optional equipment filter, not another copy of the drawing.</p></div>':'<div class="notice warn mt">Select the scope explicitly because this drawing has no usable default.</div>');}
-function filterOptions(key){const map=new Map();for(const e of equipmentFiltered(key)){const value=filterValue(e,key);if(!value)continue;if(key==="sectionType"&&(!e.plantType||!e.plantSection))continue;map.set(value,key==="sectionType"?e.plantSection+" / "+e.plantType:value);}return [...map].sort((a,b)=>a[1].localeCompare(b[1]));}
-function filtersHtml(){return S.activeFilters.map(key=>'<div class="field"><div class="filter-label"><label for="filter_'+key+'">'+h(FILTERS[key])+'</label><button class="linkbtn" data-action="remove-filter" data-key="'+key+'">Remove</button></div><select id="filter_'+key+'" data-filter="'+key+'">'+options(filterOptions(key),S.filters[key],"All matching "+FILTERS[key].toLowerCase()+" values")+'</select></div>').join("");}
-function step3(){S.targets=targetsNow();if(S.scope==="project"){S.selected=new Set(S.targets.map(t=>t.key));return '<div class="scope-card"><div class="upper muted">ENTIRE PROJECT</div><div class="big">'+h(S.project.code)+'</div><p>'+h(S.drawing.name)+' will be tracked once for this project.</p><div class="chips"><span class="pill">1 target</span><span class="pill gray">No tag selection required</span></div></div>'+(existingFor(S.targets[0])?'<div class="notice warn mt">This drawing already exists at project level. The preview will skip it. Use Drawing register to reassign or open it.</div>':'');}
- return '<div class="filterbar"><input class="search" id="targetSearch" type="search" placeholder="Search '+h(SCOPES[S.scope].toLowerCase())+' or equipment name..." value="'+h(S.search)+'" aria-label="Search targets"><select id="addFilter" aria-label="Add a filter">'+options(Object.entries(FILTERS).filter(([k])=>!S.activeFilters.includes(k)),"","+ Add filter (optional)")+'</select></div><div id="filterFields" class="filters">'+filtersHtml()+'</div><div class="hint mt">Filters appear only when you add them. Changing a filter or search clears the selection to prevent accidental assignment.</div><div id="targetsArea"></div>';}
-function renderTargetsTable(){if(!$("targetsArea"))return;const previousScroll=$("targetsArea").querySelector(".table-wrap")?.scrollTop||0;S.targets=targetsNow();const eligible=S.targets.filter(t=>!existingFor(t));const pages=Math.max(1,Math.ceil(S.targets.length/CONFIG.PAGE_SIZE));S.page=Math.min(S.page,pages);const rows=S.targets.slice((S.page-1)*CONFIG.PAGE_SIZE,S.page*CONFIG.PAGE_SIZE);const chosen=selectedTargets().length;$("targetsArea").innerHTML='<div class="selectionbar"><div><strong>'+chosen+' selected</strong><span class="muted small"> / '+S.targets.length+' matching '+(S.scope==="tag"?"tags":"targets")+' &middot; '+(S.targets.length-eligible.length)+' already planned</span></div><div class="actions"><button class="btn small" data-action="select-ten">Select next 10</button><button class="btn small" data-action="select-page">Select page</button><button class="btn small soft" data-action="select-all">Select all '+eligible.length+' new targets</button><button class="linkbtn" data-action="clear-targets">Clear</button></div></div><div class="table-wrap"><table><thead><tr><th class="checkcol">Pick</th><th>'+h(SCOPES[S.scope])+'</th><th>Plant section / type</th><th>'+(S.scope==="tag"?"Department / group":"Matching equipment")+'</th><th>Planning status</th></tr></thead><tbody>'+rows.map(t=>{const existing=existingFor(t);return '<tr class="'+(S.selected.has(t.key)?"selected":"")+'"><td><input type="checkbox" data-target="'+h(t.key)+'" aria-label="Select '+h(t.label)+'" '+(S.selected.has(t.key)?"checked ":"")+(existing?"disabled":"")+'></td><td><div class="primary-text">'+h(t.label)+'</div><div class="secondary-text">'+h(t.subtitle)+'</div></td><td>'+h(t.section||"-")+'<div class="secondary-text">'+h(t.sectionType||"")+'</div></td><td>'+h(t.equipment?.department||t.matchingEquipment||"-")+'<div class="secondary-text">'+h(t.equipment?.group||"")+'</div></td><td>'+ (existing?'<span class="pill gray">Already planned</span><div class="secondary-text">'+h(ownerLabel(existing))+'</div>':'<span class="pill green">New target</span>')+'</td></tr>';}).join("")+(rows.length?"":'<tr><td colspan="5"><div class="empty"><strong>No matching targets</strong>Remove a filter or check the project equipment data. Nothing will be created from an empty list.</div></td></tr>')+'</tbody></table></div><div class="pagination"><span>'+S.targets.length+' targets &middot; Page '+S.page+' of '+pages+'</span><div class="actions"><button class="btn small" data-action="page-prev" '+(S.page===1?"disabled":"")+'>Previous</button><button class="btn small" data-action="page-next" '+(S.page===pages?"disabled":"")+'>Next</button></div></div>'+(S.scope!=="tag"?'<div class="notice mt">The filters select which sections/types are included. A generated section-level drawing still applies to that entire section, not only the equipment used to find it.</div>':'');$("targetsArea").querySelector(".table-wrap").scrollTop=previousScroll;updateNext();}
-function departmentOptions(value){const vals=choices(S.schema.get(F.designDepartment));if(value&&!vals.includes(value))vals.unshift(value);return options(vals.map(v=>[v,v]),value,"No design team selected");}
-function step4(){const a=S.assignment;return '<div class="notice good mb"><strong>'+selectedTargets().length+' selected '+(S.scope==="tag"?"tags":"targets")+'</strong> will receive '+h(S.drawing.name)+'. Existing requirements will be skipped, not reassigned.</div><div class="grid"><div class="field"><label for="assignEmployee">Assign all selected targets to <span class="muted">*</span></label><select id="assignEmployee">'+employeeOptions(a.employee)+'</select><div class="actions"><button class="linkbtn" data-action="assign-me">Assign to me</button></div></div><div class="field"><label for="assignPriority">Priority</label><select id="assignPriority">'+options(["Low","Medium","High","Critical"].map(x=>[x,x]),a.priority,"Select priority...")+'</select></div></div><label class="checkline mt"><input id="assignDates" type="checkbox" '+(a.dates?"checked":"")+'> Set common start and target dates</label><div id="assignmentDates" class="mt '+(a.dates?"":"hidden")+'">'+dateFields("assign",a.start,a.end)+'</div><details><summary>Additional details (optional)</summary><div class="inside grid"><div class="field"><label for="assignDepartment">Design team</label><select id="assignDepartment">'+departmentOptions(a.department)+'</select><div class="hint">Separate from the equipment Department Code filter.</div></div><div class="field span"><label for="assignRemarks">Common remarks</label><textarea id="assignRemarks" placeholder="Add instructions for these selected targets...">'+h(a.remarks)+'</textarea></div></div></details><div class="notice mt">For example: select 10 tags, choose Kunal and save. Then choose another set of tags and assign them to Ram. Each tag keeps its own drawing task.</div>';}
-function collectAssignment(){const a=S.assignment;if(!$("assignEmployee"))return;a.employee=$("assignEmployee").value;a.priority=$("assignPriority").value||"Medium";a.dates=$("assignDates").checked;a.start=$("assignStart").value;a.end=$("assignEnd").value;a.department=$("assignDepartment").value;a.remarks=$("assignRemarks").value.trim();}
-function validateDates(start,end){if(start&&end&&end<start)throw new Error("Target date cannot be earlier than planned start.");}
-function previewTable(rows){return '<div class="table-wrap"><table><thead><tr><th>Target</th><th>Drawing</th><th>Assignee</th><th>Action</th></tr></thead><tbody>'+rows.slice(0,250).map(r=>'<tr><td><strong>'+h(r.target.label)+'</strong><div class="secondary-text">'+h([r.target.section,r.target.sectionType].filter(Boolean).join(" / "))+'</div></td><td>'+h(S.drawing.name)+'</td><td>'+h(r.existing?ownerLabel(r.existing):S.employees.find(e=>e.id===S.assignment.employee)?.name||"")+'</td><td><span class="pill '+(r.existing?"gray":"green")+'">'+(r.existing?"Skip - already exists":"Create and assign")+'</span></td></tr>').join("")+'</tbody></table></div>'+(rows.length>250?'<p class="hint mt">First 250 rows shown. The confirmed batch includes all '+rows.length+' reviewed targets.</p>':"");}
-function step5(){if(S.results.length)return resultHtml();const total=S.preview.length,skipped=S.preview.filter(x=>x.existing).length;return '<div class="metric-grid"><div class="metric"><div class="n">'+total+'</div><div class="label">Selected targets</div></div><div class="metric"><div class="n">'+(total-skipped)+'</div><div class="label">New drawing tasks</div></div><div class="metric"><div class="n">'+skipped+'</div><div class="label">Existing tasks skipped</div></div></div><div class="notice mb"><strong>'+h(S.project.code)+' / '+h(S.drawing.name)+' / '+h(SCOPES[S.scope])+'</strong><br>'+h(S.assignment.dates?"Dates: "+(S.assignment.start||"not set")+" to "+(S.assignment.end||"not set"):"No dates supplied")+'. This batch uses the current selected targets only; newly added equipment is not included automatically.</div>'+previewTable(S.preview)+'<label class="checkline mt"><input id="confirmCreate" type="checkbox"> I reviewed these targets and approve creating the new drawing tasks.</label>';}
-function resultHtml(){const counts={};for(const r of S.results)counts[r.outcome]=(counts[r.outcome]||0)+1;return '<div class="notice '+(counts.failed||counts.unknown?"warn":"good")+' mb"><div class="result-title">Batch results</div><p>'+h(Object.entries(counts).map(([k,v])=>v+" "+k).join(" | "))+'</p><p class="small">Successful changes are saved individually. A failed or stopped record does not undo earlier successes.</p></div><div class="actions mb"><button class="btn soft" data-action="export-results">Export results CSV</button><button class="btn" data-action="go-register">Open drawing register</button><button class="btn primary" data-action="plan-more">Assign another set</button></div><div class="batch-result table-wrap"><table><thead><tr><th>Target</th><th>Outcome</th><th>Details</th></tr></thead><tbody>'+S.results.map(r=>'<tr><td>'+h(r.target)+'</td><td>'+h(r.outcome)+'</td><td>'+h(r.message||r.id||"")+'</td></tr>').join("")+'</tbody></table></div>';}
-const STEPS=[{name:"Project & drawing",title:"Start with your project and drawing.",description:"Choose the project first, then select a drawing from your existing Drawing Master."},{name:"Applicable level",title:"Where does this drawing apply?",description:"Use the master's default or select another allowed level. The chosen level is saved with the drawing."},{name:"Select targets",title:"Choose only the targets you need.",description:"Add filters as needed. Select a few targets, the next 10, or all matching targets."},{name:"Bulk assignment",title:"Assign the selected work together.",description:"Choose one team member and optional common dates. Every selected target remains an independent task."},{name:"Review & save",title:"Review before creating records.",description:"No records are written until you confirm this batch. Existing drawing requirements are not overwritten."}];
-function updateNext(){if($("railSelectedCount"))$("railSelectedCount").textContent=String(S.selected.size);let valid=true;if(S.step===1)valid=Boolean(S.project&&S.drawing);if(S.step===2)valid=Boolean(S.scope&&!S.drawing?.invalidAllowed);if(S.step===3)valid=selectedTargets().length>0;if(S.step===4)valid=Boolean(S.assignment.employee||$("assignEmployee")?.value);if(S.step===5)valid=!S.results.length&&S.preview.some(x=>!x.existing)&&Boolean($("confirmCreate")?.checked)&&!S.setupIssues.length;$("next").disabled=!valid;}
-function render(){const current=STEPS[S.step-1];$("planner").classList.toggle("hidden",S.view!=="plan");$("register").classList.toggle("hidden",S.view!=="register");$("navPlan").classList.toggle("active",S.view==="plan");$("navRegister").classList.toggle("active",S.view==="register");if(S.view==="register"){renderRegister();return;}
- $("stepNav").innerHTML=STEPS.map((s,i)=>'<div class="step-item '+(S.step===i+1?"active":S.step>i+1?"done":"")+'" '+(S.step===i+1?'aria-current="step"':"")+'><span class="step-num">'+(S.step>i+1?"&#10003;":i+1)+'</span><span>'+h(s.name)+'</span></div>').join("");
- $("railSummary").innerHTML='<span class="muted">Project</span><strong>'+h(S.project?.code||"Not selected")+'</strong><span class="muted">Drawing</span><strong>'+h(S.drawing?.name||"Not selected")+'</strong><span class="muted">Applicable level</span><strong>'+h(SCOPES[S.scope]||"Not selected")+'</strong><span class="muted">Selected targets</span><strong id="railSelectedCount">'+S.selected.size+'</strong>';
- $("stepKicker").textContent="STEP "+S.step+" OF 5";$("stepTitle").textContent=current.title;$("stepDescription").textContent=current.description;$("stepBody").innerHTML=[step1,step2,step3,step4,step5][S.step-1]();$("back").disabled=S.step===1||Boolean(S.results.length);$("next").textContent=S.step===4?"Preview assignments":S.step===5?"Create & assign "+S.preview.filter(x=>!x.existing).length+" tasks":"Continue";$("next").classList.toggle("hidden",Boolean(S.results.length));$("stepFootnote").textContent=S.step===5?"Nothing is changed without confirmation":"Your selection is not saved yet";if(S.step===3)renderTargetsTable();updateNext();}
-
-async function buildPayload(t,d=S.drawing,a=S.assignment){const employee=S.employees.find(e=>e.id===a.employee);if(!employee)throw new Error("Choose an employee from the existing employee report.");if(a.dates)validateDates(a.start,a.end);const logical=await logicalKey(d,t);const e=t.equipment||{};const payload={
- [F.projectCode]:S.project.code,[F.projectRecordId]:S.project.id,[F.equipmentRecordId]:t.id,[F.plantSectionName]:t.section,[F.plantSectionType]:t.sectionType,[F.tagNumber]:t.tag,[F.equipmentName]:t.scope==="tag"?e.name:t.label,[F.pdsName]:e.pdsName||"",[F.equipmentCategory]:e.category||"",[F.equipmentType]:e.type||"",[F.equipmentDepartment]:e.department||"",[F.designDepartment]:a.department||d.department||"",[F.designType]:d.name,[F.designTitle]:t.label+" - "+d.name,[F.priority]:a.priority||"Medium",[F.status]:"Not Started",[F.progress]:0,[F.revision]:"R0",[F.assignedTo]:personValue(F.assignedTo,employee),[F.assignedEmployeeName]:employee.name||employee.email,[F.remarks]:a.remarks||"",[NF.master]:d.id,[NF.scope]:SCOPES[t.scope],[NF.logical]:logical,[NF.revisionKey]:logical+"|R0"};
- if(a.dates){if(a.start)payload[F.plannedStart]=toCreatorDate(a.start);if(a.end)payload[F.plannedEnd]=toCreatorDate(a.end);}return payload;}
-async function preparePreview(){collectAssignment();if(!S.assignment.employee)throw new Error("Select the team member for this batch.");if(S.assignment.dates)validateDates(S.assignment.start,S.assignment.end);busy("Preparing assignment preview...","Refreshing existing drawing records to check for duplicates.");if(S.trackingReport)await loadTracking();S.preview=[];for(const target of selectedTargets()){const existing=existingFor(target);S.preview.push({target,existing,payload:existing?null:await buildPayload(target)});}if(!S.preview.length)throw new Error("No targets are selected. Go back and select the targets.");if(!S.setupIssues.length)for(const p of S.preview)if(p.payload)validatePayload(p.payload,false);S.step=5;S.results=[];render();idle();}
-async function runCreate(){assertWritable();if(!$("confirmCreate")?.checked)throw new Error("Review and confirm the target list first.");busy("Creating drawing tasks...","Checking the latest saved records before the first write.",true);S.stop=false;S.results=[];await loadTracking();const queue=S.preview.map(p=>({...p,existing:existingFor(p.target)}));for(const p of queue)if(!p.existing)validatePayload(p.payload,false);
- for(let i=0;i<queue.length;i++){const p=queue[i];$("loadingText").textContent="Processing "+(i+1)+" of "+queue.length;$("loadingSub").textContent=p.target.label;$("batchProgress").value=100*(i+1)/queue.length;
- if(S.stop){S.results.push({target:p.target.label,outcome:"not attempted",message:"Batch stopped before this record."});continue;}
- if(p.existing){S.results.push({target:p.target.label,outcome:"skipped",id:idOf(p.existing),message:"This drawing already exists at this target and scope."});continue;}
- try{const record=await addRecord(p.payload);S.tracking.push(record);S.results.push({target:p.target.label,outcome:"created",id:idOf(record),message:"Assigned to "+(S.employees.find(e=>e.id===S.assignment.employee)?.name||"")});}
- catch(e){S.results.push({target:p.target.label,outcome:e.uncertain?"unknown":"failed",message:msg(e)});if(e.uncertain)S.stop=true;}
- }
- try{await loadTracking();}catch(e){toast("The batch finished, but refresh failed: "+msg(e),true);}log("Create batch result",{created:S.results.filter(r=>r.outcome==="created").length,results:S.results.length});idle();render();}
-function csvValue(value){let text=String(value??"");if(/^[=+\-@\t\r]/.test(text))text="'"+text;return '"'+text.replace(/"/g,'""')+'"';}
-function downloadText(name,text,type="text/plain;charset=utf-8"){const url=URL.createObjectURL(new Blob([text],{type}));const a=document.createElement("a");a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);}
-function exportResults(){const rows=[["Project","Drawing","Target","Outcome","Record ID","Details"],...S.results.map(r=>[S.project?.code,S.drawing?.name,r.target,r.outcome,r.id,r.message])];downloadText("drawing_assignment_results.csv","\uFEFF"+rows.map(r=>r.map(csvValue).join(",")).join("\r\n"),"text/csv;charset=utf-8");}
-function regRows(){const terms=normalize(S.regSearch).split(" ").filter(Boolean);return currentRecords().filter(r=>(!S.regScope||recordScope(r)===S.regScope)&&(!S.regStatus||scalarValue(r[F.status])===S.regStatus)&&(!S.regMine||normalize(employeeForField(r[F.assignedTo])?.email||scalarValue(r[F.assignedTo]))===normalize(S.user))&&terms.every(term=>normalize([recordType(r),scalarValue(r[F.drawingNumber]),recordTarget(r).label,scalarValue(r[F.plantSectionName]),ownerLabel(r)].join(" ")).includes(term))).sort((a,b)=>recordType(a).localeCompare(recordType(b))||recordTarget(a).label.localeCompare(recordTarget(b).label,undefined,{numeric:true}));}
-function renderRegister(){const current=currentRecords();$("registerBody").innerHTML='<div class="grid mb"><div class="field"><label for="regProject">Project</label><select id="regProject">'+options(S.projects.map(p=>[p.id,p.code+(p.customer?" - "+p.customer:"")]),S.project?.id,"Select a project...")+'</select></div></div>'+(!S.project?'<div class="empty"><strong>Select a project to view its drawings.</strong></div>':'<div class="metric-grid"><div class="metric"><div class="n">'+current.length+'</div><div class="label">Current drawing tasks</div></div><div class="metric"><div class="n">'+current.filter(overdue).length+'</div><div class="label">Overdue</div></div><div class="metric"><div class="n">'+current.filter(r=>["Issued","Completed"].includes(scalarValue(r[F.status]))).length+'</div><div class="label">Issued / completed</div></div></div><div class="filterbar"><input id="regSearch" class="search" type="search" placeholder="Search drawing, tag, section or assignee..." value="'+h(S.regSearch)+'"><select id="regScope" aria-label="Scope filter">'+options(Object.entries(SCOPES),S.regScope,"All scopes")+'</select><select id="regStatus" aria-label="Status filter">'+options(Object.keys(STATUS_PROGRESS).map(s=>[s,s]),S.regStatus,"All statuses")+'</select></div><label class="checkline mt"><input id="regMine" type="checkbox" '+(S.regMine?"checked":"")+'> My assigned drawings only</label><div id="regTable"></div>');if(S.project)renderRegTable();}
-function renderRegTable(){if(!$("regTable"))return;const previousScroll=$("regTable").querySelector(".table-wrap")?.scrollTop||0;const records=regRows();const pages=Math.max(1,Math.ceil(records.length/CONFIG.PAGE_SIZE));S.regPage=Math.min(S.regPage,pages);const rows=records.slice((S.regPage-1)*CONFIG.PAGE_SIZE,S.regPage*CONFIG.PAGE_SIZE);$("regTable").innerHTML='<div class="selectionbar"><div><strong>'+S.regSelected.size+' selected</strong><span class="small muted"> / '+records.length+' matching tasks</span></div><div class="actions"><button class="btn small" data-action="reg-select-ten">Select next 10</button><button class="btn small" data-action="reg-select-page">Select page</button><button class="btn small" data-action="reg-select-all">Select all editable</button><button class="linkbtn" data-action="reg-clear">Clear</button><button class="btn primary small" data-action="bulk-reassign" '+(!S.regSelected.size?"disabled":"")+'>Bulk reassign ('+S.regSelected.size+')</button></div></div><div class="table-wrap"><table><thead><tr><th class="checkcol">Pick</th><th>Drawing</th><th>Target / scope</th><th>Assigned to</th><th>Target date</th><th>Revision / status</th><th></th></tr></thead><tbody>'+rows.map(r=>{const t=recordTarget(r);return '<tr class="'+(S.regSelected.has(idOf(r))?"selected":"")+'"><td><input type="checkbox" data-reg="'+h(idOf(r))+'" aria-label="Select '+h(recordType(r))+" "+h(t.label)+'" '+(isFrozen(r)?"disabled ":"")+(S.regSelected.has(idOf(r))?"checked":"")+'></td><td><strong>'+h(recordType(r))+'</strong><div class="secondary-text">'+h(scalarValue(r[F.drawingNumber]))+'</div></td><td>'+h(t.label)+'<div class="secondary-text">'+h(SCOPES[t.scope])+((t.scope==="tag"||t.scope==="section_type")?' / '+h(t.section):"")+'</div></td><td>'+h(ownerLabel(r))+'</td><td class="nowrap">'+h(displayDate(r[F.plannedEnd]))+(overdue(r)?'<div class="pill amber">Overdue</div>':"")+'</td><td><div>'+h(scalarValue(r[F.revision])||"R0")+'</div>'+statusPill(scalarValue(r[F.status]))+'</td><td><button class="btn small" data-action="open-task" data-id="'+h(idOf(r))+'">Open</button></td></tr>';}).join("")+(rows.length?"":'<tr><td colspan="7"><div class="empty"><strong>No matching drawing tasks.</strong>Use Plan &amp; assign to create drawing requirements for this project.</div></td></tr>')+'</tbody></table></div><div class="pagination"><span>Page '+S.regPage+' of '+pages+' &middot; Historical revisions are inside each task.</span><div class="actions"><button class="btn small" data-action="reg-prev" '+(S.regPage===1?"disabled":"")+'>Previous</button><button class="btn small" data-action="reg-next" '+(S.regPage===pages?"disabled":"")+'>Next</button></div></div><div class="hint mt">Approved, issued, completed, cancelled and not-required drawings cannot be bulk reassigned here. They remain available to view.</div>';$("regTable").querySelector(".table-wrap").scrollTop=previousScroll;}
-function fingerprint(record){return JSON.stringify(Object.keys(record).sort().map(k=>[k,record[k]]));}
-function openModal(title,subtitle,body,footer){S.focusBeforeModal=document.activeElement;$("modalTitle").textContent=title;$("modalSubtitle").textContent=subtitle;$("modalBody").innerHTML=body;$("modalFooter").innerHTML=footer;$("modal").classList.remove("hidden");document.body.style.overflow="hidden";$("closeModal").focus();}
-function closeModal(){if(S.busy)return;$("modal").classList.add("hidden");document.body.style.overflow="";S.modalRecord=null;S.modalMode="";S.focusBeforeModal?.focus?.();}
-async function openBulkReassign(){assertWritable();busy("Refreshing selected drawings...");const ids=new Set(S.regSelected);await loadTracking();const current=currentRecords();S.batchReassign=current.filter(r=>ids.has(idOf(r))&&!isFrozen(r)).map(r=>({id:idOf(r),record:r,snapshot:fingerprint(r)}));idle();if(!S.batchReassign.length)throw new Error("The selected tasks are no longer editable current revisions. Refresh the register and select again.");S.modalMode="bulk";openModal("Bulk reassign "+S.batchReassign.length+" drawings","Only the selected current records will be changed.",'<div id="bulkError" class="notice error mb hidden"></div><div class="field"><label for="bulkEmployee">New assignee</label><select id="bulkEmployee">'+employeeOptions("")+'</select></div><label class="checkline mt"><input type="checkbox" id="bulkDates"> Also update start / target dates</label><div id="bulkDatesBody" class="hidden mt">'+dateFields("bulk")+'<p class="hint mt">Blank dates mean keep the existing date. They will not clear saved dates.</p></div><div class="notice mt">This action changes assignment and any dates you explicitly provide. It does not change status, revision, drawing number, files, remarks or scope.</div><details open><summary>Selected tasks ('+S.batchReassign.length+')</summary><div class="inside table-wrap"><table><thead><tr><th>Drawing</th><th>Target</th><th>Current assignee</th></tr></thead><tbody>'+S.batchReassign.map(x=>'<tr><td>'+h(recordType(x.record))+'</td><td>'+h(recordTarget(x.record).label)+'</td><td>'+h(ownerLabel(x.record))+'</td></tr>').join("")+'</tbody></table></div></details><label class="checkline mt"><input id="confirmBulk" type="checkbox"> I approve reassignment of these selected tasks.</label>','<button class="btn" data-action="close-modal">Cancel</button><button class="btn primary" data-action="save-bulk">Confirm reassignment</button>');}
-async function saveBulk(){if(!$("confirmBulk").checked)throw new Error("Confirm the selected tasks before reassigning.");const employee=S.employees.find(e=>e.id===$("bulkEmployee").value);if(!employee)throw new Error("Choose the new assignee.");const dates=$("bulkDates").checked,start=$("bulkStart").value,end=$("bulkEnd").value;if(dates)validateDates(start,end);const patch={[F.assignedTo]:personValue(F.assignedTo,employee),[F.assignedEmployeeName]:employee.name||employee.email};if(dates&&start)patch[F.plannedStart]=toCreatorDate(start);if(dates&&end)patch[F.plannedEnd]=toCreatorDate(end);validatePayload(patch,true);busy("Reassigning selected drawings...","Each selected record is checked again before update.",true);S.stop=false;S.results=[];await loadTracking();const currentIds=new Set(currentRecords().map(idOf));
- for(let i=0;i<S.batchReassign.length;i++){const x=S.batchReassign[i],target=recordTarget(x.record).label+" / "+recordType(x.record);$("loadingText").textContent="Reassigning "+(i+1)+" of "+S.batchReassign.length;$("loadingSub").textContent=target;$("batchProgress").value=100*(i+1)/S.batchReassign.length;if(S.stop){S.results.push({target,outcome:"not attempted"});continue;}
- try{const fresh=S.tracking.find(r=>idOf(r)===x.id);if(!fresh||!currentIds.has(x.id)||isFrozen(fresh)||fingerprint(fresh)!==x.snapshot){S.results.push({target,outcome:"skipped",message:"Record changed since preview. Refresh and review it again."});continue;}validateDates(dates&&start?start:toInputDate(fresh[F.plannedStart]),dates&&end?end:toInputDate(fresh[F.plannedEnd]));await updateRecord(x.id,patch);S.results.push({target,outcome:"reassigned",id:x.id,message:"Assigned to "+(employee.name||employee.email)});}
- catch(e){S.results.push({target,outcome:e.uncertain?"unknown":"failed",message:msg(e)});if(e.uncertain)S.stop=true;}
- }
- try{await loadTracking();}catch(e){toast("Reassignment finished; reload the register to confirm: "+msg(e),true);}S.regSelected.clear();idle();closeModal();renderRegister();S.modalMode="result";openModal("Bulk assignment result",S.project.code,resultHtml(),'<button class="btn primary" data-action="close-modal">Close</button>');}
-
-// SINGLE DRAWING: current revision, workflow actions, files, and revision history.
-function roleFor(status){if(["Checking","Checked"].includes(status))return F.checker;if(["Reviewing","Reviewed"].includes(status))return F.reviewer;if(["Approving","Approved"].includes(status))return F.approver;if(status==="Returned"){const s=scalarValue(S.modalRecord?.[F.status]);return s==="Checking"?F.checker:s==="Reviewing"?F.reviewer:F.approver;}return "";}
-function uiRoleAllowed(next,record){const role=roleFor(next);if(!role||S.demo)return true;const assigned=employeeForField(record[role]);return normalize(assigned?.email||scalarValue(record[role]))===normalize(S.user);}
-function fieldInput(label,id,value,type="text",disabled=false){return '<div class="field"><label for="'+id+'">'+h(label)+'</label><input id="'+id+'" type="'+type+'" value="'+h(value||"")+'" '+(disabled?"disabled":"")+'></div>';}
-function employeeField(label,id,value,disabled){return '<div class="field"><label for="'+id+'">'+h(label)+'</label><select id="'+id+'" '+(disabled?"disabled":"")+'>'+employeeOptions(employeeForField(value)?.id||"")+'</select>'+(value&&!employeeForField(value)?'<div class="hint">Existing value retained unless you choose a replacement: '+h(scalarValue(value))+'</div>':"")+'</div>';}
-function fileEntries(value){if(!value)return [];if(Array.isArray(value))return value.flatMap(fileEntries);if(typeof value==="object"){const path=value.filepath||value.file_path||value.path||"";const name=value.filename||value.file_name||value.name||path.split("/").pop();return path||name?[{path,name:name||"file"}]:[];}const text=String(value);return [{path:text,name:text.split("/").pop().split("?")[0]||"file"}];}
-function revisionHistoryHtml(record){return '<details open><summary>Revision history ('+revisionsOf(record).length+')</summary><div class="inside table-wrap"><table><thead><tr><th>Revision</th><th>Status</th><th>Change description</th><th>Last updated</th><th>Files</th><th></th></tr></thead><tbody>'+revisionsOf(record).map(r=>'<tr><td>'+h(scalarValue(r[F.revision])||"R0")+'</td><td>'+statusPill(scalarValue(r[F.status]))+'</td><td>'+h(scalarValue(r[F.revisionDescription])||"-")+'</td><td>'+h(scalarValue(r.Modified_Time)||"-")+'<div class="secondary-text">'+h(scalarValue(r.Modified_User))+'</div></td><td>'+[[F.drawingFile,"Drawing"],[F.nativeFile,"Native"],[F.supportingFile,"Support"]].flatMap(([f,label])=>fileEntries(r[f]).map((entry,i)=>'<button class="linkbtn" data-action="download-file" data-id="'+h(idOf(r))+'" data-field="'+f+'" data-fileindex="'+i+'">'+h(label)+(i?" "+(i+1):"")+'</button>')).join(" ")+'</td><td><button class="btn small" data-action="open-task" data-id="'+h(idOf(r))+'">View</button></td></tr>').join("")+'</tbody></table></div></details>';}
-async function openTask(id){busy("Opening drawing and revision history...");await loadTracking();const record=await getRecord(id);if(!record)throw new Error("This drawing could not be read.");const index=S.tracking.findIndex(r=>idOf(r)===id);if(index>=0)S.tracking[index]=record;else S.tracking.push(record);S.modalRecord=record;S.modalSnapshot=fingerprint(record);S.modalMode="task";const latest=revisionsOf(record)[0];const historical=idOf(latest)!==idOf(record),frozen=isFrozen(record),locked=historical||frozen||Boolean(S.setupIssues.length),t=recordTarget(record),status=scalarValue(record[F.status])||"Not Started";
- const body='<div id="taskError" class="notice error mb hidden"></div><div class="notice '+(locked?"warn":"")+' mb"><strong>'+h(recordType(record))+'</strong> &middot; '+h(SCOPES[t.scope])+'<br>'+h(historical?"Historical revision: read only.":frozen?"This revision is locked. Use New Revision for drawing or file changes.":"Changes apply to this current revision only.")+'</div><div class="grid three">'+fieldInput("Drawing / document number","taskNumber",scalarValue(record[F.drawingNumber]),"text",locked)+fieldInput("Revision","taskRevision",scalarValue(record[F.revision])||"R0","text",true)+fieldInput("Status","taskStatus",status,"text",true)+employeeField("Assigned to","taskAssigned",record[F.assignedTo],locked)+employeeField("Checker","taskChecker",record[F.checker],locked)+employeeField("Reviewer","taskReviewer",record[F.reviewer],locked)+employeeField("Approver","taskApprover",record[F.approver],locked)+fieldInput("Planned start","taskStart",toInputDate(record[F.plannedStart]),"date",locked)+fieldInput("Target / planned end","taskEnd",toInputDate(record[F.plannedEnd]),"date",locked)+fieldInput("Forecast end","taskForecast",toInputDate(record[F.forecastEnd]),"date",locked)+fieldInput("Progress (%)","taskProgress",scalarValue(record[F.progress])||"0","number",true)+'<div class="field"><label for="taskPriority">Priority</label><select id="taskPriority" '+(locked?"disabled":"")+'>'+options(["Low","Medium","High","Critical"].map(x=>[x,x]),scalarValue(record[F.priority])||"Medium")+'</select></div><div class="field span"><label for="taskRemarks">Remarks</label><textarea id="taskRemarks" '+(locked?"disabled":"")+'>'+h(scalarValue(record[F.remarks]))+'</textarea></div><div class="field span"><label for="taskReason">Return reason</label><textarea id="taskReason" '+(locked?"disabled":"")+'>'+h(scalarValue(record[F.returnReason]))+'</textarea></div></div><details><summary>Drawing files and revision description</summary><div class="inside"><div class="field mb"><label for="taskDescription">Revision description</label><textarea id="taskDescription" '+(locked?"disabled":"")+'>'+h(scalarValue(record[F.revisionDescription]))+'</textarea></div><div class="grid three">'+[[F.drawingFile,"Drawing file"],[F.nativeFile,"Native file"],[F.supportingFile,"Supporting file"]].map(([f,label])=>'<div class="field"><label for="upload_'+f+'">'+label+'</label><input id="upload_'+f+'" type="file" '+(locked?"disabled":"")+'><div class="hint">'+h(fileEntries(record[f]).map(x=>x.name).join(", ")||"No file attached")+'</div></div>').join("")+'</div><div class="hint mt">Files are uploaded after the record saves. Maximum 50 MB per file; Creator field validations also apply.</div></div></details>'+revisionHistoryHtml(record);
- const actions=historical||S.setupIssues.length?"":(TRANSITIONS[status]||[]).map(([label,next])=>'<button class="btn small '+(next==="Returned"?"danger":"soft")+'" data-action="task-transition" data-status="'+h(next)+'" '+(!uiRoleAllowed(next,record)?'disabled title="Only the configured checker, reviewer or approver can use this action in the widget."':"")+'>'+h(label)+'</button>').join("");
- idle();openModal(recordType(record),S.project.code+" / "+t.label+" / "+(scalarValue(record[F.revision])||"R0"),body,'<div class="actions">'+actions+'</div><div class="actions">'+(!historical&&!S.setupIssues.length?'<button class="btn" data-action="new-revision">New revision</button>':"")+(!locked?'<button class="btn primary" data-action="save-task">Save changes</button>':"")+'</div>');}
-function taskPatch(){const r=S.modalRecord;const patch={[F.drawingNumber]:$("taskNumber").value.trim(),[F.priority]:$("taskPriority").value,[F.plannedStart]:toCreatorDate($("taskStart").value),[F.plannedEnd]:toCreatorDate($("taskEnd").value),[F.forecastEnd]:toCreatorDate($("taskForecast").value),[F.remarks]:$("taskRemarks").value.trim(),[F.returnReason]:$("taskReason").value.trim(),[F.revisionDescription]:$("taskDescription").value.trim()};validateDates($("taskStart").value,$("taskEnd").value);for(const [id,field] of [["taskAssigned",F.assignedTo],["taskChecker",F.checker],["taskReviewer",F.reviewer],["taskApprover",F.approver]]){const emp=S.employees.find(e=>e.id===$(id).value);if(emp){patch[field]=personValue(field,emp);if(field===F.assignedTo)patch[F.assignedEmployeeName]=emp.name||emp.email;}else if(!r[field])patch[field]="";}return patch;}
-function nowFor(field){const d=new Date();return Number(S.schema.get(field)?.type)===10?toCreatorDate([d.getFullYear(),String(d.getMonth()+1).padStart(2,"0"),String(d.getDate()).padStart(2,"0")].join("-")):toCreatorDateTime(d);}
-async function saveTask(next=""){assertWritable();const current=S.modalRecord;if(!current)throw new Error("No drawing is open.");const files=[[F.drawingFile,$("upload_"+F.drawingFile).files[0]],[F.nativeFile,$("upload_"+F.nativeFile).files[0]],[F.supportingFile,$("upload_"+F.supportingFile).files[0]]].filter(([,f])=>f);for(const [,file] of files)if(file.size>CONFIG.MAX_FILE_BYTES)throw new Error(file.name+" exceeds 50 MB. Nothing was saved.");const patch=isFrozen(current)?{}:taskPatch();
- if(next){if(!(TRANSITIONS[scalarValue(current[F.status])||"Not Started"]||[]).some(([,s])=>s===next))throw new Error("Invalid transition from the saved status.");if(!uiRoleAllowed(next,current))throw new Error("This action belongs to the configured checker, reviewer or approver.");if(next==="Returned"&&!patch[F.returnReason])throw new Error("A return reason is required.");patch[F.status]=next;patch[F.progress]=STATUS_PROGRESS[next];if(next==="In Progress"&&!current[F.actualStart]){patch[F.actualStart]=nowFor(F.actualStart);patch[F.startedBy]=S.user;}if(next==="Completed"){patch[F.actualEnd]=nowFor(F.actualEnd);patch[F.completedBy]=S.user;}}
- else if(isFrozen(current))throw new Error("This revision is locked.");validatePayload(patch,true);busy("Saving drawing...");await loadTracking();if(idOf(revisionsOf(current)[0])!==idOf(current))throw new Error("A newer revision exists. Reopen the current revision.");const fresh=await getRecord(idOf(current));if(fingerprint(fresh)!==S.modalSnapshot)throw new Error("This record changed after you opened it. Reopen it before saving.");await updateRecord(idOf(current),patch);let fileFailure="";for(const [field,file] of files){try{if(!S.demo)assertResponse(await api("FILE","uploadFile",{report_name:S.trackingReport,id:idOf(current),field_name:field,file},true),"Upload "+field);else{const row=DEMO.tracking.find(r=>idOf(r)===idOf(current));row[field]=file.name;}}catch(e){fileFailure="Record saved, but "+file.name+" was not confirmed uploaded: "+msg(e);break;}}
- idle();await openTask(idOf(current));if(fileFailure){$("taskError").textContent=fileFailure;$("taskError").classList.remove("hidden");}else toast(next?"Status changed to "+next:"Drawing saved.");renderRegister();}
-async function newRevision(){assertWritable();const r=S.modalRecord;if(!r)return;if(!r[NF.logical]||!r[NF.master])throw new Error("This is a legacy record without a Drawing Master ID / Logical Task Key. Map it to the new master before creating a V14 revision. Existing history is unchanged.");const reason=prompt("Describe the change for the new revision. Saved values will be copied; unsaved edits and selected files are not copied.","");if(reason===null)return;if(!reason.trim())throw new Error("Revision description is required.");busy("Creating a new revision...");await loadTracking();const latest=revisionsOf(r)[0];if(idOf(latest)!==idOf(r))throw new Error("A newer revision exists. Open it before creating another.");const fresh=await getRecord(idOf(r));if(fingerprint(fresh)!==S.modalSnapshot)throw new Error("The current record has changed. Reopen it first.");const payload={};for(const field of [...Object.values(F),...Object.values(NF)])if(fresh[field]!=null&&!([F.drawingFile,F.nativeFile,F.supportingFile,F.actualStart,F.actualEnd,F.startedBy,F.completedBy].includes(field)))payload[field]=fresh[field];payload[F.revision]="R"+(revNum(fresh)+1);payload[F.parentDesignId]=idOf(fresh);payload[F.status]="Not Started";payload[F.progress]=0;payload[F.revisionDescription]=reason.trim();payload[F.returnReason]="";payload[NF.revisionKey]=scalarValue(fresh[NF.logical])+"|"+payload[F.revision];for(const f of [F.assignedTo,F.checker,F.reviewer,F.approver]){if(payload[f]&&typeof payload[f]==="object"){const emp=employeeForField(payload[f]);if(!emp)throw new Error("Resolve the saved employee for "+f+" before revising.");payload[f]=personValue(f,emp);}}const saved=await addRecord(payload);idle();await openTask(idOf(saved));toast("Created "+payload[F.revision]+". Old files remain with the previous revision.");renderRegister();}
-async function downloadFile(id,field,index){if(S.demo){toast("Demo filenames are placeholders. No actual file is stored.");return;}busy("Reading revision file...");const r=await getRecord(id);const entry=fileEntries(r[field])[Number(index)||0];if(!entry)throw new Error("File details are not available in the returned record.");const response=await api("FILE","readFile",{report_name:S.trackingReport,id,field_name:field,...(fileEntries(r[field]).length>1?{file_path:entry.path}:{})});const content=response instanceof Blob?response:response?.data??response;if(!(content instanceof Blob)&&!(content instanceof ArrayBuffer)&&typeof content!=="string")throw new Error("Unexpected file response. No download was created.");const blob=content instanceof Blob?content:new Blob([content],{type:"application/octet-stream"});const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=entry.name||"drawing";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),3000);idle();}
-function showSetup(){S.modalMode="setup";openModal("Setup & diagnostics","Read-only checks. This screen does not change Creator data.",'<div class="notice mb"><strong>Storage: existing Design_Tracking form.</strong><br>Add the four V14 fields below. Do not hide them from the API/report permissions. No new form is required.</div><div class="table-wrap"><table><thead><tr><th>Field link name</th><th>Field type</th><th>Requirement</th></tr></thead><tbody><tr><td>Drawing_Master_ID</td><td>Single Line</td><td>Stores the selected Drawing Master record ID.</td></tr><tr><td>Scope_Level</td><td>Drop Down or Single Line</td><td>Project / Plant Section / Plant Section Type / Tag</td></tr><tr><td>Logical_Task_Key</td><td>Single Line</td><td>Same key across all revisions; duplicates allowed.</td></tr><tr><td>Revision_Key</td><td>Single Line</td><td><strong>No duplicate values enabled.</strong> Different for each revision.</td></tr></tbody></table></div><div class="notice warn mt">Use an editable test copy first. Creator permissions and backend approval/validation rules must enforce who may assign or approve. This browser widget is not a substitute for server-side authorization.</div><h3 class="mt">Configuration status</h3><pre>'+h(S.setupIssues.length?S.setupIssues.join("\n"):"Required field checks passed.")+'</pre><details open><summary>Reports and current data</summary><div class="inside"><pre>'+h(JSON.stringify({app:S.app,mode:S.demo?"demo":"Creator",user:S.user,reports:{...CONFIG.REPORTS,tracking:S.trackingReport,engineeringProjects:S.engineeringProjectReport},counts:{projects:S.projects.length,drawingTypes:S.drawings.length,employees:S.employees.length,equipment:S.equipment.length,trackingRevisions:S.tracking.length},drawingAliases:CONFIG.DRAWING_ALIASES},null,2))+'</pre></div></details><details><summary>Operation log (this browser session only)</summary><div class="inside"><pre>'+h(JSON.stringify(S.logs,null,2))+'</pre></div></details>','<button class="btn" data-action="export-diagnostics">Export diagnostics</button><button class="btn primary" data-action="close-modal">Close</button>');}
-
-// Demo records are synthetic. Production always reads the connected reports.
-const DEMO={
- projects:[{ID:"P20015A",Project_Code:"20015A",Customer_Name:"Demo Engineering Client",Project_Description:"Sample process plant"},{ID:"P26011",Project_Code:"26011",Customer_Name:"Demo Client Two",Project_Description:"Independent test project"}],
- drawings:[{ID:"D1",Drawing_Name:"Design Basis Report",Drawing_Abbreviation:"DBR",Drawing_Type:"Project Code"},{ID:"D2",Drawing_Name:"Process Flow Diagram (With Terminal Points)",Drawing_Abbreviation:"PFD",Drawing_Type:"Project Code + Plant Section"},{ID:"D3",Drawing_Name:"Process Data Sheet",Drawing_Abbreviation:"PDS",Drawing_Type:"Project Code + Plant Section + Tag No"},{ID:"D4",Drawing_Name:"General Arrangement Drawing",Drawing_Abbreviation:"GAD",Drawing_Type:""},{ID:"D5",Drawing_Name:"Site Location Plan",Drawing_Abbreviation:"SLP",Drawing_Type:""},{ID:"D6",Drawing_Name:"Drainage Layout/ Gutter Layout",Drawing_Abbreviation:"GLT",Drawing_Type:"Project Code + Plant Section"}],
- employees:[{ID:"U1",Employee_Name:"Kunal (demo)",Email:"kunal@example.com",Department:"Design"},{ID:"U2",Employee_Name:"Ram (demo)",Email:"ram@example.com",Department:"Design"},{ID:"U3",Employee_Name:"Demo User",Email:"demo.user@example.com",Department:"Project"}],equipment:[],tracking:[]
+const AF = {
+  assignmentNo: "Assignment_No",
+  projectDrawing: "Project_Drawing_Register",
+  projectCode: "Project_Code",
+  drawingDocument: "Drawing_Document",
+  drawingMasterId: "Drawing_Master_ID",
+  primaryAssignment: "Primary_Assignment",
+  assignedFrom: "Assigned_From",
+  assignmentLevel: "Assignment_Level",
+  assignedBy: "Assigned_By",
+  assignedTo: "Assigned_To",
+  criteria: "Assignment_Criteria",
+  plantSection: "Plant_Section",
+  plantSectionType: "Plant_Section_Type",
+  groupCode: "Group_Code",
+  department: "Department",
+  tagNo: "Tag_No",
+  equipmentName: "Equipment_Name",
+  equipmentCategory: "Equipment_Category",
+  equipmentType: "Equipment_Type",
+  startDate: "Start_Date",
+  targetDate: "Target_Date",
+  endDate: "End_Date",
+  status: "Status",
+  progress: "Progress_Percentage",
+  remark: "Remark",
+  furtherAssigned: "Further_Assigned",
+  isPrimary: "Is_Primary_Assignment",
+  active: "Active"
 };
-for(const project of ["20015A","26011"]){for(let i=1;i<=36;i++){const section=i<=12?"Biomethanation":i<=24?"Dehydration":"Evaporation";const plantType=i%2===0?(section==="Biomethanation"?"Biogas Plant":section==="Dehydration"?"Rectified Spirit Liquid Basis Dehydration":"Standalone Evaporation"):"Demonstration Type B";DEMO.equipment.push({ID:"E"+project+"_"+i,Project_Code:project,Plant_Section_Name:section,Plant_Section_Type:plantType,Tag_Number:(i%3===0?"AG-":"TK-")+String(2400+i),Equipment_Name:i%3===0?"Sample Agitator "+i:"Sample Storage Tank "+i,Department_Code:i%3===0?"Equipment - Rotating":"Equipment - Stationary",Group_Code:i%3===0?"Direct Supply":"Shop",Equipment_Category:i%3===0?"Agitator":"Tank",Equipment_Type:i%3===0?"Propeller":"Vertical",Equipment_Subtype:"Demo equipment",PDS_Name:"Sample PDS"});}}
-function demoSchema(){const fields=new Map([...Object.values(F),...Object.values(NF)].map(link_name=>[link_name,{link_name,type:1,unique:false}]));fields.set(NF.revisionKey,{link_name:NF.revisionKey,type:1,unique:true});fields.set(NF.scope,{link_name:NF.scope,type:12,choices:Object.values(SCOPES),unique:false});fields.set(F.designDepartment,{link_name:F.designDepartment,type:12,choices:["Project","Process","Mechanical","Piping","Electrical","Civil","Design"]});return fields;}
-function demoRead(report,criteria=""){let rows=report===S.trackingReport?DEMO.tracking:report===CONFIG.REPORTS.projects?DEMO.projects:report===CONFIG.REPORTS.drawings?DEMO.drawings:report===CONFIG.REPORTS.employees?DEMO.employees:report===CONFIG.REPORTS.equipment?DEMO.equipment:[];const m=criteria.match(/Project_Code\s*==\s*"((?:\\.|[^"])*)"/);if(m)rows=rows.filter(r=>r.Project_Code===m[1].replace(/\\"/g,'"').replace(/\\\\/g,"\\"));return rows.map(r=>({...r}));}
 
-async function nextStep(){showError("");if(S.step===1){if(!S.project||!S.drawing)throw new Error("Select a project and a drawing.");S.step=2;}
- else if(S.step===2){if(!S.scope||S.drawing.invalidAllowed)throw new Error("Choose a valid scope from the master-supported options.");S.step=3;S.targets=targetsNow();if(S.scope==="project")S.selected=new Set(S.targets.map(t=>t.key));}
- else if(S.step===3){if(!selectedTargets().length)throw new Error("Select at least one target.");S.step=4;}
- else if(S.step===4){await preparePreview();return;}
- else if(S.step===5){await runCreate();return;}render();}
-function resetSelectionOnFilter(){S.selected.clear();S.page=1;S.preview=[];S.results=[];}
-function selectTargets(mode){S.targets=targetsNow();let rows=S.targets.filter(t=>!existingFor(t));if(mode==="ten")rows=rows.filter(t=>!S.selected.has(t.key)).slice(0,10);if(mode==="page"){const pageKeys=new Set(S.targets.slice((S.page-1)*CONFIG.PAGE_SIZE,S.page*CONFIG.PAGE_SIZE).map(t=>t.key));rows=rows.filter(t=>pageKeys.has(t.key));}for(const t of rows)S.selected.add(t.key);renderTargetsTable();}
-function regSelect(mode){let rows=regRows().filter(r=>!isFrozen(r));if(mode==="ten")rows=rows.filter(r=>!S.regSelected.has(idOf(r))).slice(0,10);if(mode==="page"){const keys=new Set(regRows().slice((S.regPage-1)*CONFIG.PAGE_SIZE,S.regPage*CONFIG.PAGE_SIZE).map(idOf));rows=rows.filter(r=>keys.has(idOf(r)));}rows.forEach(r=>S.regSelected.add(idOf(r)));renderRegTable();}
-async function onAction(action,el){if(action==="setup")return showSetup();if(action==="close-modal")return closeModal();if(action==="select-ten")return selectTargets("ten");if(action==="select-page")return selectTargets("page");if(action==="select-all")return selectTargets("all");if(action==="clear-targets"){S.selected.clear();return renderTargetsTable();}if(action==="page-prev"||action==="page-next"){S.page+=action==="page-next"?1:-1;return renderTargetsTable();}
- if(action==="remove-filter"){delete S.filters[el.dataset.key];S.activeFilters=S.activeFilters.filter(x=>x!==el.dataset.key);resetSelectionOnFilter();return render();}
- if(action==="assign-me"){const e=S.employees.find(e=>normalize(e.email)===normalize(S.user));if(!e)throw new Error("The logged-in user is not in the employee report. Select a team member instead.");S.assignment.employee=e.id;$("assignEmployee").value=e.id;return updateNext();}
- if(action==="plan-more"){closeModal();S.view="plan";S.step=3;S.results=[];S.preview=[];S.selected.clear();return render();}
- if(action==="go-register"){closeModal();S.view="register";return render();}
- if(action==="export-results")return exportResults();if(action==="export-diagnostics")return downloadText("drawing_planner_diagnostics.json",JSON.stringify({config:CONFIG,reports:S.reports,issues:S.setupIssues,logs:S.logs},null,2));
- if(action==="reg-select-ten")return regSelect("ten");if(action==="reg-select-page")return regSelect("page");if(action==="reg-select-all")return regSelect("all");if(action==="reg-clear"){S.regSelected.clear();return renderRegTable();}if(action==="reg-prev"||action==="reg-next"){S.regPage+=action==="reg-next"?1:-1;return renderRegTable();}
- if(action==="bulk-reassign")return openBulkReassign();if(action==="save-bulk")return saveBulk();if(action==="open-task")return openTask(el.dataset.id);if(action==="save-task")return saveTask();if(action==="task-transition")return saveTask(el.dataset.status);if(action==="new-revision")return newRevision();if(action==="download-file")return downloadFile(el.dataset.id,el.dataset.field,el.dataset.fileindex);
+const RF = {
+  projectCode: "Project_Code", drawingDocument: "Drawing_Document", drawingMasterId: "Drawing_Master_ID",
+  required: "Required", revision: "Revision", status: "Status", active: "Active"
+};
+
+const CRITERIA = [
+  {key:"plantSection", label:"Plant Section", field:AF.plantSection, equipment:["Plant_Section_Name","Plant_Section"]},
+  {key:"plantSectionType", label:"Plant Section Type", field:AF.plantSectionType, equipment:["Plant_Section_Type","Section_Type"]},
+  {key:"equipmentCategory", label:"Equipment Category", field:AF.equipmentCategory, equipment:["Equipment_Category","Category"]},
+  {key:"tag", label:"Tag No / Equipment", field:AF.tagNo, equipment:["Tag_Number","Tag_No"], extra:true},
+  {key:"groupCode", label:"Group Code", field:AF.groupCode, equipment:["Group_Code","Group"]},
+  {key:"department", label:"Department", field:AF.department, equipment:["Department_Code","Department"]},
+  {key:"equipmentType", label:"Equipment Type", field:AF.equipmentType, equipment:["Equipment_Type","Type"]}
+];
+const STATUSES=["Not Started","In Progress","On Hold","Completed","Cancelled"];
+
+const PROJECT_ALIASES={id:["ID"],code:["Project_Code","Project_Code1","Project"],name:["Project_Name","Project_Description","Description","Customer_Name"]};
+const DRAWING_ALIASES={id:["ID"],name:["Drawing_Name","Drawing_Document_Name","Drawing_Document","Name"],short:["Drawing_Abbreviation","Short_Name","Abbreviation"],type:["Drawing_Type","Type"],active:["Active"]};
+const EMP_ALIASES={id:["ID"],name:["Employee_Name","Name","Employee"],email:["Email","Employee_Email"],dept:["Department","Department_Name"]};
+const EQ_ALIASES={
+  id:["ID"],project:["Project_Code","Project_Code1","Project"],section:["Plant_Section_Name","Plant_Section"],sectionType:["Plant_Section_Type","Section_Type"],
+  tag:["Tag_Number","Tag_No"],name:["Equipment_Name","Equipment"],group:["Group_Code","Group"],department:["Department_Code","Department"],category:["Equipment_Category","Category"],type:["Equipment_Type","Type"]
+};
+
+const S={
+  demo:CONFIG.DEMO,user:"",app:CONFIG.APP_NAME,view:"planner",projects:[],drawings:[],employees:[],equipment:[],assignments:[],projectDrawings:[],
+  project:null,drawing:null,current:null,selectedCriteria:new Set(),targetRows:[],selectedTargets:new Set(),rowDrafts:new Map(),expanded:new Set(),
+  regMode:"all",logs:[]
+};
+const $=id=>document.getElementById(id);
+const h=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
+const nk=v=>String(v??"").toLowerCase().replace(/[^a-z0-9]/g,"");
+function scalar(v){if(v==null)return"";if(typeof v!=="object")return String(v);if(v.display_value!=null)return scalar(v.display_value);if(v.zc_display_value!=null)return scalar(v.zc_display_value);if(v.email)return String(v.email);if(v.ID!=null)return String(v.ID);const vals=Object.values(v).filter(x=>x!=null&&typeof x!=="object");return vals.join(" ");}
+function pick(r,aliases,f=""){if(!r)return f;for(const a of aliases||[])if(Object.prototype.hasOwnProperty.call(r,a))return scalar(r[a]);const keys=Object.fromEntries(Object.keys(r).map(k=>[nk(k),k]));for(const a of aliases||[]){const k=keys[nk(a)];if(k)return scalar(r[k]);}return f;}
+function idOf(r){return scalar(r?.ID||r?.id);}
+function num(v,f=0){const n=Number(String(v??"").replace(/,/g,""));return Number.isFinite(n)?n:f;}
+function initials(name){return String(name||"?").split(/\s+/).filter(Boolean).slice(0,2).map(x=>x[0]).join("").toUpperCase()||"?";}
+function criteriaText(v){return String(v??"").replace(/\\/g,"\\\\").replace(/"/g,'\\"');}
+function todayIso(){const d=new Date();return [d.getFullYear(),String(d.getMonth()+1).padStart(2,"0"),String(d.getDate()).padStart(2,"0")].join("-");}
+const MONTHS=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+function toCreatorDate(v){if(!v)return"";const p=String(v).split("-");if(p.length!==3)return v;return `${p[2]}-${MONTHS[Number(p[1])-1]}-${p[0]}`;}
+function toInputDate(v){const s=scalar(v).trim();if(!s)return"";if(/^\d{4}-\d{2}-\d{2}$/.test(s))return s;const m=s.match(/^(\d{1,2})-([A-Za-z]{3})-(\d{4})/);if(m){const mi=MONTHS.findIndex(x=>x.toLowerCase()===m[2].toLowerCase())+1;return `${m[3]}-${String(mi).padStart(2,"0")}-${String(m[1]).padStart(2,"0")}`;}const d=new Date(s);return Number.isNaN(d.getTime())?"":`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;}
+function displayDate(v){const iso=toInputDate(v);return iso?iso.split("-").reverse().join("-"):"—";}
+function toast(msg,type=""){const e=document.createElement("div");e.className=`toast ${type}`;e.textContent=msg;$("toasts").appendChild(e);setTimeout(()=>e.remove(),4500);}
+let loadDepth=0;function busy(msg="Loading…"){loadDepth++;$("loadingText").textContent=msg;$("loading").classList.remove("hidden");}function idle(){loadDepth=Math.max(0,loadDepth-1);if(!loadDepth)$("loading").classList.add("hidden");}
+function log(action,data={}){S.logs.push({at:new Date().toISOString(),action,data});if(S.logs.length>200)S.logs.shift();}
+
+function adaptProject(r){return{raw:r,id:pick(r,PROJECT_ALIASES.id),code:pick(r,PROJECT_ALIASES.code),name:pick(r,PROJECT_ALIASES.name)}}
+function adaptDrawing(r){return{raw:r,id:pick(r,DRAWING_ALIASES.id),name:pick(r,DRAWING_ALIASES.name),short:pick(r,DRAWING_ALIASES.short),type:pick(r,DRAWING_ALIASES.type),active:pick(r,DRAWING_ALIASES.active)}}
+function adaptEmployee(r){return{raw:r,id:pick(r,EMP_ALIASES.id),name:pick(r,EMP_ALIASES.name),email:pick(r,EMP_ALIASES.email),department:pick(r,EMP_ALIASES.dept)}}
+function adaptEquipment(r){return{raw:r,id:pick(r,EQ_ALIASES.id),project:pick(r,EQ_ALIASES.project),plantSection:pick(r,EQ_ALIASES.section),plantSectionType:pick(r,EQ_ALIASES.sectionType),tag:pick(r,EQ_ALIASES.tag),name:pick(r,EQ_ALIASES.name),groupCode:pick(r,EQ_ALIASES.group),department:pick(r,EQ_ALIASES.department),equipmentCategory:pick(r,EQ_ALIASES.category),equipmentType:pick(r,EQ_ALIASES.type)}}
+function adaptAssignment(r){return{...r,ID:idOf(r)}}
+
+function withApp(c){return{app_name:S.app||CONFIG.APP_NAME,...c};}
+function assertResp(r,label){if(!r)throw new Error(`${label}: empty response.`);if(r.code!=null&&Number(r.code)!==3000)throw new Error(`${label}: ${r.message||r.description||JSON.stringify(r)}`);return r;}
+async function fetchRecords(report,criteria="",max=20){if(S.demo)return demoFetch(report,criteria);const out=[];let cursor="";for(let i=0;i<max;i++){const c=withApp({report_name:report,field_config:"all",max_records:1000});if(criteria)c.criteria=criteria;if(cursor)c.record_cursor=cursor;let r;try{r=assertResp(await ZOHO.CREATOR.DATA.getRecords(c),`Read ${report}`);}catch(e){if(/9280|No records found/i.test(String(e.message||e)))return out;throw e;}const rows=Array.isArray(r.data)?r.data:[];out.push(...rows);cursor=r.record_cursor||r.cursor||"";if(!cursor||!rows.length)break;}return out;}
+async function addRecord(form,data){if(S.demo)return demoAdd(form,data);if(!CONFIG.LIVE_WRITES)throw new Error("Live writes are disabled in CONFIG.");const r=assertResp(await ZOHO.CREATOR.DATA.addRecords(withApp({form_name:form,payload:{data}})),`Create ${form}`);return String(r?.data?.ID||r?.data?.id||"");}
+async function updateRecord(report,id,data){if(S.demo)return demoUpdate(report,id,data);if(!CONFIG.LIVE_WRITES)throw new Error("Live writes are disabled in CONFIG.");assertResp(await ZOHO.CREATOR.DATA.updateRecordById(withApp({report_name:report,id:String(id),payload:{data}})),`Update ${report}`);return id;}
+
+async function bootstrap(){busy("Loading drawing assignment workspace…");try{if(S.demo){S.user="rohan@mega.tc";$("demoBanner").classList.remove("hidden");}else{const init=await Promise.race([ZOHO.CREATOR.UTIL.getInitParams(),new Promise((_,rej)=>setTimeout(()=>rej(new Error("Creator session timed out.")),8000))]);S.user=init?.loginUser||"";S.app=init?.appLinkName||CONFIG.APP_NAME;}
+  const [pr,dr,er,eq,ar,rr]=await Promise.all([
+    fetchRecords(CONFIG.REPORTS.projects),fetchRecords(CONFIG.REPORTS.drawings),fetchRecords(CONFIG.REPORTS.employees),fetchRecords(CONFIG.REPORTS.equipment),fetchRecords(CONFIG.REPORTS.assignments),fetchRecords(CONFIG.REPORTS.projectDrawings)
+  ]);
+  S.projects=pr.map(adaptProject).filter(x=>x.code);S.drawings=dr.map(adaptDrawing).filter(x=>x.name);S.employees=er.map(adaptEmployee).filter(x=>x.email||x.name);S.equipment=eq.map(adaptEquipment);S.assignments=ar.map(adaptAssignment);S.projectDrawings=rr;
+  S.projects.sort((a,b)=>String(b.code).localeCompare(String(a.code),undefined,{numeric:true}));S.drawings.sort((a,b)=>a.name.localeCompare(b.name));S.employees.sort((a,b)=>a.name.localeCompare(b.name));
+  $("sessionPill").textContent=S.user?`Signed in: ${S.user}`:"Creator session connected";populateSelectors();renderRegisterFilters();
+  if(S.demo){S.project=S.projects.find(x=>x.code==="25005")||S.projects[0];S.drawing=S.drawings.find(x=>x.short==="SLP")||S.drawings[0];$("projectSelect").value=S.project?.id||"";$("drawingSelect").value=S.drawing?.id||"";openContext();}
+}catch(e){console.error(e);$("sessionPill").textContent="Creator connection error";toast(e.message||String(e),"error");}finally{idle();}}
+
+function populateSelectors(){
+  $("projectSelect").innerHTML='<option value="">Select project…</option>'+S.projects.map(p=>`<option value="${h(p.id)}">${h(p.code)}${p.name?` — ${h(p.name)}`:""}</option>`).join("");
+  $("drawingSelect").innerHTML='<option value="">Select drawing / document…</option>'+S.drawings.map(d=>`<option value="${h(d.id)}">${h(d.name)}${d.short?` (${h(d.short)})`:""}</option>`).join("");
 }
+function renderRegisterFilters(){const po='<option value="">All projects</option>'+S.projects.map(p=>`<option>${h(p.code)}</option>`).join("");$("regProject").innerHTML=po;$("regDrawing").innerHTML='<option value="">All drawings</option>'+S.drawings.map(d=>`<option>${h(d.name)}</option>`).join("");$("regCriteria").innerHTML='<option value="">All criteria</option>'+CRITERIA.map(c=>`<option>${h(c.label)}</option>`).join("");}
+function selectedPairAssignments(){if(!S.project||!S.drawing)return[];return S.assignments.filter(a=>scalar(a[AF.projectCode])===S.project.code&&(scalar(a[AF.drawingMasterId])===S.drawing.id||scalar(a[AF.drawingDocument])===S.drawing.name));}
+function primaryAssignment(){return selectedPairAssignments().find(a=>String(scalar(a[AF.isPrimary])).toLowerCase()==="true"||num(a[AF.assignmentLevel])===0)||null;}
+function childrenOf(id){return selectedPairAssignments().filter(a=>scalar(a[AF.assignedFrom])===String(id));}
+function assignmentUser(a){return scalar(a?.[AF.assignedTo])||"Unassigned";}
+function assignmentBy(a){return scalar(a?.[AF.assignedBy])||"—";}
+function assignmentCriteria(a){return scalar(a?.[AF.criteria])||"Project";}
+function assignmentPath(a){if(!a)return"";const parts=[S.project?.code,S.drawing?.short||S.drawing?.name];for(const c of CRITERIA){const v=scalar(a[c.field]);if(v)parts.push(`${c.label}: ${v}`);}return parts.filter(Boolean).join(" › ");}
+function scopeSummary(a){if(!a)return"Entire Project";const bits=[];for(const c of CRITERIA){if(c.key==="tag"){const t=scalar(a[AF.tagNo]),n=scalar(a[AF.equipmentName]);if(t||n)bits.push(`Tag: ${[t,n].filter(Boolean).join(" — ")}`);}else{const v=scalar(a[c.field]);if(v)bits.push(`${c.label}: ${v}`);}}return bits.length?bits.join(" • "):"Entire Project";}
+function statusPill(s){const cls=s==="Completed"?"green":s==="On Hold"?"amber":s==="Cancelled"?"red":s==="In Progress"?"blue":"";return `<span class="pill ${cls}">${h(s||"Not Started")}</span>`;}
+
+function openContext(){const pid=$("projectSelect").value,did=$("drawingSelect").value;S.project=S.projects.find(x=>x.id===pid)||null;S.drawing=S.drawings.find(x=>x.id===did)||null;if(!S.project||!S.drawing){toast("Select Project Code and Drawing / Document first.","error");return;}S.current=primaryAssignment();S.selectedCriteria.clear();S.selectedTargets.clear();S.rowDrafts.clear();S.expanded.clear();const p=primaryAssignment();if(p)S.expanded.add(idOf(p));renderContextCard();$("workspace").classList.remove("hidden");renderTree();renderDetail();}
+function renderContextCard(){const p=primaryAssignment(),all=selectedPairAssignments();$("contextCard").innerHTML=`<div class="context-main"><div class="context-icon">${h(S.drawing?.short||"DR")}</div><div><div class="context-title">${h(S.project.code)} — ${h(S.drawing.name)}${S.drawing.short?` (${h(S.drawing.short)})`:""}</div><div class="context-sub">${p?`Primary Assignment: ${h(assignmentUser(p))}`:"Primary Assignment is not created yet."}</div></div></div><div class="actions"><span class="pill brand">${all.length} assignment${all.length===1?"":"s"}</span>${p?statusPill(scalar(p[AF.status])):'<span class="pill amber">Yet to Assign</span>'}</div>`;$("contextCard").classList.remove("hidden");}
+
+function buildTreeFiltered(){const rows=selectedPairAssignments();const q=$("treeSearch")?.value.toLowerCase().trim()||"",st=$("treeStatus")?.value||"";if(!q&&!st)return rows;const keep=new Set();const map=new Map(rows.map(r=>[idOf(r),r]));for(const r of rows){const hay=[assignmentUser(r),assignmentBy(r),scopeSummary(r),assignmentCriteria(r)].join(" ").toLowerCase();if((!q||hay.includes(q))&&(!st||scalar(r[AF.status])===st)){let cur=r;while(cur){keep.add(idOf(cur));const pid=scalar(cur[AF.assignedFrom]);cur=pid?map.get(pid):null;}}}return rows.filter(r=>keep.has(idOf(r)));}
+function renderTree(){const rows=buildTreeFiltered(),p=rows.find(r=>String(scalar(r[AF.isPrimary])).toLowerCase()==="true"||num(r[AF.assignmentLevel])===0);$("treeCount").textContent=String(rows.length);if(!p){$("tree").innerHTML='<div class="tree-empty"><strong>No Primary Assignment</strong>Create the mandatory project-level assignment to start the structure.</div>';return;}const allowed=new Set(rows.map(idOf));const renderNode=(r)=>{const id=idOf(r),kids=childrenOf(id).filter(k=>allowed.has(idOf(k))),open=S.expanded.has(id),active=idOf(S.current)===id;return `<div class="tree-node"><div class="node-row ${active?"active":""}" data-node="${h(id)}"><button class="expander ${kids.length?"":"blank"}" data-expand="${h(id)}">${open?"−":"+"}</button><div class="avatar">${h(initials(assignmentUser(r)))}</div><div class="node-main"><div class="node-user">${h(assignmentUser(r))}</div><div class="node-scope">${h(scopeSummary(r))}</div></div><div class="node-side">${statusPill(scalar(r[AF.status]))}<div class="node-level">Level ${num(r[AF.assignmentLevel])}</div></div></div>${open&&kids.length?`<div class="tree-children">${kids.map(renderNode).join("")}</div>`:""}</div>`;};$("tree").innerHTML=renderNode(p);}
+
+function renderDetail(){const p=primaryAssignment();if(!p){renderPrimaryCreate();return;}if(!S.current)S.current=p;const a=S.current;$("detailHeading").textContent=num(a[AF.assignmentLevel])===0?"Primary Assignment":"Responsibility";$("detailSubtitle").textContent=assignmentPath(a);$("detailActions").innerHTML=`<button class="btn sm" data-act="edit-status">Update Status</button><button class="btn primary sm" data-act="assign-further">Assign Further</button>`;
+  const target=toInputDate(a[AF.targetDate]);const childCount=childrenOf(idOf(a)).length;$("detailBody").innerHTML=`<div class="detail-head"><div><div class="detail-title">${h(assignmentUser(a))}</div><div class="detail-path">${h(scopeSummary(a))}</div></div><div class="actions"><span class="pill brand">Level ${num(a[AF.assignmentLevel])}</span>${statusPill(scalar(a[AF.status]))}</div></div><div class="summary-grid"><div class="summary-card"><div class="label">Assigned By</div><div class="value">${h(assignmentBy(a))}</div></div><div class="summary-card"><div class="label">Start Date</div><div class="value">${h(displayDate(a[AF.startDate]))}</div></div><div class="summary-card"><div class="label">Target Date</div><div class="value">${h(displayDate(a[AF.targetDate]))}</div></div><div class="summary-card"><div class="label">Further Assignments</div><div class="value">${childCount}</div></div></div><div class="notice good"><strong>Current responsibility is locked as the maximum scope.</strong> Any further assignment can only refine this responsibility; it cannot expand outside it.</div><div class="section-title"><h3>Responsibility Scope</h3></div><div class="scope-lock">${scopeLockHtml(a)}</div>${scalar(a[AF.remark])?`<div class="section-title"><h3>Remark</h3></div><div class="notice">${h(scalar(a[AF.remark]))}</div>`:""}<div id="delegationArea"></div>`;
+  if(a.__showDelegate)renderDelegationBuilder(a);
+}
+function scopeLockHtml(a){const chips=[`Project: ${S.project.code}`];for(const c of CRITERIA){if(c.key==="tag"){const t=scalar(a[AF.tagNo]),n=scalar(a[AF.equipmentName]);if(t||n)chips.push(`Tag: ${[t,n].filter(Boolean).join(" — ")}`);}else{const v=scalar(a[c.field]);if(v)chips.push(`${c.label}: ${v}`);}}return chips.map(x=>`<span class="lock-chip">${h(x)}</span>`).join("");}
+
+function renderPrimaryCreate(){$("detailHeading").textContent="Create Primary Assignment";$("detailSubtitle").textContent="Mandatory project-level responsibility for this drawing / document.";$("detailActions").innerHTML="";const today=todayIso();$("detailBody").innerHTML=`<div class="primary-box"><div class="notice good"><strong>Primary Assignment = entire Project ${h(S.project.code)}.</strong> Create this once. Further division is optional and starts from the user who receives it.</div><div class="grid" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:14px"><div class="field"><label>Assigned To *</label><select id="primaryUser">${employeeOptions("")}</select></div><div class="field"><label>Status</label><select id="primaryStatus">${STATUSES.map(s=>`<option>${h(s)}</option>`).join("")}</select></div><div class="field"><label>Start Date *</label><input id="primaryStart" type="date" value="${today}"></div><div class="field"><label>Target Date *</label><input id="primaryTarget" type="date"></div><div class="field"><label>End Date</label><input id="primaryEnd" type="date"></div><div class="field"><label>Remark</label><input id="primaryRemark" placeholder="Optional assignment instruction"></div></div><div class="actions" style="margin-top:14px"><button class="btn primary" data-act="create-primary">Create Primary Assignment</button></div></div>`;}
+function employeeOptions(selected=""){return '<option value="">Select team member…</option>'+S.employees.map(e=>`<option value="${h(e.email||e.id)}" ${(e.email||e.id)===selected?"selected":""}>${h(e.name||e.email)}${e.department?` — ${h(e.department)}`:""}</option>`).join("");}
+
+function criteriaAlreadyFixed(a,c){if(c.key==="tag")return Boolean(scalar(a[AF.tagNo]));return Boolean(scalar(a[c.field]));}
+function renderDelegationBuilder(a){const area=$("delegationArea");if(!area)return;const available=CRITERIA.filter(c=>!criteriaAlreadyFixed(a,c));area.innerHTML=`<div class="section-title"><div><h3>Assign Further</h3><div class="tiny muted">Choose one or more criteria. Only matching values inside the current responsibility will be offered.</div></div></div><div class="criteria-grid">${available.map(c=>`<button class="criteria-chip ${S.selectedCriteria.has(c.key)?"active":""}" data-criterion="${c.key}">${h(c.label)}</button>`).join("")}</div><div id="targetArea">${renderTargetArea(a)}</div>`;}
+function equipmentWithinAssignment(eq,a){if(!eq||!a)return false;if(eq.project&&S.project?.code&&!String(eq.project).includes(S.project.code))return false;const checks=[[AF.plantSection,"plantSection"],[AF.plantSectionType,"plantSectionType"],[AF.groupCode,"groupCode"],[AF.department,"department"],[AF.equipmentCategory,"equipmentCategory"],[AF.equipmentType,"equipmentType"],[AF.tagNo,"tag"]];for(const [f,k] of checks){const v=scalar(a[f]);if(v&&String(eq[k]||"")!==v)return false;}return true;}
+function targetKey(row){return [...S.selectedCriteria].map(k=>{const c=CRITERIA.find(x=>x.key===k);if(k==="tag")return `${row.tag}::${row.name}`;return String(row[k]||"");}).join("||");}
+function targetLabel(row){return [...S.selectedCriteria].map(k=>{const c=CRITERIA.find(x=>x.key===k);return k==="tag"?`${row.tag||"—"} — ${row.name||"—"}`:`${c.label}: ${row[k]||"—"}`;}).join(" • ");}
+function makeTargetRows(a){if(!S.selectedCriteria.size)return[];const base=S.equipment.filter(eq=>equipmentWithinAssignment(eq,a));const map=new Map();for(const eq of base){const row={plantSection:eq.plantSection,plantSectionType:eq.plantSectionType,equipmentCategory:eq.equipmentCategory,tag:eq.tag,name:eq.name,groupCode:eq.groupCode,department:eq.department,equipmentType:eq.equipmentType};const k=targetKey(row);if(k&&!map.has(k))map.set(k,row);}return [...map.values()].sort((x,y)=>targetLabel(x).localeCompare(targetLabel(y),undefined,{numeric:true}));}
+function existingChildForTarget(parent,row){return childrenOf(idOf(parent)).find(ch=>[...S.selectedCriteria].every(k=>{const c=CRITERIA.find(x=>x.key===k);if(k==="tag")return scalar(ch[AF.tagNo])===row.tag;return scalar(ch[c.field])===String(row[k]||"");}));}
+function renderTargetArea(a){S.targetRows=makeTargetRows(a);if(!S.selectedCriteria.size)return '<div class="notice" style="margin-top:12px">Select at least one Assignment Criteria. Example: <strong>Plant Section + Plant Section Type</strong>, or <strong>Tag No / Equipment</strong>.</div>';const q=S.targetSearch||"",rows=S.targetRows.filter(r=>!q||targetLabel(r).toLowerCase().includes(q.toLowerCase()));const selectedCount=S.selectedTargets.size;return `<div class="target-toolbar"><input id="targetSearch" class="search" placeholder="Search matching responsibility…" value="${h(q)}"><div class="actions"><button class="btn sm" data-act="select-next-10">Select next 10</button><button class="btn sm" data-act="select-all-targets">Select all</button><button class="btn link sm" data-act="clear-targets">Clear</button></div></div><div class="selection-note"><strong>${selectedCount}</strong> selected of ${rows.length} matching responsibilities.</div><div class="table-wrap" style="margin-top:8px"><table><thead><tr><th style="width:38px"></th>${[...S.selectedCriteria].map(k=>{const c=CRITERIA.find(x=>x.key===k);return k==="tag"?'<th>Tag No</th><th>Equipment Name</th>':`<th>${h(c.label)}</th>`;}).join("")}<th>Existing</th></tr></thead><tbody>${rows.length?rows.map(r=>{const key=targetKey(r),ex=existingChildForTarget(a,r),sel=S.selectedTargets.has(key);return `<tr class="${sel?"selected":""}"><td><input class="check target-check" type="checkbox" data-target="${h(key)}" ${sel?"checked":""} ${ex?"disabled":""}></td>${[...S.selectedCriteria].map(k=>{const c=CRITERIA.find(x=>x.key===k);return k==="tag"?`<td class="strong">${h(r.tag||"—")}</td><td>${h(r.name||"—")}</td>`:`<td>${h(r[k]||"—")}</td>`;}).join("")}<td>${ex?'<span class="pill green">Already assigned</span>':'<span class="pill">New</span>'}</td></tr>`;}).join(""):'<tr><td class="empty-row" colspan="10">No matching values exist inside this responsibility.</td></tr>'}</tbody></table></div>${selectedCount?renderBulkBar(a):""}`;}
+function renderBulkBar(a){const d=S.bulk||{};return `<div class="bulk-bar"><div class="bulk-grid"><div class="field"><label>Assign selected to *</label><select id="bulkUser">${employeeOptions(d.user||"")}</select></div><div class="field"><label>Start Date *</label><input id="bulkStart" type="date" value="${h(d.start||todayIso())}"></div><div class="field"><label>Target Date *</label><input id="bulkTarget" type="date" value="${h(d.target||"")}"></div><div class="field"><label>End Date</label><input id="bulkEnd" type="date" value="${h(d.end||"")}"></div><div class="field"><label>Common Remark</label><input id="bulkRemark" value="${h(d.remark||"")}" placeholder="Optional instruction"></div><button class="btn primary" data-act="review-bulk">Review ${S.selectedTargets.size}</button></div><div class="bulk-summary">Every selected row will become a separate <strong>Drawing_Assignment</strong> record. Dates and status remain independent after creation.</div></div>`;}
+
+function collectBulk(){S.bulk={user:$("bulkUser")?.value||"",start:$("bulkStart")?.value||"",target:$("bulkTarget")?.value||"",end:$("bulkEnd")?.value||"",remark:$("bulkRemark")?.value||""};return S.bulk;}
+function buildChildPayload(parent,row,draft){const data={[AF.projectDrawing]:scalar(parent[AF.projectDrawing]),[AF.projectCode]:S.project.code,[AF.drawingDocument]:S.drawing.name,[AF.drawingMasterId]:S.drawing.id,[AF.primaryAssignment]:scalar(parent[AF.primaryAssignment])||idOf(primaryAssignment()),[AF.assignedFrom]:idOf(parent),[AF.assignmentLevel]:num(parent[AF.assignmentLevel])+1,[AF.assignedBy]:S.user||assignmentUser(parent),[AF.assignedTo]:draft.user,[AF.criteria]:[...S.selectedCriteria].map(k=>CRITERIA.find(c=>c.key===k).label).join(", "),[AF.startDate]:toCreatorDate(draft.start),[AF.targetDate]:toCreatorDate(draft.target),[AF.endDate]:toCreatorDate(draft.end),[AF.status]:"Not Started",[AF.progress]:0,[AF.remark]:draft.remark||"",[AF.furtherAssigned]:false,[AF.isPrimary]:false,[AF.active]:true};
+  // inherit the previous responsibility first
+  for(const c of CRITERIA){if(c.key==="tag"){if(parent[AF.tagNo])data[AF.tagNo]=scalar(parent[AF.tagNo]);if(parent[AF.equipmentName])data[AF.equipmentName]=scalar(parent[AF.equipmentName]);}else if(parent[c.field])data[c.field]=scalar(parent[c.field]);}
+  // then refine only the criteria selected by the current user
+  for(const k of S.selectedCriteria){const c=CRITERIA.find(x=>x.key===k);if(k==="tag"){data[AF.tagNo]=row.tag||"";data[AF.equipmentName]=row.name||"";}else data[c.field]=row[k]||"";}
+  return data;
+}
+function reviewBulk(){const d=collectBulk();if(!d.user)throw new Error("Select Assigned To for the bulk assignment.");if(!d.start||!d.target)throw new Error("Start Date and Target Date are required.");if(d.end&&d.end<d.start)throw new Error("End Date cannot be before Start Date.");const parentTarget=toInputDate(S.current[AF.targetDate]);const late=parentTarget&&d.target>parentTarget;if(late&&!d.remark.trim())toast("Target Date is later than the received responsibility. Add a Remark before saving.","error");const selected=S.targetRows.filter(r=>S.selectedTargets.has(targetKey(r))&&!existingChildForTarget(S.current,r));if(!selected.length)throw new Error("No new responsibilities are selected.");openModal("Review Further Assignment",`${selected.length} independent assignment records will be created from ${assignmentUser(S.current)}'s responsibility.`,reviewBulkHtml(selected,d,late),`<button class="btn" data-modal="close">Back</button><button class="btn primary" data-modal="confirm-bulk">Create ${selected.length} Assignments</button>`);}
+function reviewBulkHtml(rows,d,late){return `<div class="review-grid"><div class="review-metric"><div class="n">${rows.length}</div><div class="l">NEW ASSIGNMENTS</div></div><div class="review-metric"><div class="n">${h(S.employees.find(e=>(e.email||e.id)===d.user)?.name||d.user)}</div><div class="l">ASSIGNED TO</div></div><div class="review-metric"><div class="n">Level ${num(S.current[AF.assignmentLevel])+1}</div><div class="l">ASSIGNMENT LEVEL</div></div></div>${late?'<div class="notice warn"><strong>Date warning:</strong> the new Target Date is later than the current responsibility Target Date. POC allows this with a Remark so the team can validate the business rule.</div>':""}<div class="notice good" style="margin-top:8px"><strong>Scope inheritance check passed.</strong> These rows were generated only from equipment inside the selected responsibility, so the new assignments refine the scope and do not broaden it.</div><div class="table-wrap" style="margin-top:12px"><table><thead><tr><th>#</th><th>Responsibility</th><th>Assigned To</th><th>Start</th><th>Target</th><th>End</th></tr></thead><tbody>${rows.map((r,i)=>`<tr><td>${i+1}</td><td>${h(targetLabel(r))}</td><td>${h(S.employees.find(e=>(e.email||e.id)===d.user)?.name||d.user)}</td><td>${h(d.start)}</td><td>${h(d.target)}</td><td>${h(d.end||"—")}</td></tr>`).join("")}</tbody></table></div>`;}
+
+async function createPrimary(){const user=$("primaryUser").value,start=$("primaryStart").value,target=$("primaryTarget").value,end=$("primaryEnd").value,remark=$("primaryRemark").value.trim(),status=$("primaryStatus").value;if(!user||!start||!target)throw new Error("Assigned To, Start Date and Target Date are required.");if(end&&end<start)throw new Error("End Date cannot be before Start Date.");busy("Creating Primary Assignment…");try{let reg=S.projectDrawings.find(r=>scalar(r[RF.projectCode])===S.project.code&&(scalar(r[RF.drawingMasterId])===S.drawing.id||scalar(r[RF.drawingDocument])===S.drawing.name));let regId=idOf(reg);if(!regId){regId=await addRecord(CONFIG.FORMS.projectDrawing,{[RF.projectCode]:S.project.code,[RF.drawingDocument]:S.drawing.name,[RF.drawingMasterId]:S.drawing.id,[RF.required]:true,[RF.revision]:"R0",[RF.status]:"Assigned",[RF.active]:true});reg={ID:regId,[RF.projectCode]:S.project.code,[RF.drawingDocument]:S.drawing.name,[RF.drawingMasterId]:S.drawing.id,[RF.required]:true,[RF.revision]:"R0",[RF.status]:"Assigned",[RF.active]:true};S.projectDrawings.push(reg);}const data={[AF.projectDrawing]:regId,[AF.projectCode]:S.project.code,[AF.drawingDocument]:S.drawing.name,[AF.drawingMasterId]:S.drawing.id,[AF.assignmentLevel]:0,[AF.assignedBy]:S.user||user,[AF.assignedTo]:user,[AF.criteria]:"Project",[AF.startDate]:toCreatorDate(start),[AF.targetDate]:toCreatorDate(target),[AF.endDate]:toCreatorDate(end),[AF.status]:status,[AF.progress]:status==="Completed"?100:0,[AF.remark]:remark,[AF.furtherAssigned]:false,[AF.isPrimary]:true,[AF.active]:true};const id=await addRecord(CONFIG.FORMS.assignment,data);data.ID=id;data[AF.primaryAssignment]=id;await updateRecord(CONFIG.REPORTS.assignments,id,{[AF.primaryAssignment]:id});S.assignments.push(data);S.current=data;S.expanded.add(id);renderContextCard();renderTree();renderDetail();toast("Primary Assignment created.","good");log("Primary Assignment created",{id,project:S.project.code,drawing:S.drawing.name,user});}finally{idle();}}
+async function confirmBulk(){const d=collectBulk(),rows=S.targetRows.filter(r=>S.selectedTargets.has(targetKey(r))&&!existingChildForTarget(S.current,r));if(!rows.length)return;busy(`Creating ${rows.length} assignments…`);const results=[];try{for(let i=0;i<rows.length;i++){$("loadingText").textContent=`Creating ${i+1} of ${rows.length}…`;const payload=buildChildPayload(S.current,rows[i],d);try{const id=await addRecord(CONFIG.FORMS.assignment,payload);payload.ID=id;S.assignments.push(payload);results.push({ok:true,row:rows[i],id});}catch(e){results.push({ok:false,row:rows[i],error:e.message||String(e)});} }if(results.some(x=>x.ok))await updateRecord(CONFIG.REPORTS.assignments,idOf(S.current),{[AF.furtherAssigned]:true});S.current[AF.furtherAssigned]=true;closeModal();S.selectedTargets.clear();S.bulk={};S.current.__showDelegate=true;renderContextCard();renderTree();renderDetail();const ok=results.filter(x=>x.ok).length,fail=results.length-ok;toast(`${ok} assignment${ok===1?"":"s"} created${fail?`; ${fail} failed`:""}.`,fail?"error":"good");log("Bulk further assignment",{parent:idOf(S.current),ok,fail});}finally{idle();}}
+
+function canAssignFurther(a){if(S.demo)return true;const me=String(S.user||"").toLowerCase();const to=assignmentUser(a).toLowerCase();return Boolean(me&&to.includes(me));}
+function openAssignment(id){const a=S.assignments.find(x=>idOf(x)===String(id));if(!a)return;S.current=a;renderTree();renderDetail();}
+function toggleExpand(id){S.expanded.has(id)?S.expanded.delete(id):S.expanded.add(id);renderTree();}
+function showAssignFurther(){if(!canAssignFurther(S.current)){toast("Only the user who received this responsibility can assign further in the POC.","error");return;}S.current.__showDelegate=true;S.selectedCriteria.clear();S.selectedTargets.clear();S.bulk={};renderDetail();}
+
+function renderRegister(){S.view=S.regMode==="mine"?"mine":"all";$("plannerView").classList.add("hidden");$("registerView").classList.remove("hidden");$("registerTitle").textContent=S.regMode==="mine"?"My Assignments":"All Assignments";let rows=S.assignments.filter(a=>S.regMode!=="mine"||assignmentUser(a).toLowerCase().includes(String(S.user||"").toLowerCase()));const q=$("regSearch").value.toLowerCase().trim(),p=$("regProject").value,d=$("regDrawing").value,c=$("regCriteria").value,st=$("regStatus").value;rows=rows.filter(a=>(!q||[scalar(a[AF.projectCode]),scalar(a[AF.drawingDocument]),assignmentUser(a),scopeSummary(a),assignmentBy(a)].join(" ").toLowerCase().includes(q))&&(!p||scalar(a[AF.projectCode])===p)&&(!d||scalar(a[AF.drawingDocument])===d)&&(!c||scalar(a[AF.criteria]).includes(c))&&(!st||scalar(a[AF.status])===st));$("registerCount").textContent=String(rows.length);$("registerTable").innerHTML=`<table><thead><tr><th>Assignment</th><th>Project / Drawing</th><th>Responsibility</th><th>Assigned By</th><th>Assigned To</th><th>Level</th><th>Target</th><th>Status</th><th>Progress</th><th></th></tr></thead><tbody>${rows.length?rows.map(a=>`<tr><td class="strong">${h(scalar(a[AF.assignmentNo])||idOf(a))}</td><td><div class="strong">${h(scalar(a[AF.projectCode]))}</div><div class="tiny muted">${h(scalar(a[AF.drawingDocument]))}</div></td><td>${h(scopeSummary(a))}</td><td>${h(assignmentBy(a))}</td><td>${h(assignmentUser(a))}</td><td>Level ${num(a[AF.assignmentLevel])}</td><td>${h(displayDate(a[AF.targetDate]))}</td><td>${statusPill(scalar(a[AF.status]))}</td><td>${num(a[AF.progress])}%<div class="progress"><span style="width:${Math.max(0,Math.min(100,num(a[AF.progress])))}%"></span></div></td><td><button class="btn sm" data-open-reg="${h(idOf(a))}">Open</button></td></tr>`).join(""):'<tr><td colspan="10" class="empty-row">No assignments match the filters.</td></tr>'}</tbody></table>`;}
+function openRegisterAssignment(id){const a=S.assignments.find(x=>idOf(x)===String(id));if(!a)return;const p=S.projects.find(x=>x.code===scalar(a[AF.projectCode])),d=S.drawings.find(x=>x.id===scalar(a[AF.drawingMasterId])||x.name===scalar(a[AF.drawingDocument]));if(p&&d){S.project=p;S.drawing=d;$("projectSelect").value=p.id;$("drawingSelect").value=d.id;S.current=a;S.expanded.add(idOf(primaryAssignment()));switchView("planner");renderContextCard();$("workspace").classList.remove("hidden");renderTree();renderDetail();}}
+
+function updateStatusModal(){const a=S.current;openModal("Update Assignment Status",`${assignmentUser(a)} — ${scopeSummary(a)}`,`<div class="grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px"><div class="field"><label>Status</label><select id="statusEdit">${STATUSES.map(s=>`<option ${s===scalar(a[AF.status])?"selected":""}>${h(s)}</option>`).join("")}</select></div><div class="field"><label>Progress %</label><input id="progressEdit" type="number" min="0" max="100" value="${num(a[AF.progress])}"></div><div class="field" style="grid-column:1/-1"><label>Remark</label><textarea id="remarkEdit">${h(scalar(a[AF.remark]))}</textarea></div></div>`,`<button class="btn" data-modal="close">Cancel</button><button class="btn primary" data-modal="save-status">Save Status</button>`);}
+async function saveStatus(){const s=$("statusEdit").value,p=Math.max(0,Math.min(100,num($("progressEdit").value))),r=$("remarkEdit").value.trim();busy("Updating assignment…");try{await updateRecord(CONFIG.REPORTS.assignments,idOf(S.current),{[AF.status]:s,[AF.progress]:p,[AF.remark]:r});S.current[AF.status]=s;S.current[AF.progress]=p;S.current[AF.remark]=r;closeModal();renderTree();renderDetail();toast("Assignment status updated.","good");}finally{idle();}}
+
+function openModal(title,sub,body,foot){$("modalTitle").textContent=title;$("modalSub").textContent=sub||"";$("modalBody").innerHTML=body||"";$("modalFoot").innerHTML=foot||"";$("modalBackdrop").classList.remove("hidden");}
+function closeModal(){$("modalBackdrop").classList.add("hidden");}
+function setupModal(){openModal("V15 POC Form Architecture","Create the database first; the widget remains the UX layer.",`<div class="notice good"><strong>N-level architecture:</strong> every Project-level and further assignment is an independent record in the same <strong>Drawing_Assignment</strong> form. The tree is reconstructed from Assigned_From + Primary_Assignment + Assignment_Level.</div><div class="section-title"><h3>Required Forms</h3></div><div class="table-wrap"><table><thead><tr><th>Form</th><th>Type</th><th>Purpose</th></tr></thead><tbody><tr><td>Drawing_Document_Master</td><td>Master</td><td>Drawing / Document definitions.</td></tr><tr><td>Project_Drawing_Register</td><td>Transaction Header</td><td>Confirms the drawing exists / is required for the Project.</td></tr><tr><td>Drawing_Assignment</td><td>Main Transaction</td><td>Primary + every further assignment using self-reference.</td></tr></tbody></table></div><div class="section-title"><h3>Self-reference Fields</h3></div><div class="table-wrap"><table><thead><tr><th>Field</th><th>Link Name</th><th>Recommended Type</th></tr></thead><tbody><tr><td>Primary Assignment</td><td>Primary_Assignment</td><td>Lookup → Drawing_Assignment</td></tr><tr><td>Assigned From</td><td>Assigned_From</td><td>Lookup → Drawing_Assignment</td></tr><tr><td>Assignment Level</td><td>Assignment_Level</td><td>Number</td></tr><tr><td>Assignment Criteria</td><td>Assignment_Criteria</td><td>Multi Select / Single Line for POC</td></tr><tr><td>Assigned By</td><td>Assigned_By</td><td>Users / Employee lookup</td></tr><tr><td>Assigned To</td><td>Assigned_To</td><td>Users / Employee lookup</td></tr></tbody></table></div><div class="notice warn" style="margin-top:12px">Creator workflows must enforce permissions and scope validation server-side. The widget filters available values for UX, but security must not depend only on JavaScript.</div>`,`<button class="btn primary" data-modal="close">Close</button>`);}
+
+function switchView(v){S.view=v;document.querySelectorAll(".tab").forEach(b=>b.classList.toggle("active",b.dataset.view===v));if(v==="planner"){$("plannerView").classList.remove("hidden");$("registerView").classList.add("hidden");}else{S.regMode=v==="mine"?"mine":"all";renderRegister();}}
+
+async function handleAction(act,el){if(act==="create-primary")return createPrimary();if(act==="assign-further")return showAssignFurther();if(act==="edit-status")return updateStatusModal();if(act==="select-next-10"){const rows=S.targetRows.filter(r=>!existingChildForTarget(S.current,r)&&!S.selectedTargets.has(targetKey(r))).slice(0,10);rows.forEach(r=>S.selectedTargets.add(targetKey(r)));renderDetail();return;}if(act==="select-all-targets"){S.targetRows.filter(r=>!existingChildForTarget(S.current,r)).forEach(r=>S.selectedTargets.add(targetKey(r)));renderDetail();return;}if(act==="clear-targets"){S.selectedTargets.clear();renderDetail();return;}if(act==="review-bulk")return reviewBulk();}
+async function handleModal(act){if(act==="close")return closeModal();if(act==="confirm-bulk")return confirmBulk();if(act==="save-status")return saveStatus();}
+
 function wire(){
- $("next").onclick=()=>guarded(nextStep);$("back").onclick=()=>{if(S.busy)return;if(S.step===4)collectAssignment();S.step=Math.max(1,S.step-1);render();};
- $("navPlan").onclick=()=>{if(S.busy)return;S.view="plan";render();};$("navRegister").onclick=()=>{if(S.busy)return;if(S.step===4)collectAssignment();S.view="register";render();};$("setup").onclick=()=>{if(!S.busy)showSetup();};$("reload").onclick=()=>guarded(async()=>{const id=S.project?.id;S.equipmentCache=null;S.projectMap=null;await bootstrap();if(id){await loadProject(id);S.step=1;render();}});
- $("closeModal").onclick=closeModal;$("modal").onclick=e=>{if(e.target===$("modal"))closeModal();};$("stopBatch").onclick=()=>{S.stop=true;$("stopBatch").disabled=true;$("loadingSub").textContent="Stopping after the in-flight record; completed saves will remain.";};
- document.addEventListener("click",event=>{const el=event.target.closest("[data-action]");if(el&&!el.disabled)guarded(()=>onAction(el.dataset.action,el));});
- document.addEventListener("change",event=>{const el=event.target;if(S.busy)return;
- if(el.id==="projectInput"||el.id==="regProject"){guarded(async()=>{await loadProject(el.value);S.step=1;render();});return;}
- if(el.id==="drawingInput"){setDrawing(el.value);render();return;}
- if(el.id==="scopeInput"){S.scope=el.value;resetTargets();render();return;}
- if(el.id==="addFilter"){if(el.value){S.activeFilters.push(el.value);S.filters[el.value]="";resetSelectionOnFilter();render();}return;}
- if(el.dataset.filter){const key=el.dataset.filter;S.filters[key]=el.value;if(key==="section"&&S.activeFilters.includes("sectionType"))S.filters.sectionType="";resetSelectionOnFilter();$("filterFields").innerHTML=filtersHtml();renderTargetsTable();return;}
- if(el.dataset.target){if(el.checked)S.selected.add(el.dataset.target);else S.selected.delete(el.dataset.target);renderTargetsTable();return;}
- if(el.id.startsWith("assign")){collectAssignment();$("assignmentDates")?.classList.toggle("hidden",!S.assignment.dates);updateNext();return;}
- if(el.id==="confirmCreate")return updateNext();
- if(el.id==="regScope"||el.id==="regStatus"||el.id==="regMine"){S.regScope=$("regScope").value;S.regStatus=$("regStatus").value;S.regMine=$("regMine").checked;S.regSelected.clear();S.regPage=1;renderRegTable();return;}
- if(el.dataset.reg){if(el.checked)S.regSelected.add(el.dataset.reg);else S.regSelected.delete(el.dataset.reg);renderRegTable();return;}
- if(el.id==="bulkDates")$("bulkDatesBody").classList.toggle("hidden",!el.checked);
- });
- let searchTimer;document.addEventListener("input",event=>{const el=event.target;if(el.id==="targetSearch"){clearTimeout(searchTimer);searchTimer=setTimeout(()=>{S.search=el.value;resetSelectionOnFilter();renderTargetsTable();},140);}if(el.id==="regSearch"){S.regSearch=el.value;S.regSelected.clear();S.regPage=1;renderRegTable();}});
- document.addEventListener("keydown",event=>{if(event.key==="Escape")closeModal();if(event.key==="Tab"&&!$("modal").classList.contains("hidden")){const focusable=[...$("modal").querySelectorAll('button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),summary')].filter(e=>e.offsetParent!==null);if(!focusable.length)return;const first=focusable[0],last=focusable.at(-1);if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus();}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus();}}});
- window.addEventListener("beforeunload",event=>{if(S.busy){event.preventDefault();event.returnValue="";}});
+  $("loadContextBtn").onclick=()=>openContext();$("refreshBtn").onclick=()=>location.reload();$("setupBtn").onclick=setupModal;$("modalClose").onclick=closeModal;$("modalBackdrop").addEventListener("click",e=>{if(e.target===$("modalBackdrop"))closeModal();});
+  document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>switchView(b.dataset.view));
+  $("treeSearch").oninput=renderTree;$("treeStatus").onchange=renderTree;
+  ["regSearch","regProject","regDrawing","regCriteria","regStatus"].forEach(id=>$(id).addEventListener(id==="regSearch"?"input":"change",renderRegister));
+  document.addEventListener("click",e=>{const expand=e.target.closest("[data-expand]");if(expand){e.stopPropagation();return toggleExpand(expand.dataset.expand);}const node=e.target.closest("[data-node]");if(node)return openAssignment(node.dataset.node);const a=e.target.closest("[data-act]");if(a)return guarded(()=>handleAction(a.dataset.act,a));const c=e.target.closest("[data-criterion]");if(c){const k=c.dataset.criterion;S.selectedCriteria.has(k)?S.selectedCriteria.delete(k):S.selectedCriteria.add(k);S.selectedTargets.clear();return renderDetail();}const rr=e.target.closest("[data-open-reg]");if(rr)return openRegisterAssignment(rr.dataset.openReg);const m=e.target.closest("[data-modal]");if(m)return guarded(()=>handleModal(m.dataset.modal));});
+  document.addEventListener("change",e=>{if(e.target.classList.contains("target-check")){const k=e.target.dataset.target;e.target.checked?S.selectedTargets.add(k):S.selectedTargets.delete(k);renderDetail();}});
+  document.addEventListener("input",e=>{if(e.target.id==="targetSearch"){S.targetSearch=e.target.value;const area=$("targetArea");if(area)area.innerHTML=renderTargetArea(S.current);}});
+  document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("modalBackdrop").classList.contains("hidden"))closeModal();});
 }
-document.addEventListener("DOMContentLoaded",()=>{wire();render();bootstrap();});
+async function guarded(fn){try{return await fn();}catch(e){console.error(e);toast(e.message||String(e),"error");}finally{while(loadDepth>0)idle();}}
 
+/* ================================ DEMO ================================ */
+const DEMO={
+  projects:[{ID:"P25005",Project_Code:"25005",Project_Name:"Sample EPC Project"},{ID:"P26011",Project_Code:"26011",Project_Name:"Busia Sugar & Allied Limited"}],
+  drawings:[{ID:"D1",Drawing_Name:"Site Location Plan",Drawing_Abbreviation:"SLP",Drawing_Type:"Project Code",Active:true},{ID:"D2",Drawing_Name:"Process Flow Diagram",Drawing_Abbreviation:"PFD",Drawing_Type:"Project Code + Plant Section",Active:true},{ID:"D3",Drawing_Name:"Process Data Sheet",Drawing_Abbreviation:"PDS",Drawing_Type:"Project Code + Plant Section + Tag No",Active:true}],
+  employees:[{ID:"U1",Employee_Name:"Rohan",Email:"rohan@mega.tc",Department:"Project"},{ID:"U2",Employee_Name:"Kunal",Email:"kunal@mega.tc",Department:"Design"},{ID:"U3",Employee_Name:"Vasu",Email:"vasu@mega.tc",Department:"Design"},{ID:"U4",Employee_Name:"Balaji",Email:"balaji@mega.tc",Department:"Design"},{ID:"U5",Employee_Name:"Tejas",Email:"tejas@mega.tc",Department:"Instrumentation"},{ID:"U6",Employee_Name:"Rahul",Email:"rahul@mega.tc",Department:"Electrical"},{ID:"U7",Employee_Name:"Amit",Email:"amit@mega.tc",Department:"Mechanical"}],
+  equipment:[
+    {ID:"E1",Project_Code:"25005",Plant_Section_Name:"Fermentation",Plant_Section_Type:"3 Fermenter",Tag_Number:"CV-101",Equipment_Name:"Control Valve 101",Group_Code:"Shop",Department_Code:"Instrumentation",Equipment_Category:"Control Valves",Equipment_Type:"Control Valve"},
+    {ID:"E2",Project_Code:"25005",Plant_Section_Name:"Fermentation",Plant_Section_Type:"3 Fermenter",Tag_Number:"M-101",Equipment_Name:"Fermenter Agitator Motor",Group_Code:"Direct Supply",Department_Code:"Electrical",Equipment_Category:"Electric Motors",Equipment_Type:"Motor"},
+    {ID:"E3",Project_Code:"25005",Plant_Section_Name:"Fermentation",Plant_Section_Type:"3 Fermenter",Tag_Number:"P-101",Equipment_Name:"Mash Pump",Group_Code:"Direct Supply",Department_Code:"Equipment - Rotating",Equipment_Category:"Pumps",Equipment_Type:"Centrifugal Pump"},
+    {ID:"E4",Project_Code:"25005",Plant_Section_Name:"Fermentation",Plant_Section_Type:"4 Fermenter",Tag_Number:"CV-201",Equipment_Name:"Control Valve 201",Group_Code:"Shop",Department_Code:"Instrumentation",Equipment_Category:"Control Valves",Equipment_Type:"Control Valve"},
+    {ID:"E5",Project_Code:"25005",Plant_Section_Name:"Fermentation",Plant_Section_Type:"4 Fermenter",Tag_Number:"M-201",Equipment_Name:"Motor 201",Group_Code:"Direct Supply",Department_Code:"Electrical",Equipment_Category:"Electric Motors",Equipment_Type:"Motor"},
+    {ID:"E6",Project_Code:"25005",Plant_Section_Name:"Evaporation",Plant_Section_Type:"Standalone Evaporation",Tag_Number:"P-301",Equipment_Name:"Evaporation Pump",Group_Code:"Direct Supply",Department_Code:"Equipment - Rotating",Equipment_Category:"Pumps",Equipment_Type:"Centrifugal Pump"},
+    {ID:"E7",Project_Code:"25005",Plant_Section_Name:"Evaporation",Plant_Section_Type:"Standalone Evaporation",Tag_Number:"M-301",Equipment_Name:"Evaporation Motor",Group_Code:"Direct Supply",Department_Code:"Electrical",Equipment_Category:"Electric Motors",Equipment_Type:"Motor"}
+  ],
+  projectDrawings:[{ID:"R1",Project_Code:"25005",Drawing_Document:"Site Location Plan",Drawing_Master_ID:"D1",Required:true,Revision:"R0",Status:"Assigned",Active:true}],
+  assignments:[
+    {ID:"A001",Assignment_No:"A001",Project_Drawing_Register:"R1",Project_Code:"25005",Drawing_Document:"Site Location Plan",Drawing_Master_ID:"D1",Primary_Assignment:"A001",Assigned_From:"",Assignment_Level:0,Assigned_By:"Project Manager",Assigned_To:"rohan@mega.tc",Assignment_Criteria:"Project",Start_Date:"01-Sep-2026",Target_Date:"05-Sep-2026",End_Date:"07-Sep-2026",Status:"In Progress",Progress_Percentage:25,Remark:"Coordinate the complete SLP responsibility.",Further_Assigned:true,Is_Primary_Assignment:true,Active:true},
+    {ID:"A002",Assignment_No:"A002",Project_Drawing_Register:"R1",Project_Code:"25005",Drawing_Document:"Site Location Plan",Drawing_Master_ID:"D1",Primary_Assignment:"A001",Assigned_From:"A001",Assignment_Level:1,Assigned_By:"rohan@mega.tc",Assigned_To:"kunal@mega.tc",Assignment_Criteria:"Plant Section, Plant Section Type",Plant_Section:"Fermentation",Plant_Section_Type:"3 Fermenter",Start_Date:"03-Sep-2026",Target_Date:"10-Sep-2026",End_Date:"09-Sep-2026",Status:"In Progress",Progress_Percentage:50,Remark:"Handle 3 Fermenter scope.",Further_Assigned:true,Is_Primary_Assignment:false,Active:true},
+    {ID:"A003",Assignment_No:"A003",Project_Drawing_Register:"R1",Project_Code:"25005",Drawing_Document:"Site Location Plan",Drawing_Master_ID:"D1",Primary_Assignment:"A001",Assigned_From:"A001",Assignment_Level:1,Assigned_By:"rohan@mega.tc",Assigned_To:"vasu@mega.tc",Assignment_Criteria:"Plant Section, Plant Section Type",Plant_Section:"Fermentation",Plant_Section_Type:"4 Fermenter",Start_Date:"04-Sep-2026",Target_Date:"09-Sep-2026",End_Date:"08-Sep-2026",Status:"Not Started",Progress_Percentage:0,Remark:"Handle 4 Fermenter scope.",Further_Assigned:false,Is_Primary_Assignment:false,Active:true},
+    {ID:"A004",Assignment_No:"A004",Project_Drawing_Register:"R1",Project_Code:"25005",Drawing_Document:"Site Location Plan",Drawing_Master_ID:"D1",Primary_Assignment:"A001",Assigned_From:"A001",Assignment_Level:1,Assigned_By:"rohan@mega.tc",Assigned_To:"balaji@mega.tc",Assignment_Criteria:"Plant Section, Plant Section Type",Plant_Section:"Evaporation",Plant_Section_Type:"Standalone Evaporation",Start_Date:"05-Sep-2026",Target_Date:"07-Sep-2026",End_Date:"07-Sep-2026",Status:"Not Started",Progress_Percentage:0,Remark:"Evaporation SLP.",Further_Assigned:false,Is_Primary_Assignment:false,Active:true},
+    {ID:"A005",Assignment_No:"A005",Project_Drawing_Register:"R1",Project_Code:"25005",Drawing_Document:"Site Location Plan",Drawing_Master_ID:"D1",Primary_Assignment:"A001",Assigned_From:"A002",Assignment_Level:2,Assigned_By:"kunal@mega.tc",Assigned_To:"tejas@mega.tc",Assignment_Criteria:"Equipment Category",Plant_Section:"Fermentation",Plant_Section_Type:"3 Fermenter",Equipment_Category:"Control Valves",Start_Date:"04-Sep-2026",Target_Date:"09-Sep-2026",End_Date:"09-Sep-2026",Status:"Completed",Progress_Percentage:100,Remark:"Control valve portion.",Further_Assigned:false,Is_Primary_Assignment:false,Active:true},
+    {ID:"A006",Assignment_No:"A006",Project_Drawing_Register:"R1",Project_Code:"25005",Drawing_Document:"Site Location Plan",Drawing_Master_ID:"D1",Primary_Assignment:"A001",Assigned_From:"A002",Assignment_Level:2,Assigned_By:"kunal@mega.tc",Assigned_To:"rahul@mega.tc",Assignment_Criteria:"Equipment Category",Plant_Section:"Fermentation",Plant_Section_Type:"3 Fermenter",Equipment_Category:"Electric Motors",Start_Date:"04-Sep-2026",Target_Date:"09-Sep-2026",End_Date:"09-Sep-2026",Status:"In Progress",Progress_Percentage:40,Remark:"Motor portion.",Further_Assigned:false,Is_Primary_Assignment:false,Active:true}
+  ]
+};
+function demoFetch(report){if(report===CONFIG.REPORTS.projects)return DEMO.projects.map(x=>({...x}));if(report===CONFIG.REPORTS.drawings)return DEMO.drawings.map(x=>({...x}));if(report===CONFIG.REPORTS.employees)return DEMO.employees.map(x=>({...x}));if(report===CONFIG.REPORTS.equipment)return DEMO.equipment.map(x=>({...x}));if(report===CONFIG.REPORTS.assignments)return DEMO.assignments.map(x=>({...x}));if(report===CONFIG.REPORTS.projectDrawings)return DEMO.projectDrawings.map(x=>({...x}));return[];}
+let demoSeq=100;function demoAdd(form,data){const id=form===CONFIG.FORMS.assignment?`A${++demoSeq}`:`R${++demoSeq}`;if(form===CONFIG.FORMS.assignment)DEMO.assignments.push({ID:id,...data});else DEMO.projectDrawings.push({ID:id,...data});return id;}function demoUpdate(report,id,data){const arr=report===CONFIG.REPORTS.assignments?DEMO.assignments:DEMO.projectDrawings;const r=arr.find(x=>String(x.ID)===String(id));if(r)Object.assign(r,data);return id;}
+
+wire();bootstrap();
 </script>
-</body></html>
+</body>
+</html>
