@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="color-scheme" content="light">
-<title>MEGA Engineering | Drawing Assignment V15</title>
+<title>MEGA Engineering | Drawing Assignment V16</title>
 <script src="https://static.zohocdn.com/creator/widgets/version/2.0/widgetsdk-min.js"></script>
 <style>
 :root{
@@ -73,7 +73,7 @@ h1,h2,h3,p{margin:0}.hidden{display:none!important}.muted{color:var(--muted)}.no
   </section>
 
   <section id="registerView" class="panel hidden">
-    <div class="panel-head"><div><h2 id="registerTitle">Assignments</h2><p>Every row is an independent Drawing_Assignment record with its own dates, status and remark.</p></div><span id="registerCount" class="pill">0</span></div>
+    <div class="panel-head"><div><h2 id="registerTitle">Assignments</h2><p>Every row is an independent Design_Tracking assignment record with its own dates, status and remark.</p></div><span id="registerCount" class="pill">0</span></div>
     <div class="panel-body">
       <div class="register-toolbar">
         <input id="regSearch" placeholder="Search project, drawing, user…">
@@ -95,70 +95,89 @@ h1,h2,h3,p{margin:0}.hidden{display:none!important}.muted{color:var(--muted)}.no
 "use strict";
 
 /* ======================================================================
-   V15 POC ARCHITECTURE
+   V16 ONE-FORM ARCHITECTURE
    ----------------------------------------------------------------------
-   Permanent Creator forms:
-     Drawing_Document_Master   (master)
-     Project_Drawing_Register  (transaction header / project drawing existence)
-     Drawing_Assignment        (self-referencing N-level transaction)
+   Existing Creator sources (READ):
+     - Project master/report
+     - All_Drawing_Types
+     - Master_Equipment_List_Subform_Report
+     - Employee report
 
-   The widget grid is only a bulk-assignment UX. Each submitted row creates
-   an independent Drawing_Assignment record.
+   Permanent transaction storage (WRITE + READ):
+     - Design_Tracking ONLY
+
+   Assignment hierarchy inside Design_Tracking:
+     Primary_Assignment_ID -> first assignment record ID
+     Assigned_From_ID      -> immediate previous assignment record ID
+     Assignment_Level      -> 0, 1, 2, 3 ... N
+
+   Parent_Design_ID remains reserved for drawing REVISION history and is NOT
+   used for assignment hierarchy.
    ====================================================================== */
 const CONFIG = {
   APP_NAME: "mega-engineering-sales",
   DEMO: new URLSearchParams(location.search).get("demo") === "1",
   LIVE_WRITES: true,
   REPORTS: {
-    projects: "All_Projects",
+    projects: "All_Associated_Projects",
     drawings: "All_Drawing_Types",
     equipment: "Master_Equipment_List_Subform_Report",
-    employees: "All_Employees",
-    projectDrawings: "All_Project_Drawing_Registers",
-    assignments: "All_Drawing_Assignments"
+    employees: "Employ_to_Create_ticket_Report",
+    assignments: "" // auto-discovered Design_Tracking report
   },
   FORMS: {
-    projectDrawing: "Project_Drawing_Register",
-    assignment: "Drawing_Assignment"
+    assignment: "Design_Tracking"
   },
+  ASSIGNMENT_REPORT_CANDIDATES: [
+    "Design_Tracking_Report",
+    "All_Design_Tracking",
+    "Design_Tracking"
+  ],
   PAGE_SIZE: 100,
   MAX_BATCH: 250
 };
 
+/* Existing Design_Tracking fields + the eight assignment fields added by you. */
 const AF = {
-  assignmentNo: "Assignment_No",
-  projectDrawing: "Project_Drawing_Register",
   projectCode: "Project_Code",
-  drawingDocument: "Drawing_Document",
+  projectRecordId: "Project_Record_ID",
+  drawingDocument: "Drawing_Document_Name",
   drawingMasterId: "Drawing_Master_ID",
-  primaryAssignment: "Primary_Assignment",
-  assignedFrom: "Assigned_From",
+  shortName: "Short_Name",
+
+  primaryAssignment: "Primary_Assignment_ID",
+  assignedFrom: "Assigned_From_ID",
   assignmentLevel: "Assignment_Level",
   assignedBy: "Assigned_By",
   assignedTo: "Assigned_To",
+  assignedEmployeeName: "Assigned_Employee_Name",
   criteria: "Assignment_Criteria",
-  plantSection: "Plant_Section",
+  responsibility: "Responsibility",
+  furtherAssigned: "Further_Assigned",
+
+  plantSection: "Plant_Section_Name",
   plantSectionType: "Plant_Section_Type",
   groupCode: "Group_Code",
-  department: "Department",
-  tagNo: "Tag_No",
+  department: "Equipment_Department",
+  tagNo: "Tag_Number",
   equipmentName: "Equipment_Name",
+  equipmentRecordId: "Equipment_Record_ID",
   equipmentCategory: "Equipment_Category",
   equipmentType: "Equipment_Type",
-  startDate: "Start_Date",
-  targetDate: "Target_Date",
-  endDate: "End_Date",
-  status: "Status",
-  progress: "Progress_Percentage",
-  remark: "Remark",
-  furtherAssigned: "Further_Assigned",
-  isPrimary: "Is_Primary_Assignment",
-  active: "Active"
-};
 
-const RF = {
-  projectCode: "Project_Code", drawingDocument: "Drawing_Document", drawingMasterId: "Drawing_Master_ID",
-  required: "Required", revision: "Revision", status: "Status", active: "Active"
+  startDate: "Planned_Start_Date",
+  targetDate: "Forecast_End_Date",
+  endDate: "Planned_End_Date",
+  priority: "Priority",
+  status: "Status",
+  progress: "Progress",
+  remark: "Remarks",
+  active: "Active",
+
+  // Existing fields retained for design/revision execution. Do not use
+  // Parent_Design_ID for the assignment tree.
+  parentDesignId: "Parent_Design_ID",
+  logicalTaskKey: "Logical_Task_Key"
 };
 
 const CRITERIA = [
@@ -167,7 +186,7 @@ const CRITERIA = [
   {key:"equipmentCategory", label:"Equipment Category", field:AF.equipmentCategory, equipment:["Equipment_Category","Category"]},
   {key:"tag", label:"Tag No / Equipment", field:AF.tagNo, equipment:["Tag_Number","Tag_No"], extra:true},
   {key:"groupCode", label:"Group Code", field:AF.groupCode, equipment:["Group_Code","Group"]},
-  {key:"department", label:"Department", field:AF.department, equipment:["Department_Code","Department"]},
+  {key:"department", label:"Department Code", field:AF.department, equipment:["Department_Code","Department"]},
   {key:"equipmentType", label:"Equipment Type", field:AF.equipmentType, equipment:["Equipment_Type","Type"]}
 ];
 const STATUSES=["Not Started","In Progress","On Hold","Completed","Cancelled"];
@@ -181,7 +200,7 @@ const EQ_ALIASES={
 };
 
 const S={
-  demo:CONFIG.DEMO,user:"",app:CONFIG.APP_NAME,view:"planner",projects:[],drawings:[],employees:[],equipment:[],assignments:[],projectDrawings:[],
+  demo:CONFIG.DEMO,user:"",app:CONFIG.APP_NAME,view:"planner",projects:[],drawings:[],employees:[],equipment:[],assignments:[],trackingFieldMeta:new Map(),
   project:null,drawing:null,current:null,selectedCriteria:new Set(),targetRows:[],selectedTargets:new Set(),rowDrafts:new Map(),expanded:new Set(),
   regMode:"all",logs:[]
 };
@@ -211,17 +230,83 @@ function adaptAssignment(r){return{...r,ID:idOf(r)}}
 
 function withApp(c){return{app_name:S.app||CONFIG.APP_NAME,...c};}
 function assertResp(r,label){if(!r)throw new Error(`${label}: empty response.`);if(r.code!=null&&Number(r.code)!==3000)throw new Error(`${label}: ${r.message||r.description||JSON.stringify(r)}`);return r;}
+async function resolveAssignmentReport(){
+  if(S.demo){CONFIG.REPORTS.assignments="Design_Tracking_Report";return CONFIG.REPORTS.assignments;}
+  if(CONFIG.REPORTS.assignments)return CONFIG.REPORTS.assignments;
+  const r=assertResp(await ZOHO.CREATOR.META.getReports(withApp({})),"Get Reports");
+  const reports=Array.isArray(r.reports)?r.reports:[];
+  const wanted=CONFIG.ASSIGNMENT_REPORT_CANDIDATES.map(nk);
+  let hit=reports.find(x=>wanted.includes(nk(x.link_name)));
+  if(!hit)hit=reports.find(x=>nk(x.link_name).includes("designtracking")||nk(x.display_name).includes("designtracking"));
+  CONFIG.REPORTS.assignments=hit?.link_name||"";
+  if(!CONFIG.REPORTS.assignments)throw new Error("Design_Tracking report could not be auto-discovered. Put its exact report link name in CONFIG.REPORTS.assignments.");
+  return CONFIG.REPORTS.assignments;
+}
+async function loadTrackingMeta(){
+  if(S.demo)return;
+  try{
+    const r=assertResp(await ZOHO.CREATOR.META.getFields(withApp({form_name:CONFIG.FORMS.assignment})),"Get Design_Tracking fields");
+    S.trackingFieldMeta=new Map((r.fields||[]).map(f=>[String(f.link_name||""),f]));
+  }catch(e){console.warn("Design_Tracking metadata unavailable",e);}
+}
+function assignmentCriteriaPayload(labels){
+  const arr=(Array.isArray(labels)?labels:String(labels||"").split(",")).map(x=>String(x).trim()).filter(Boolean);
+  const meta=S.trackingFieldMeta.get(AF.criteria);
+  // Creator Multi Select fields are sent as an array. Single Line / Multi Line
+  // fields are sent as readable comma-separated text.
+  if(meta && Number(meta.type)===14 && !meta.is_lookup_field)return arr;
+  return arr.join(", ");
+}
+function employeeNameFor(value){
+  const v=String(value||"");
+  return S.employees.find(e=>String(e.email||e.id)===v)?.name||v;
+}
+function isAssignmentRecord(r){
+  // Existing design/revision records in Design_Tracking are ignored unless
+  // they carry the new assignment hierarchy fields.
+  return scalar(r?.[AF.assignmentLevel])!=="" || Boolean(scalar(r?.[AF.primaryAssignment])) || Boolean(scalar(r?.[AF.assignedFrom]));
+}
+function responsibilityFromData(data){
+  const bits=[`Project ${S.project?.code||scalar(data?.[AF.projectCode])||""}`];
+  const s=scalar(data?.[AF.plantSection]); if(s)bits.push(s);
+  const st=scalar(data?.[AF.plantSectionType]); if(st)bits.push(st);
+  const g=scalar(data?.[AF.groupCode]); if(g)bits.push(`Group: ${g}`);
+  const d=scalar(data?.[AF.department]); if(d)bits.push(`Department: ${d}`);
+  const c=scalar(data?.[AF.equipmentCategory]); if(c)bits.push(`Category: ${c}`);
+  const t=scalar(data?.[AF.equipmentType]); if(t)bits.push(`Type: ${t}`);
+  const tag=scalar(data?.[AF.tagNo]),name=scalar(data?.[AF.equipmentName]);
+  if(tag||name)bits.push(`Tag: ${[tag,name].filter(Boolean).join(" — ")}`);
+  return bits.filter(Boolean).join(" › ");
+}
 async function fetchRecords(report,criteria="",max=20){if(S.demo)return demoFetch(report,criteria);const out=[];let cursor="";for(let i=0;i<max;i++){const c=withApp({report_name:report,field_config:"all",max_records:1000});if(criteria)c.criteria=criteria;if(cursor)c.record_cursor=cursor;let r;try{r=assertResp(await ZOHO.CREATOR.DATA.getRecords(c),`Read ${report}`);}catch(e){if(/9280|No records found/i.test(String(e.message||e)))return out;throw e;}const rows=Array.isArray(r.data)?r.data:[];out.push(...rows);cursor=r.record_cursor||r.cursor||"";if(!cursor||!rows.length)break;}return out;}
 async function addRecord(form,data){if(S.demo)return demoAdd(form,data);if(!CONFIG.LIVE_WRITES)throw new Error("Live writes are disabled in CONFIG.");const r=assertResp(await ZOHO.CREATOR.DATA.addRecords(withApp({form_name:form,payload:{data}})),`Create ${form}`);return String(r?.data?.ID||r?.data?.id||"");}
 async function updateRecord(report,id,data){if(S.demo)return demoUpdate(report,id,data);if(!CONFIG.LIVE_WRITES)throw new Error("Live writes are disabled in CONFIG.");assertResp(await ZOHO.CREATOR.DATA.updateRecordById(withApp({report_name:report,id:String(id),payload:{data}})),`Update ${report}`);return id;}
 
-async function bootstrap(){busy("Loading drawing assignment workspace…");try{if(S.demo){S.user="rohan@mega.tc";$("demoBanner").classList.remove("hidden");}else{const init=await Promise.race([ZOHO.CREATOR.UTIL.getInitParams(),new Promise((_,rej)=>setTimeout(()=>rej(new Error("Creator session timed out.")),8000))]);S.user=init?.loginUser||"";S.app=init?.appLinkName||CONFIG.APP_NAME;}
-  const [pr,dr,er,eq,ar,rr]=await Promise.all([
-    fetchRecords(CONFIG.REPORTS.projects),fetchRecords(CONFIG.REPORTS.drawings),fetchRecords(CONFIG.REPORTS.employees),fetchRecords(CONFIG.REPORTS.equipment),fetchRecords(CONFIG.REPORTS.assignments),fetchRecords(CONFIG.REPORTS.projectDrawings)
+async function bootstrap(){busy("Loading drawing assignment workspace…");try{
+  if(S.demo){S.user="rohan@mega.tc";$("demoBanner").classList.remove("hidden");CONFIG.REPORTS.assignments="Design_Tracking_Report";}
+  else{
+    const init=await Promise.race([ZOHO.CREATOR.UTIL.getInitParams(),new Promise((_,rej)=>setTimeout(()=>rej(new Error("Creator session timed out.")),8000))]);
+    S.user=init?.loginUser||"";S.app=init?.appLinkName||CONFIG.APP_NAME;
+    await resolveAssignmentReport();
+    await loadTrackingMeta();
+  }
+  const [pr,dr,er,eq,ar]=await Promise.all([
+    fetchRecords(CONFIG.REPORTS.projects),
+    fetchRecords(CONFIG.REPORTS.drawings),
+    fetchRecords(CONFIG.REPORTS.employees),
+    fetchRecords(CONFIG.REPORTS.equipment),
+    fetchRecords(CONFIG.REPORTS.assignments)
   ]);
-  S.projects=pr.map(adaptProject).filter(x=>x.code);S.drawings=dr.map(adaptDrawing).filter(x=>x.name);S.employees=er.map(adaptEmployee).filter(x=>x.email||x.name);S.equipment=eq.map(adaptEquipment);S.assignments=ar.map(adaptAssignment);S.projectDrawings=rr;
-  S.projects.sort((a,b)=>String(b.code).localeCompare(String(a.code),undefined,{numeric:true}));S.drawings.sort((a,b)=>a.name.localeCompare(b.name));S.employees.sort((a,b)=>a.name.localeCompare(b.name));
-  $("sessionPill").textContent=S.user?`Signed in: ${S.user}`:"Creator session connected";populateSelectors();renderRegisterFilters();
+  S.projects=pr.map(adaptProject).filter(x=>x.code);
+  S.drawings=dr.map(adaptDrawing).filter(x=>x.name);
+  S.employees=er.map(adaptEmployee).filter(x=>x.email||x.name);
+  S.equipment=eq.map(adaptEquipment);
+  S.assignments=ar.map(adaptAssignment).filter(isAssignmentRecord);
+  S.projects.sort((a,b)=>String(b.code).localeCompare(String(a.code),undefined,{numeric:true}));
+  S.drawings.sort((a,b)=>a.name.localeCompare(b.name));
+  S.employees.sort((a,b)=>a.name.localeCompare(b.name));
+  $("sessionPill").textContent=S.user?`Signed in: ${S.user}`:"Creator session connected";
+  populateSelectors();renderRegisterFilters();
   if(S.demo){S.project=S.projects.find(x=>x.code==="25005")||S.projects[0];S.drawing=S.drawings.find(x=>x.short==="SLP")||S.drawings[0];$("projectSelect").value=S.project?.id||"";$("drawingSelect").value=S.drawing?.id||"";openContext();}
 }catch(e){console.error(e);$("sessionPill").textContent="Creator connection error";toast(e.message||String(e),"error");}finally{idle();}}
 
@@ -231,20 +316,20 @@ function populateSelectors(){
 }
 function renderRegisterFilters(){const po='<option value="">All projects</option>'+S.projects.map(p=>`<option>${h(p.code)}</option>`).join("");$("regProject").innerHTML=po;$("regDrawing").innerHTML='<option value="">All drawings</option>'+S.drawings.map(d=>`<option>${h(d.name)}</option>`).join("");$("regCriteria").innerHTML='<option value="">All criteria</option>'+CRITERIA.map(c=>`<option>${h(c.label)}</option>`).join("");}
 function selectedPairAssignments(){if(!S.project||!S.drawing)return[];return S.assignments.filter(a=>scalar(a[AF.projectCode])===S.project.code&&(scalar(a[AF.drawingMasterId])===S.drawing.id||scalar(a[AF.drawingDocument])===S.drawing.name));}
-function primaryAssignment(){return selectedPairAssignments().find(a=>String(scalar(a[AF.isPrimary])).toLowerCase()==="true"||num(a[AF.assignmentLevel])===0)||null;}
+function primaryAssignment(){return selectedPairAssignments().find(a=>num(a[AF.assignmentLevel],-1)===0 && !scalar(a[AF.assignedFrom]))||null;}
 function childrenOf(id){return selectedPairAssignments().filter(a=>scalar(a[AF.assignedFrom])===String(id));}
 function assignmentUser(a){return scalar(a?.[AF.assignedTo])||"Unassigned";}
 function assignmentBy(a){return scalar(a?.[AF.assignedBy])||"—";}
 function assignmentCriteria(a){return scalar(a?.[AF.criteria])||"Project";}
 function assignmentPath(a){if(!a)return"";const parts=[S.project?.code,S.drawing?.short||S.drawing?.name];for(const c of CRITERIA){const v=scalar(a[c.field]);if(v)parts.push(`${c.label}: ${v}`);}return parts.filter(Boolean).join(" › ");}
-function scopeSummary(a){if(!a)return"Entire Project";const bits=[];for(const c of CRITERIA){if(c.key==="tag"){const t=scalar(a[AF.tagNo]),n=scalar(a[AF.equipmentName]);if(t||n)bits.push(`Tag: ${[t,n].filter(Boolean).join(" — ")}`);}else{const v=scalar(a[c.field]);if(v)bits.push(`${c.label}: ${v}`);}}return bits.length?bits.join(" • "):"Entire Project";}
+function scopeSummary(a){if(!a)return"Entire Project";const stored=scalar(a[AF.responsibility]);if(stored)return stored;const bits=[];for(const c of CRITERIA){if(c.key==="tag"){const t=scalar(a[AF.tagNo]),n=scalar(a[AF.equipmentName]);if(t||n)bits.push(`Tag: ${[t,n].filter(Boolean).join(" — ")}`);}else{const v=scalar(a[c.field]);if(v)bits.push(`${c.label}: ${v}`);}}return bits.length?bits.join(" • "):"Entire Project";}
 function statusPill(s){const cls=s==="Completed"?"green":s==="On Hold"?"amber":s==="Cancelled"?"red":s==="In Progress"?"blue":"";return `<span class="pill ${cls}">${h(s||"Not Started")}</span>`;}
 
 function openContext(){const pid=$("projectSelect").value,did=$("drawingSelect").value;S.project=S.projects.find(x=>x.id===pid)||null;S.drawing=S.drawings.find(x=>x.id===did)||null;if(!S.project||!S.drawing){toast("Select Project Code and Drawing / Document first.","error");return;}S.current=primaryAssignment();S.selectedCriteria.clear();S.selectedTargets.clear();S.rowDrafts.clear();S.expanded.clear();const p=primaryAssignment();if(p)S.expanded.add(idOf(p));renderContextCard();$("workspace").classList.remove("hidden");renderTree();renderDetail();}
 function renderContextCard(){const p=primaryAssignment(),all=selectedPairAssignments();$("contextCard").innerHTML=`<div class="context-main"><div class="context-icon">${h(S.drawing?.short||"DR")}</div><div><div class="context-title">${h(S.project.code)} — ${h(S.drawing.name)}${S.drawing.short?` (${h(S.drawing.short)})`:""}</div><div class="context-sub">${p?`Primary Assignment: ${h(assignmentUser(p))}`:"Primary Assignment is not created yet."}</div></div></div><div class="actions"><span class="pill brand">${all.length} assignment${all.length===1?"":"s"}</span>${p?statusPill(scalar(p[AF.status])):'<span class="pill amber">Yet to Assign</span>'}</div>`;$("contextCard").classList.remove("hidden");}
 
 function buildTreeFiltered(){const rows=selectedPairAssignments();const q=$("treeSearch")?.value.toLowerCase().trim()||"",st=$("treeStatus")?.value||"";if(!q&&!st)return rows;const keep=new Set();const map=new Map(rows.map(r=>[idOf(r),r]));for(const r of rows){const hay=[assignmentUser(r),assignmentBy(r),scopeSummary(r),assignmentCriteria(r)].join(" ").toLowerCase();if((!q||hay.includes(q))&&(!st||scalar(r[AF.status])===st)){let cur=r;while(cur){keep.add(idOf(cur));const pid=scalar(cur[AF.assignedFrom]);cur=pid?map.get(pid):null;}}}return rows.filter(r=>keep.has(idOf(r)));}
-function renderTree(){const rows=buildTreeFiltered(),p=rows.find(r=>String(scalar(r[AF.isPrimary])).toLowerCase()==="true"||num(r[AF.assignmentLevel])===0);$("treeCount").textContent=String(rows.length);if(!p){$("tree").innerHTML='<div class="tree-empty"><strong>No Primary Assignment</strong>Create the mandatory project-level assignment to start the structure.</div>';return;}const allowed=new Set(rows.map(idOf));const renderNode=(r)=>{const id=idOf(r),kids=childrenOf(id).filter(k=>allowed.has(idOf(k))),open=S.expanded.has(id),active=idOf(S.current)===id;return `<div class="tree-node"><div class="node-row ${active?"active":""}" data-node="${h(id)}"><button class="expander ${kids.length?"":"blank"}" data-expand="${h(id)}">${open?"−":"+"}</button><div class="avatar">${h(initials(assignmentUser(r)))}</div><div class="node-main"><div class="node-user">${h(assignmentUser(r))}</div><div class="node-scope">${h(scopeSummary(r))}</div></div><div class="node-side">${statusPill(scalar(r[AF.status]))}<div class="node-level">Level ${num(r[AF.assignmentLevel])}</div></div></div>${open&&kids.length?`<div class="tree-children">${kids.map(renderNode).join("")}</div>`:""}</div>`;};$("tree").innerHTML=renderNode(p);}
+function renderTree(){const rows=buildTreeFiltered(),p=rows.find(r=>num(r[AF.assignmentLevel],-1)===0&&!scalar(r[AF.assignedFrom]));$("treeCount").textContent=String(rows.length);if(!p){$("tree").innerHTML='<div class="tree-empty"><strong>No Primary Assignment</strong>Create the mandatory project-level assignment to start the structure.</div>';return;}const allowed=new Set(rows.map(idOf));const renderNode=(r)=>{const id=idOf(r),kids=childrenOf(id).filter(k=>allowed.has(idOf(k))),open=S.expanded.has(id),active=idOf(S.current)===id;return `<div class="tree-node"><div class="node-row ${active?"active":""}" data-node="${h(id)}"><button class="expander ${kids.length?"":"blank"}" data-expand="${h(id)}">${open?"−":"+"}</button><div class="avatar">${h(initials(assignmentUser(r)))}</div><div class="node-main"><div class="node-user">${h(assignmentUser(r))}</div><div class="node-scope">${h(scopeSummary(r))}</div></div><div class="node-side">${statusPill(scalar(r[AF.status]))}<div class="node-level">Level ${num(r[AF.assignmentLevel])}</div></div></div>${open&&kids.length?`<div class="tree-children">${kids.map(renderNode).join("")}</div>`:""}</div>`;};$("tree").innerHTML=renderNode(p);}
 
 function renderDetail(){const p=primaryAssignment();if(!p){renderPrimaryCreate();return;}if(!S.current)S.current=p;const a=S.current;$("detailHeading").textContent=num(a[AF.assignmentLevel])===0?"Primary Assignment":"Responsibility";$("detailSubtitle").textContent=assignmentPath(a);$("detailActions").innerHTML=`<button class="btn sm" data-act="edit-status">Update Status</button><button class="btn primary sm" data-act="assign-further">Assign Further</button>`;
   const target=toInputDate(a[AF.targetDate]);const childCount=childrenOf(idOf(a)).length;$("detailBody").innerHTML=`<div class="detail-head"><div><div class="detail-title">${h(assignmentUser(a))}</div><div class="detail-path">${h(scopeSummary(a))}</div></div><div class="actions"><span class="pill brand">Level ${num(a[AF.assignmentLevel])}</span>${statusPill(scalar(a[AF.status]))}</div></div><div class="summary-grid"><div class="summary-card"><div class="label">Assigned By</div><div class="value">${h(assignmentBy(a))}</div></div><div class="summary-card"><div class="label">Start Date</div><div class="value">${h(displayDate(a[AF.startDate]))}</div></div><div class="summary-card"><div class="label">Target Date</div><div class="value">${h(displayDate(a[AF.targetDate]))}</div></div><div class="summary-card"><div class="label">Further Assignments</div><div class="value">${childCount}</div></div></div><div class="notice good"><strong>Current responsibility is locked as the maximum scope.</strong> Any further assignment can only refine this responsibility; it cannot expand outside it.</div><div class="section-title"><h3>Responsibility Scope</h3></div><div class="scope-lock">${scopeLockHtml(a)}</div>${scalar(a[AF.remark])?`<div class="section-title"><h3>Remark</h3></div><div class="notice">${h(scalar(a[AF.remark]))}</div>`:""}<div id="delegationArea"></div>`;
@@ -260,23 +345,97 @@ function renderDelegationBuilder(a){const area=$("delegationArea");if(!area)retu
 function equipmentWithinAssignment(eq,a){if(!eq||!a)return false;if(eq.project&&S.project?.code&&!String(eq.project).includes(S.project.code))return false;const checks=[[AF.plantSection,"plantSection"],[AF.plantSectionType,"plantSectionType"],[AF.groupCode,"groupCode"],[AF.department,"department"],[AF.equipmentCategory,"equipmentCategory"],[AF.equipmentType,"equipmentType"],[AF.tagNo,"tag"]];for(const [f,k] of checks){const v=scalar(a[f]);if(v&&String(eq[k]||"")!==v)return false;}return true;}
 function targetKey(row){return [...S.selectedCriteria].map(k=>{const c=CRITERIA.find(x=>x.key===k);if(k==="tag")return `${row.tag}::${row.name}`;return String(row[k]||"");}).join("||");}
 function targetLabel(row){return [...S.selectedCriteria].map(k=>{const c=CRITERIA.find(x=>x.key===k);return k==="tag"?`${row.tag||"—"} — ${row.name||"—"}`:`${c.label}: ${row[k]||"—"}`;}).join(" • ");}
-function makeTargetRows(a){if(!S.selectedCriteria.size)return[];const base=S.equipment.filter(eq=>equipmentWithinAssignment(eq,a));const map=new Map();for(const eq of base){const row={plantSection:eq.plantSection,plantSectionType:eq.plantSectionType,equipmentCategory:eq.equipmentCategory,tag:eq.tag,name:eq.name,groupCode:eq.groupCode,department:eq.department,equipmentType:eq.equipmentType};const k=targetKey(row);if(k&&!map.has(k))map.set(k,row);}return [...map.values()].sort((x,y)=>targetLabel(x).localeCompare(targetLabel(y),undefined,{numeric:true}));}
+function makeTargetRows(a){if(!S.selectedCriteria.size)return[];const base=S.equipment.filter(eq=>equipmentWithinAssignment(eq,a));const map=new Map();for(const eq of base){const row={plantSection:eq.plantSection,plantSectionType:eq.plantSectionType,equipmentCategory:eq.equipmentCategory,tag:eq.tag,name:eq.name,equipmentRecordId:eq.id,groupCode:eq.groupCode,department:eq.department,equipmentType:eq.equipmentType};const k=targetKey(row);if(k&&!map.has(k))map.set(k,row);}return [...map.values()].sort((x,y)=>targetLabel(x).localeCompare(targetLabel(y),undefined,{numeric:true}));}
 function existingChildForTarget(parent,row){return childrenOf(idOf(parent)).find(ch=>[...S.selectedCriteria].every(k=>{const c=CRITERIA.find(x=>x.key===k);if(k==="tag")return scalar(ch[AF.tagNo])===row.tag;return scalar(ch[c.field])===String(row[k]||"");}));}
 function renderTargetArea(a){S.targetRows=makeTargetRows(a);if(!S.selectedCriteria.size)return '<div class="notice" style="margin-top:12px">Select at least one Assignment Criteria. Example: <strong>Plant Section + Plant Section Type</strong>, or <strong>Tag No / Equipment</strong>.</div>';const q=S.targetSearch||"",rows=S.targetRows.filter(r=>!q||targetLabel(r).toLowerCase().includes(q.toLowerCase()));const selectedCount=S.selectedTargets.size;return `<div class="target-toolbar"><input id="targetSearch" class="search" placeholder="Search matching responsibility…" value="${h(q)}"><div class="actions"><button class="btn sm" data-act="select-next-10">Select next 10</button><button class="btn sm" data-act="select-all-targets">Select all</button><button class="btn link sm" data-act="clear-targets">Clear</button></div></div><div class="selection-note"><strong>${selectedCount}</strong> selected of ${rows.length} matching responsibilities.</div><div class="table-wrap" style="margin-top:8px"><table><thead><tr><th style="width:38px"></th>${[...S.selectedCriteria].map(k=>{const c=CRITERIA.find(x=>x.key===k);return k==="tag"?'<th>Tag No</th><th>Equipment Name</th>':`<th>${h(c.label)}</th>`;}).join("")}<th>Existing</th></tr></thead><tbody>${rows.length?rows.map(r=>{const key=targetKey(r),ex=existingChildForTarget(a,r),sel=S.selectedTargets.has(key);return `<tr class="${sel?"selected":""}"><td><input class="check target-check" type="checkbox" data-target="${h(key)}" ${sel?"checked":""} ${ex?"disabled":""}></td>${[...S.selectedCriteria].map(k=>{const c=CRITERIA.find(x=>x.key===k);return k==="tag"?`<td class="strong">${h(r.tag||"—")}</td><td>${h(r.name||"—")}</td>`:`<td>${h(r[k]||"—")}</td>`;}).join("")}<td>${ex?'<span class="pill green">Already assigned</span>':'<span class="pill">New</span>'}</td></tr>`;}).join(""):'<tr><td class="empty-row" colspan="10">No matching values exist inside this responsibility.</td></tr>'}</tbody></table></div>${selectedCount?renderBulkBar(a):""}`;}
-function renderBulkBar(a){const d=S.bulk||{};return `<div class="bulk-bar"><div class="bulk-grid"><div class="field"><label>Assign selected to *</label><select id="bulkUser">${employeeOptions(d.user||"")}</select></div><div class="field"><label>Start Date *</label><input id="bulkStart" type="date" value="${h(d.start||todayIso())}"></div><div class="field"><label>Target Date *</label><input id="bulkTarget" type="date" value="${h(d.target||"")}"></div><div class="field"><label>End Date</label><input id="bulkEnd" type="date" value="${h(d.end||"")}"></div><div class="field"><label>Common Remark</label><input id="bulkRemark" value="${h(d.remark||"")}" placeholder="Optional instruction"></div><button class="btn primary" data-act="review-bulk">Review ${S.selectedTargets.size}</button></div><div class="bulk-summary">Every selected row will become a separate <strong>Drawing_Assignment</strong> record. Dates and status remain independent after creation.</div></div>`;}
+function renderBulkBar(a){const d=S.bulk||{};return `<div class="bulk-bar"><div class="bulk-grid"><div class="field"><label>Assign selected to *</label><select id="bulkUser">${employeeOptions(d.user||"")}</select></div><div class="field"><label>Start Date *</label><input id="bulkStart" type="date" value="${h(d.start||todayIso())}"></div><div class="field"><label>Target Date *</label><input id="bulkTarget" type="date" value="${h(d.target||"")}"></div><div class="field"><label>End Date</label><input id="bulkEnd" type="date" value="${h(d.end||"")}"></div><div class="field"><label>Common Remark</label><input id="bulkRemark" value="${h(d.remark||"")}" placeholder="Optional instruction"></div><button class="btn primary" data-act="review-bulk">Review ${S.selectedTargets.size}</button></div><div class="bulk-summary">Every selected row will become a separate <strong>Design_Tracking</strong> assignment record. Dates and status remain independent after creation.</div></div>`;}
 
 function collectBulk(){S.bulk={user:$("bulkUser")?.value||"",start:$("bulkStart")?.value||"",target:$("bulkTarget")?.value||"",end:$("bulkEnd")?.value||"",remark:$("bulkRemark")?.value||""};return S.bulk;}
-function buildChildPayload(parent,row,draft){const data={[AF.projectDrawing]:scalar(parent[AF.projectDrawing]),[AF.projectCode]:S.project.code,[AF.drawingDocument]:S.drawing.name,[AF.drawingMasterId]:S.drawing.id,[AF.primaryAssignment]:scalar(parent[AF.primaryAssignment])||idOf(primaryAssignment()),[AF.assignedFrom]:idOf(parent),[AF.assignmentLevel]:num(parent[AF.assignmentLevel])+1,[AF.assignedBy]:S.user||assignmentUser(parent),[AF.assignedTo]:draft.user,[AF.criteria]:[...S.selectedCriteria].map(k=>CRITERIA.find(c=>c.key===k).label).join(", "),[AF.startDate]:toCreatorDate(draft.start),[AF.targetDate]:toCreatorDate(draft.target),[AF.endDate]:toCreatorDate(draft.end),[AF.status]:"Not Started",[AF.progress]:0,[AF.remark]:draft.remark||"",[AF.furtherAssigned]:false,[AF.isPrimary]:false,[AF.active]:true};
-  // inherit the previous responsibility first
-  for(const c of CRITERIA){if(c.key==="tag"){if(parent[AF.tagNo])data[AF.tagNo]=scalar(parent[AF.tagNo]);if(parent[AF.equipmentName])data[AF.equipmentName]=scalar(parent[AF.equipmentName]);}else if(parent[c.field])data[c.field]=scalar(parent[c.field]);}
-  // then refine only the criteria selected by the current user
-  for(const k of S.selectedCriteria){const c=CRITERIA.find(x=>x.key===k);if(k==="tag"){data[AF.tagNo]=row.tag||"";data[AF.equipmentName]=row.name||"";}else data[c.field]=row[k]||"";}
+function buildChildPayload(parent,row,draft){
+  const criteriaLabels=[...S.selectedCriteria].map(k=>CRITERIA.find(c=>c.key===k).label);
+  const data={
+    [AF.projectCode]:S.project.code,
+    [AF.projectRecordId]:S.project.id||"",
+    [AF.drawingDocument]:S.drawing.name,
+    [AF.drawingMasterId]:S.drawing.id,
+    [AF.shortName]:S.drawing.short||"",
+    [AF.primaryAssignment]:scalar(parent[AF.primaryAssignment])||idOf(primaryAssignment()),
+    [AF.assignedFrom]:idOf(parent),
+    [AF.assignmentLevel]:num(parent[AF.assignmentLevel])+1,
+    [AF.assignedBy]:S.user||assignmentUser(parent),
+    [AF.assignedTo]:draft.user,
+    [AF.assignedEmployeeName]:employeeNameFor(draft.user),
+    [AF.criteria]:assignmentCriteriaPayload(criteriaLabels),
+    [AF.startDate]:toCreatorDate(draft.start),
+    [AF.targetDate]:toCreatorDate(draft.target),
+    [AF.endDate]:toCreatorDate(draft.end),
+    [AF.status]:"Not Started",
+    [AF.progress]:0,
+    [AF.remark]:draft.remark||"",
+    [AF.furtherAssigned]:false,
+    [AF.active]:true
+  };
+  // Inherit the received responsibility first.
+  for(const c of CRITERIA){
+    if(c.key==="tag"){
+      if(parent[AF.tagNo])data[AF.tagNo]=scalar(parent[AF.tagNo]);
+      if(parent[AF.equipmentName])data[AF.equipmentName]=scalar(parent[AF.equipmentName]);
+      if(parent[AF.equipmentRecordId])data[AF.equipmentRecordId]=scalar(parent[AF.equipmentRecordId]);
+    }else if(parent[c.field]) data[c.field]=scalar(parent[c.field]);
+  }
+  // Then refine only criteria selected by the current user.
+  for(const k of S.selectedCriteria){
+    const c=CRITERIA.find(x=>x.key===k);
+    if(k==="tag"){
+      data[AF.tagNo]=row.tag||"";
+      data[AF.equipmentName]=row.name||"";
+      if(row.equipmentRecordId)data[AF.equipmentRecordId]=row.equipmentRecordId;
+    }else data[c.field]=row[k]||"";
+  }
+  data[AF.responsibility]=responsibilityFromData(data);
   return data;
 }
 function reviewBulk(){const d=collectBulk();if(!d.user)throw new Error("Select Assigned To for the bulk assignment.");if(!d.start||!d.target)throw new Error("Start Date and Target Date are required.");if(d.end&&d.end<d.start)throw new Error("End Date cannot be before Start Date.");const parentTarget=toInputDate(S.current[AF.targetDate]);const late=parentTarget&&d.target>parentTarget;if(late&&!d.remark.trim())toast("Target Date is later than the received responsibility. Add a Remark before saving.","error");const selected=S.targetRows.filter(r=>S.selectedTargets.has(targetKey(r))&&!existingChildForTarget(S.current,r));if(!selected.length)throw new Error("No new responsibilities are selected.");openModal("Review Further Assignment",`${selected.length} independent assignment records will be created from ${assignmentUser(S.current)}'s responsibility.`,reviewBulkHtml(selected,d,late),`<button class="btn" data-modal="close">Back</button><button class="btn primary" data-modal="confirm-bulk">Create ${selected.length} Assignments</button>`);}
 function reviewBulkHtml(rows,d,late){return `<div class="review-grid"><div class="review-metric"><div class="n">${rows.length}</div><div class="l">NEW ASSIGNMENTS</div></div><div class="review-metric"><div class="n">${h(S.employees.find(e=>(e.email||e.id)===d.user)?.name||d.user)}</div><div class="l">ASSIGNED TO</div></div><div class="review-metric"><div class="n">Level ${num(S.current[AF.assignmentLevel])+1}</div><div class="l">ASSIGNMENT LEVEL</div></div></div>${late?'<div class="notice warn"><strong>Date warning:</strong> the new Target Date is later than the current responsibility Target Date. POC allows this with a Remark so the team can validate the business rule.</div>':""}<div class="notice good" style="margin-top:8px"><strong>Scope inheritance check passed.</strong> These rows were generated only from equipment inside the selected responsibility, so the new assignments refine the scope and do not broaden it.</div><div class="table-wrap" style="margin-top:12px"><table><thead><tr><th>#</th><th>Responsibility</th><th>Assigned To</th><th>Start</th><th>Target</th><th>End</th></tr></thead><tbody>${rows.map((r,i)=>`<tr><td>${i+1}</td><td>${h(targetLabel(r))}</td><td>${h(S.employees.find(e=>(e.email||e.id)===d.user)?.name||d.user)}</td><td>${h(d.start)}</td><td>${h(d.target)}</td><td>${h(d.end||"—")}</td></tr>`).join("")}</tbody></table></div>`;}
 
-async function createPrimary(){const user=$("primaryUser").value,start=$("primaryStart").value,target=$("primaryTarget").value,end=$("primaryEnd").value,remark=$("primaryRemark").value.trim(),status=$("primaryStatus").value;if(!user||!start||!target)throw new Error("Assigned To, Start Date and Target Date are required.");if(end&&end<start)throw new Error("End Date cannot be before Start Date.");busy("Creating Primary Assignment…");try{let reg=S.projectDrawings.find(r=>scalar(r[RF.projectCode])===S.project.code&&(scalar(r[RF.drawingMasterId])===S.drawing.id||scalar(r[RF.drawingDocument])===S.drawing.name));let regId=idOf(reg);if(!regId){regId=await addRecord(CONFIG.FORMS.projectDrawing,{[RF.projectCode]:S.project.code,[RF.drawingDocument]:S.drawing.name,[RF.drawingMasterId]:S.drawing.id,[RF.required]:true,[RF.revision]:"R0",[RF.status]:"Assigned",[RF.active]:true});reg={ID:regId,[RF.projectCode]:S.project.code,[RF.drawingDocument]:S.drawing.name,[RF.drawingMasterId]:S.drawing.id,[RF.required]:true,[RF.revision]:"R0",[RF.status]:"Assigned",[RF.active]:true};S.projectDrawings.push(reg);}const data={[AF.projectDrawing]:regId,[AF.projectCode]:S.project.code,[AF.drawingDocument]:S.drawing.name,[AF.drawingMasterId]:S.drawing.id,[AF.assignmentLevel]:0,[AF.assignedBy]:S.user||user,[AF.assignedTo]:user,[AF.criteria]:"Project",[AF.startDate]:toCreatorDate(start),[AF.targetDate]:toCreatorDate(target),[AF.endDate]:toCreatorDate(end),[AF.status]:status,[AF.progress]:status==="Completed"?100:0,[AF.remark]:remark,[AF.furtherAssigned]:false,[AF.isPrimary]:true,[AF.active]:true};const id=await addRecord(CONFIG.FORMS.assignment,data);data.ID=id;data[AF.primaryAssignment]=id;await updateRecord(CONFIG.REPORTS.assignments,id,{[AF.primaryAssignment]:id});S.assignments.push(data);S.current=data;S.expanded.add(id);renderContextCard();renderTree();renderDetail();toast("Primary Assignment created.","good");log("Primary Assignment created",{id,project:S.project.code,drawing:S.drawing.name,user});}finally{idle();}}
+async function createPrimary(){
+  const user=$("primaryUser").value,start=$("primaryStart").value,target=$("primaryTarget").value,end=$("primaryEnd").value,remark=$("primaryRemark").value.trim(),status=$("primaryStatus").value;
+  if(!user||!start||!target)throw new Error("Assigned To, Start Date and Target Date are required.");
+  if(end&&end<start)throw new Error("End Date cannot be before Start Date.");
+  if(primaryAssignment())throw new Error("Primary Assignment already exists for this Project + Drawing.");
+  busy("Creating Primary Assignment…");
+  try{
+    const data={
+      [AF.projectCode]:S.project.code,
+      [AF.projectRecordId]:S.project.id||"",
+      [AF.drawingDocument]:S.drawing.name,
+      [AF.drawingMasterId]:S.drawing.id,
+      [AF.shortName]:S.drawing.short||"",
+      [AF.assignmentLevel]:0,
+      [AF.assignedBy]:S.user||user,
+      [AF.assignedTo]:user,
+      [AF.assignedEmployeeName]:employeeNameFor(user),
+      [AF.criteria]:assignmentCriteriaPayload(["Project"]),
+      [AF.responsibility]:`Entire Project ${S.project.code}`,
+      [AF.startDate]:toCreatorDate(start),
+      [AF.targetDate]:toCreatorDate(target),
+      [AF.endDate]:toCreatorDate(end),
+      [AF.status]:status,
+      [AF.progress]:status==="Completed"?100:0,
+      [AF.remark]:remark,
+      [AF.furtherAssigned]:false,
+      [AF.active]:true
+    };
+    const id=await addRecord(CONFIG.FORMS.assignment,data);
+    data.ID=id;
+    data[AF.primaryAssignment]=id;
+    await updateRecord(CONFIG.REPORTS.assignments,id,{[AF.primaryAssignment]:id});
+    S.assignments.push(data);S.current=data;S.expanded.add(id);
+    renderContextCard();renderTree();renderDetail();
+    toast("Primary Assignment created.","good");
+    log("Primary Assignment created",{id,project:S.project.code,drawing:S.drawing.name,user});
+  }finally{idle();}
+}
 async function confirmBulk(){const d=collectBulk(),rows=S.targetRows.filter(r=>S.selectedTargets.has(targetKey(r))&&!existingChildForTarget(S.current,r));if(!rows.length)return;busy(`Creating ${rows.length} assignments…`);const results=[];try{for(let i=0;i<rows.length;i++){$("loadingText").textContent=`Creating ${i+1} of ${rows.length}…`;const payload=buildChildPayload(S.current,rows[i],d);try{const id=await addRecord(CONFIG.FORMS.assignment,payload);payload.ID=id;S.assignments.push(payload);results.push({ok:true,row:rows[i],id});}catch(e){results.push({ok:false,row:rows[i],error:e.message||String(e)});} }if(results.some(x=>x.ok))await updateRecord(CONFIG.REPORTS.assignments,idOf(S.current),{[AF.furtherAssigned]:true});S.current[AF.furtherAssigned]=true;closeModal();S.selectedTargets.clear();S.bulk={};S.current.__showDelegate=true;renderContextCard();renderTree();renderDetail();const ok=results.filter(x=>x.ok).length,fail=results.length-ok;toast(`${ok} assignment${ok===1?"":"s"} created${fail?`; ${fail} failed`:""}.`,fail?"error":"good");log("Bulk further assignment",{parent:idOf(S.current),ok,fail});}finally{idle();}}
 
 function canAssignFurther(a){if(S.demo)return true;const me=String(S.user||"").toLowerCase();const to=assignmentUser(a).toLowerCase();return Boolean(me&&to.includes(me));}
@@ -284,7 +443,7 @@ function openAssignment(id){const a=S.assignments.find(x=>idOf(x)===String(id));
 function toggleExpand(id){S.expanded.has(id)?S.expanded.delete(id):S.expanded.add(id);renderTree();}
 function showAssignFurther(){if(!canAssignFurther(S.current)){toast("Only the user who received this responsibility can assign further in the POC.","error");return;}S.current.__showDelegate=true;S.selectedCriteria.clear();S.selectedTargets.clear();S.bulk={};renderDetail();}
 
-function renderRegister(){S.view=S.regMode==="mine"?"mine":"all";$("plannerView").classList.add("hidden");$("registerView").classList.remove("hidden");$("registerTitle").textContent=S.regMode==="mine"?"My Assignments":"All Assignments";let rows=S.assignments.filter(a=>S.regMode!=="mine"||assignmentUser(a).toLowerCase().includes(String(S.user||"").toLowerCase()));const q=$("regSearch").value.toLowerCase().trim(),p=$("regProject").value,d=$("regDrawing").value,c=$("regCriteria").value,st=$("regStatus").value;rows=rows.filter(a=>(!q||[scalar(a[AF.projectCode]),scalar(a[AF.drawingDocument]),assignmentUser(a),scopeSummary(a),assignmentBy(a)].join(" ").toLowerCase().includes(q))&&(!p||scalar(a[AF.projectCode])===p)&&(!d||scalar(a[AF.drawingDocument])===d)&&(!c||scalar(a[AF.criteria]).includes(c))&&(!st||scalar(a[AF.status])===st));$("registerCount").textContent=String(rows.length);$("registerTable").innerHTML=`<table><thead><tr><th>Assignment</th><th>Project / Drawing</th><th>Responsibility</th><th>Assigned By</th><th>Assigned To</th><th>Level</th><th>Target</th><th>Status</th><th>Progress</th><th></th></tr></thead><tbody>${rows.length?rows.map(a=>`<tr><td class="strong">${h(scalar(a[AF.assignmentNo])||idOf(a))}</td><td><div class="strong">${h(scalar(a[AF.projectCode]))}</div><div class="tiny muted">${h(scalar(a[AF.drawingDocument]))}</div></td><td>${h(scopeSummary(a))}</td><td>${h(assignmentBy(a))}</td><td>${h(assignmentUser(a))}</td><td>Level ${num(a[AF.assignmentLevel])}</td><td>${h(displayDate(a[AF.targetDate]))}</td><td>${statusPill(scalar(a[AF.status]))}</td><td>${num(a[AF.progress])}%<div class="progress"><span style="width:${Math.max(0,Math.min(100,num(a[AF.progress])))}%"></span></div></td><td><button class="btn sm" data-open-reg="${h(idOf(a))}">Open</button></td></tr>`).join(""):'<tr><td colspan="10" class="empty-row">No assignments match the filters.</td></tr>'}</tbody></table>`;}
+function renderRegister(){S.view=S.regMode==="mine"?"mine":"all";$("plannerView").classList.add("hidden");$("registerView").classList.remove("hidden");$("registerTitle").textContent=S.regMode==="mine"?"My Assignments":"All Assignments";let rows=S.assignments.filter(a=>S.regMode!=="mine"||assignmentUser(a).toLowerCase().includes(String(S.user||"").toLowerCase()));const q=$("regSearch").value.toLowerCase().trim(),p=$("regProject").value,d=$("regDrawing").value,c=$("regCriteria").value,st=$("regStatus").value;rows=rows.filter(a=>(!q||[scalar(a[AF.projectCode]),scalar(a[AF.drawingDocument]),assignmentUser(a),scopeSummary(a),assignmentBy(a)].join(" ").toLowerCase().includes(q))&&(!p||scalar(a[AF.projectCode])===p)&&(!d||scalar(a[AF.drawingDocument])===d)&&(!c||scalar(a[AF.criteria]).includes(c))&&(!st||scalar(a[AF.status])===st));$("registerCount").textContent=String(rows.length);$("registerTable").innerHTML=`<table><thead><tr><th>Assignment</th><th>Project / Drawing</th><th>Responsibility</th><th>Assigned By</th><th>Assigned To</th><th>Level</th><th>Target</th><th>Status</th><th>Progress</th><th></th></tr></thead><tbody>${rows.length?rows.map(a=>`<tr><td class="strong">${h(idOf(a))}</td><td><div class="strong">${h(scalar(a[AF.projectCode]))}</div><div class="tiny muted">${h(scalar(a[AF.drawingDocument]))}</div></td><td>${h(scopeSummary(a))}</td><td>${h(assignmentBy(a))}</td><td>${h(assignmentUser(a))}</td><td>Level ${num(a[AF.assignmentLevel])}</td><td>${h(displayDate(a[AF.targetDate]))}</td><td>${statusPill(scalar(a[AF.status]))}</td><td>${num(a[AF.progress])}%<div class="progress"><span style="width:${Math.max(0,Math.min(100,num(a[AF.progress])))}%"></span></div></td><td><button class="btn sm" data-open-reg="${h(idOf(a))}">Open</button></td></tr>`).join(""):'<tr><td colspan="10" class="empty-row">No assignments match the filters.</td></tr>'}</tbody></table>`;}
 function openRegisterAssignment(id){const a=S.assignments.find(x=>idOf(x)===String(id));if(!a)return;const p=S.projects.find(x=>x.code===scalar(a[AF.projectCode])),d=S.drawings.find(x=>x.id===scalar(a[AF.drawingMasterId])||x.name===scalar(a[AF.drawingDocument]));if(p&&d){S.project=p;S.drawing=d;$("projectSelect").value=p.id;$("drawingSelect").value=d.id;S.current=a;S.expanded.add(idOf(primaryAssignment()));switchView("planner");renderContextCard();$("workspace").classList.remove("hidden");renderTree();renderDetail();}}
 
 function updateStatusModal(){const a=S.current;openModal("Update Assignment Status",`${assignmentUser(a)} — ${scopeSummary(a)}`,`<div class="grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px"><div class="field"><label>Status</label><select id="statusEdit">${STATUSES.map(s=>`<option ${s===scalar(a[AF.status])?"selected":""}>${h(s)}</option>`).join("")}</select></div><div class="field"><label>Progress %</label><input id="progressEdit" type="number" min="0" max="100" value="${num(a[AF.progress])}"></div><div class="field" style="grid-column:1/-1"><label>Remark</label><textarea id="remarkEdit">${h(scalar(a[AF.remark]))}</textarea></div></div>`,`<button class="btn" data-modal="close">Cancel</button><button class="btn primary" data-modal="save-status">Save Status</button>`);}
@@ -292,7 +451,7 @@ async function saveStatus(){const s=$("statusEdit").value,p=Math.max(0,Math.min(
 
 function openModal(title,sub,body,foot){$("modalTitle").textContent=title;$("modalSub").textContent=sub||"";$("modalBody").innerHTML=body||"";$("modalFoot").innerHTML=foot||"";$("modalBackdrop").classList.remove("hidden");}
 function closeModal(){$("modalBackdrop").classList.add("hidden");}
-function setupModal(){openModal("V15 POC Form Architecture","Create the database first; the widget remains the UX layer.",`<div class="notice good"><strong>N-level architecture:</strong> every Project-level and further assignment is an independent record in the same <strong>Drawing_Assignment</strong> form. The tree is reconstructed from Assigned_From + Primary_Assignment + Assignment_Level.</div><div class="section-title"><h3>Required Forms</h3></div><div class="table-wrap"><table><thead><tr><th>Form</th><th>Type</th><th>Purpose</th></tr></thead><tbody><tr><td>Drawing_Document_Master</td><td>Master</td><td>Drawing / Document definitions.</td></tr><tr><td>Project_Drawing_Register</td><td>Transaction Header</td><td>Confirms the drawing exists / is required for the Project.</td></tr><tr><td>Drawing_Assignment</td><td>Main Transaction</td><td>Primary + every further assignment using self-reference.</td></tr></tbody></table></div><div class="section-title"><h3>Self-reference Fields</h3></div><div class="table-wrap"><table><thead><tr><th>Field</th><th>Link Name</th><th>Recommended Type</th></tr></thead><tbody><tr><td>Primary Assignment</td><td>Primary_Assignment</td><td>Lookup → Drawing_Assignment</td></tr><tr><td>Assigned From</td><td>Assigned_From</td><td>Lookup → Drawing_Assignment</td></tr><tr><td>Assignment Level</td><td>Assignment_Level</td><td>Number</td></tr><tr><td>Assignment Criteria</td><td>Assignment_Criteria</td><td>Multi Select / Single Line for POC</td></tr><tr><td>Assigned By</td><td>Assigned_By</td><td>Users / Employee lookup</td></tr><tr><td>Assigned To</td><td>Assigned_To</td><td>Users / Employee lookup</td></tr></tbody></table></div><div class="notice warn" style="margin-top:12px">Creator workflows must enforce permissions and scope validation server-side. The widget filters available values for UX, but security must not depend only on JavaScript.</div>`,`<button class="btn primary" data-modal="close">Close</button>`);}
+function setupModal(){openModal("V16 One-Form Setup","All assignments are stored in your existing Design_Tracking form.",`<div class="notice good"><strong>One transaction form only:</strong> the widget reads Project, Drawing and Equipment masters, then creates Primary and Further Assignment records inside <strong>Design_Tracking</strong>. The tree is reconstructed from Primary_Assignment_ID + Assigned_From_ID + Assignment_Level.</div><div class="section-title"><h3>Eight fields required in Design_Tracking</h3></div><div class="table-wrap"><table><thead><tr><th>Field</th><th>Link Name</th><th>Type</th></tr></thead><tbody><tr><td>Primary Assignment ID</td><td>Primary_Assignment_ID</td><td>Single Line</td></tr><tr><td>Assigned From ID</td><td>Assigned_From_ID</td><td>Single Line</td></tr><tr><td>Assignment Level</td><td>Assignment_Level</td><td>Number</td></tr><tr><td>Assigned By</td><td>Assigned_By</td><td>Email / Single Line</td></tr><tr><td>Assignment Criteria</td><td>Assignment_Criteria</td><td>Multi Select or Single Line</td></tr><tr><td>Responsibility</td><td>Responsibility</td><td>Multi Line</td></tr><tr><td>Further Assigned</td><td>Further_Assigned</td><td>Decision Box</td></tr><tr><td>Group Code</td><td>Group_Code</td><td>Single Line</td></tr></tbody></table></div><div class="notice warn" style="margin-top:12px"><strong>Keep Parent_Design_ID unchanged.</strong> It remains reserved for drawing revision history (R0 → R1 → R2) and is not used for assignment hierarchy.</div><div class="notice" style="margin-top:8px">Date mapping used by this widget: Planned_Start_Date = Start Date, Forecast_End_Date = Target Date, Planned_End_Date = End Date.</div>`,`<button class="btn primary" data-modal="close">Close</button>`);}
 
 function switchView(v){S.view=v;document.querySelectorAll(".tab").forEach(b=>b.classList.toggle("active",b.dataset.view===v));if(v==="planner"){$("plannerView").classList.remove("hidden");$("registerView").classList.add("hidden");}else{S.regMode=v==="mine"?"mine":"all";renderRegister();}}
 
@@ -325,18 +484,17 @@ const DEMO={
     {ID:"E6",Project_Code:"25005",Plant_Section_Name:"Evaporation",Plant_Section_Type:"Standalone Evaporation",Tag_Number:"P-301",Equipment_Name:"Evaporation Pump",Group_Code:"Direct Supply",Department_Code:"Equipment - Rotating",Equipment_Category:"Pumps",Equipment_Type:"Centrifugal Pump"},
     {ID:"E7",Project_Code:"25005",Plant_Section_Name:"Evaporation",Plant_Section_Type:"Standalone Evaporation",Tag_Number:"M-301",Equipment_Name:"Evaporation Motor",Group_Code:"Direct Supply",Department_Code:"Electrical",Equipment_Category:"Electric Motors",Equipment_Type:"Motor"}
   ],
-  projectDrawings:[{ID:"R1",Project_Code:"25005",Drawing_Document:"Site Location Plan",Drawing_Master_ID:"D1",Required:true,Revision:"R0",Status:"Assigned",Active:true}],
   assignments:[
-    {ID:"A001",Assignment_No:"A001",Project_Drawing_Register:"R1",Project_Code:"25005",Drawing_Document:"Site Location Plan",Drawing_Master_ID:"D1",Primary_Assignment:"A001",Assigned_From:"",Assignment_Level:0,Assigned_By:"Project Manager",Assigned_To:"rohan@mega.tc",Assignment_Criteria:"Project",Start_Date:"01-Sep-2026",Target_Date:"05-Sep-2026",End_Date:"07-Sep-2026",Status:"In Progress",Progress_Percentage:25,Remark:"Coordinate the complete SLP responsibility.",Further_Assigned:true,Is_Primary_Assignment:true,Active:true},
-    {ID:"A002",Assignment_No:"A002",Project_Drawing_Register:"R1",Project_Code:"25005",Drawing_Document:"Site Location Plan",Drawing_Master_ID:"D1",Primary_Assignment:"A001",Assigned_From:"A001",Assignment_Level:1,Assigned_By:"rohan@mega.tc",Assigned_To:"kunal@mega.tc",Assignment_Criteria:"Plant Section, Plant Section Type",Plant_Section:"Fermentation",Plant_Section_Type:"3 Fermenter",Start_Date:"03-Sep-2026",Target_Date:"10-Sep-2026",End_Date:"09-Sep-2026",Status:"In Progress",Progress_Percentage:50,Remark:"Handle 3 Fermenter scope.",Further_Assigned:true,Is_Primary_Assignment:false,Active:true},
-    {ID:"A003",Assignment_No:"A003",Project_Drawing_Register:"R1",Project_Code:"25005",Drawing_Document:"Site Location Plan",Drawing_Master_ID:"D1",Primary_Assignment:"A001",Assigned_From:"A001",Assignment_Level:1,Assigned_By:"rohan@mega.tc",Assigned_To:"vasu@mega.tc",Assignment_Criteria:"Plant Section, Plant Section Type",Plant_Section:"Fermentation",Plant_Section_Type:"4 Fermenter",Start_Date:"04-Sep-2026",Target_Date:"09-Sep-2026",End_Date:"08-Sep-2026",Status:"Not Started",Progress_Percentage:0,Remark:"Handle 4 Fermenter scope.",Further_Assigned:false,Is_Primary_Assignment:false,Active:true},
-    {ID:"A004",Assignment_No:"A004",Project_Drawing_Register:"R1",Project_Code:"25005",Drawing_Document:"Site Location Plan",Drawing_Master_ID:"D1",Primary_Assignment:"A001",Assigned_From:"A001",Assignment_Level:1,Assigned_By:"rohan@mega.tc",Assigned_To:"balaji@mega.tc",Assignment_Criteria:"Plant Section, Plant Section Type",Plant_Section:"Evaporation",Plant_Section_Type:"Standalone Evaporation",Start_Date:"05-Sep-2026",Target_Date:"07-Sep-2026",End_Date:"07-Sep-2026",Status:"Not Started",Progress_Percentage:0,Remark:"Evaporation SLP.",Further_Assigned:false,Is_Primary_Assignment:false,Active:true},
-    {ID:"A005",Assignment_No:"A005",Project_Drawing_Register:"R1",Project_Code:"25005",Drawing_Document:"Site Location Plan",Drawing_Master_ID:"D1",Primary_Assignment:"A001",Assigned_From:"A002",Assignment_Level:2,Assigned_By:"kunal@mega.tc",Assigned_To:"tejas@mega.tc",Assignment_Criteria:"Equipment Category",Plant_Section:"Fermentation",Plant_Section_Type:"3 Fermenter",Equipment_Category:"Control Valves",Start_Date:"04-Sep-2026",Target_Date:"09-Sep-2026",End_Date:"09-Sep-2026",Status:"Completed",Progress_Percentage:100,Remark:"Control valve portion.",Further_Assigned:false,Is_Primary_Assignment:false,Active:true},
-    {ID:"A006",Assignment_No:"A006",Project_Drawing_Register:"R1",Project_Code:"25005",Drawing_Document:"Site Location Plan",Drawing_Master_ID:"D1",Primary_Assignment:"A001",Assigned_From:"A002",Assignment_Level:2,Assigned_By:"kunal@mega.tc",Assigned_To:"rahul@mega.tc",Assignment_Criteria:"Equipment Category",Plant_Section:"Fermentation",Plant_Section_Type:"3 Fermenter",Equipment_Category:"Electric Motors",Start_Date:"04-Sep-2026",Target_Date:"09-Sep-2026",End_Date:"09-Sep-2026",Status:"In Progress",Progress_Percentage:40,Remark:"Motor portion.",Further_Assigned:false,Is_Primary_Assignment:false,Active:true}
+    {ID:"A001",Project_Code:"25005",Drawing_Document_Name:"Site Location Plan",Drawing_Master_ID:"D1",Short_Name:"SLP",Primary_Assignment_ID:"A001",Assigned_From_ID:"",Assignment_Level:0,Assigned_By:"Project Manager",Assigned_To:"rohan@mega.tc",Assigned_Employee_Name:"Rohan",Assignment_Criteria:"Project",Responsibility:"Entire Project 25005",Planned_Start_Date:"01-Sep-2026",Forecast_End_Date:"05-Sep-2026",Planned_End_Date:"07-Sep-2026",Status:"In Progress",Progress:25,Remarks:"Coordinate the complete SLP responsibility.",Further_Assigned:true,Active:true},
+    {ID:"A002",Project_Code:"25005",Drawing_Document_Name:"Site Location Plan",Drawing_Master_ID:"D1",Short_Name:"SLP",Primary_Assignment_ID:"A001",Assigned_From_ID:"A001",Assignment_Level:1,Assigned_By:"rohan@mega.tc",Assigned_To:"kunal@mega.tc",Assigned_Employee_Name:"Kunal",Assignment_Criteria:"Plant Section, Plant Section Type",Responsibility:"Project 25005 › Fermentation › 3 Fermenter",Plant_Section_Name:"Fermentation",Plant_Section_Type:"3 Fermenter",Planned_Start_Date:"03-Sep-2026",Forecast_End_Date:"10-Sep-2026",Planned_End_Date:"09-Sep-2026",Status:"In Progress",Progress:50,Remarks:"Handle 3 Fermenter scope.",Further_Assigned:true,Active:true},
+    {ID:"A003",Project_Code:"25005",Drawing_Document_Name:"Site Location Plan",Drawing_Master_ID:"D1",Short_Name:"SLP",Primary_Assignment_ID:"A001",Assigned_From_ID:"A001",Assignment_Level:1,Assigned_By:"rohan@mega.tc",Assigned_To:"vasu@mega.tc",Assigned_Employee_Name:"Vasu",Assignment_Criteria:"Plant Section, Plant Section Type",Responsibility:"Project 25005 › Fermentation › 4 Fermenter",Plant_Section_Name:"Fermentation",Plant_Section_Type:"4 Fermenter",Planned_Start_Date:"04-Sep-2026",Forecast_End_Date:"09-Sep-2026",Planned_End_Date:"08-Sep-2026",Status:"Not Started",Progress:0,Remarks:"Handle 4 Fermenter scope.",Further_Assigned:false,Active:true},
+    {ID:"A004",Project_Code:"25005",Drawing_Document_Name:"Site Location Plan",Drawing_Master_ID:"D1",Short_Name:"SLP",Primary_Assignment_ID:"A001",Assigned_From_ID:"A001",Assignment_Level:1,Assigned_By:"rohan@mega.tc",Assigned_To:"balaji@mega.tc",Assigned_Employee_Name:"Balaji",Assignment_Criteria:"Plant Section, Plant Section Type",Responsibility:"Project 25005 › Evaporation › Standalone Evaporation",Plant_Section_Name:"Evaporation",Plant_Section_Type:"Standalone Evaporation",Planned_Start_Date:"05-Sep-2026",Forecast_End_Date:"07-Sep-2026",Planned_End_Date:"07-Sep-2026",Status:"Not Started",Progress:0,Remarks:"Evaporation SLP.",Further_Assigned:false,Active:true},
+    {ID:"A005",Project_Code:"25005",Drawing_Document_Name:"Site Location Plan",Drawing_Master_ID:"D1",Short_Name:"SLP",Primary_Assignment_ID:"A001",Assigned_From_ID:"A002",Assignment_Level:2,Assigned_By:"kunal@mega.tc",Assigned_To:"tejas@mega.tc",Assigned_Employee_Name:"Tejas",Assignment_Criteria:"Equipment Category",Responsibility:"Project 25005 › Fermentation › 3 Fermenter › Category: Control Valves",Plant_Section_Name:"Fermentation",Plant_Section_Type:"3 Fermenter",Equipment_Category:"Control Valves",Planned_Start_Date:"04-Sep-2026",Forecast_End_Date:"09-Sep-2026",Planned_End_Date:"09-Sep-2026",Status:"Completed",Progress:100,Remarks:"Control valve portion.",Further_Assigned:false,Active:true},
+    {ID:"A006",Project_Code:"25005",Drawing_Document_Name:"Site Location Plan",Drawing_Master_ID:"D1",Short_Name:"SLP",Primary_Assignment_ID:"A001",Assigned_From_ID:"A002",Assignment_Level:2,Assigned_By:"kunal@mega.tc",Assigned_To:"rahul@mega.tc",Assigned_Employee_Name:"Rahul",Assignment_Criteria:"Equipment Category",Responsibility:"Project 25005 › Fermentation › 3 Fermenter › Category: Electric Motors",Plant_Section_Name:"Fermentation",Plant_Section_Type:"3 Fermenter",Equipment_Category:"Electric Motors",Planned_Start_Date:"04-Sep-2026",Forecast_End_Date:"09-Sep-2026",Planned_End_Date:"09-Sep-2026",Status:"In Progress",Progress:40,Remarks:"Motor portion.",Further_Assigned:false,Active:true}
   ]
 };
-function demoFetch(report){if(report===CONFIG.REPORTS.projects)return DEMO.projects.map(x=>({...x}));if(report===CONFIG.REPORTS.drawings)return DEMO.drawings.map(x=>({...x}));if(report===CONFIG.REPORTS.employees)return DEMO.employees.map(x=>({...x}));if(report===CONFIG.REPORTS.equipment)return DEMO.equipment.map(x=>({...x}));if(report===CONFIG.REPORTS.assignments)return DEMO.assignments.map(x=>({...x}));if(report===CONFIG.REPORTS.projectDrawings)return DEMO.projectDrawings.map(x=>({...x}));return[];}
-let demoSeq=100;function demoAdd(form,data){const id=form===CONFIG.FORMS.assignment?`A${++demoSeq}`:`R${++demoSeq}`;if(form===CONFIG.FORMS.assignment)DEMO.assignments.push({ID:id,...data});else DEMO.projectDrawings.push({ID:id,...data});return id;}function demoUpdate(report,id,data){const arr=report===CONFIG.REPORTS.assignments?DEMO.assignments:DEMO.projectDrawings;const r=arr.find(x=>String(x.ID)===String(id));if(r)Object.assign(r,data);return id;}
+function demoFetch(report){if(report===CONFIG.REPORTS.projects)return DEMO.projects.map(x=>({...x}));if(report===CONFIG.REPORTS.drawings)return DEMO.drawings.map(x=>({...x}));if(report===CONFIG.REPORTS.employees)return DEMO.employees.map(x=>({...x}));if(report===CONFIG.REPORTS.equipment)return DEMO.equipment.map(x=>({...x}));if(report===CONFIG.REPORTS.assignments||report==="Design_Tracking_Report")return DEMO.assignments.map(x=>({...x}));return[];}
+let demoSeq=100;function demoAdd(form,data){const id=`A${++demoSeq}`;DEMO.assignments.push({ID:id,...data});return id;}function demoUpdate(report,id,data){const r=DEMO.assignments.find(x=>String(x.ID)===String(id));if(r)Object.assign(r,data);return id;}
 
 wire();bootstrap();
 </script>
