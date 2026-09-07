@@ -283,8 +283,37 @@ function responsibilityFromData(data){
   return bits.filter(Boolean).join(" › ");
 }
 async function fetchRecords(report,criteria="",max=20){if(S.demo)return demoFetch(report,criteria);const out=[];let cursor="";for(let i=0;i<max;i++){const c=withApp({report_name:report,field_config:"all",max_records:1000});if(criteria)c.criteria=criteria;if(cursor)c.record_cursor=cursor;let r;try{r=assertResp(await ZOHO.CREATOR.DATA.getRecords(c),`Read ${report}`);}catch(e){if(/9280|No records found/i.test(String(e.message||e)))return out;throw e;}const rows=Array.isArray(r.data)?r.data:[];out.push(...rows);cursor=r.record_cursor||r.cursor||"";if(!cursor||!rows.length)break;}return out;}
-async function addRecord(form,data){if(S.demo)return demoAdd(form,data);if(!CONFIG.LIVE_WRITES)throw new Error("Live writes are disabled in CONFIG.");const r=assertResp(await ZOHO.CREATOR.DATA.addRecords(withApp({form_name:form,payload:{data}})),`Create ${form}`);return String(r?.data?.ID||r?.data?.id||"");}
-async function updateRecord(report,id,data){if(S.demo)return demoUpdate(report,id,data);if(!CONFIG.LIVE_WRITES)throw new Error("Live writes are disabled in CONFIG.");assertResp(await ZOHO.CREATOR.DATA.updateRecordById(withApp({report_name:report,id:String(id),payload:{data}})),`Update ${report}`);return id;}
+// Creator JS API v2 is backed by Creator REST API v2.1.
+// Decision Box values are safest when sent as the lowercase strings
+// "true" / "false". This normalizer prevents error 3001 for fields such as
+// Further_Assigned and Active while leaving all other field values unchanged.
+function normalizeCreatorPayload(data){
+  const out={...data};
+  for(const [linkName,value] of Object.entries(out)){
+    const meta=S.trackingFieldMeta.get(linkName);
+    const isDecisionBox=(meta && Number(meta.type)===16) || linkName===AF.furtherAssigned || linkName===AF.active;
+    if(!isDecisionBox)continue;
+
+    if(value===true || value===1 || String(value).toLowerCase()==="true" || String(value).toLowerCase()==="yes") out[linkName]="true";
+    else if(value===false || value===0 || value==null || value==="" || String(value).toLowerCase()==="false" || String(value).toLowerCase()==="no") out[linkName]="false";
+  }
+  return out;
+}
+
+async function addRecord(form,data){
+  if(S.demo)return demoAdd(form,data);
+  if(!CONFIG.LIVE_WRITES)throw new Error("Live writes are disabled in CONFIG.");
+  const creatorData=normalizeCreatorPayload(data);
+  const r=assertResp(await ZOHO.CREATOR.DATA.addRecords(withApp({form_name:form,payload:{data:creatorData}})),`Create ${form}`);
+  return String(r?.data?.ID||r?.data?.id||"");
+}
+async function updateRecord(report,id,data){
+  if(S.demo)return demoUpdate(report,id,data);
+  if(!CONFIG.LIVE_WRITES)throw new Error("Live writes are disabled in CONFIG.");
+  const creatorData=normalizeCreatorPayload(data);
+  assertResp(await ZOHO.CREATOR.DATA.updateRecordById(withApp({report_name:report,id:String(id),payload:{data:creatorData}})),`Update ${report}`);
+  return id;
+}
 
 async function bootstrap(){busy("Loading drawing assignment workspace…");try{
   if(S.demo){S.user="rohan@mega.tc";$("demoBanner").classList.remove("hidden");CONFIG.REPORTS.assignments="Design_Tracking_Report";}
