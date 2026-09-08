@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="color-scheme" content="light">
-<title>MEGA Engineering | Drawing & Document Control V17</title>
+<title>MEGA Engineering | Drawing & Document Control V17.5 POC Open Access</title>
 <script src="https://static.zohocdn.com/creator/widgets/version/2.0/widgetsdk-min.js"></script>
 <style>
 :root{
@@ -46,7 +46,9 @@ body{font:14px/1.48 Inter,"Segoe UI",Arial,sans-serif}button,input,select,textar
 </style>
 </head>
 <body>
+<!-- UI SECTION: Demo banner shown only when ?demo=1 is used. -->
 <div id="demoBanner" class="demo-banner hidden">DEMO MODE — sample project, assignment, delegation and revision data are loaded.</div>
+<!-- UI SECTION: Header, global search and signed-in Creator user. -->
 <header class="topbar">
   <div class="topbar-inner">
     <div class="logo">ME</div>
@@ -55,6 +57,7 @@ body{font:14px/1.48 Inter,"Segoe UI",Arial,sans-serif}button,input,select,textar
     <div id="sessionPill" class="session">Connecting to Zoho Creator…</div>
   </div>
 </header>
+<!-- UI SECTION: Main workspace navigation and dynamic page body. -->
 <main class="app">
   <div class="navbar">
     <div class="navtabs">
@@ -68,14 +71,17 @@ body{font:14px/1.48 Inter,"Segoe UI",Arial,sans-serif}button,input,select,textar
   </div>
   <div id="page"></div>
 </main>
+<!-- UI SECTION: Reusable modal for assignment, return and revision actions. -->
 <div id="modalBackdrop" class="modal-backdrop hidden"><div class="modal"><div class="modal-head"><div><div id="modalTitle" class="modal-title"></div><div id="modalSub" class="modal-sub"></div></div><button id="modalClose" class="icon-btn">×</button></div><div id="modalBody" class="modal-body"></div><div id="modalFoot" class="modal-foot"></div></div></div>
+<!-- UI SECTION: Loading overlay used during Creator API work. -->
 <div id="loading" class="loading hidden"><div class="loading-box"><div class="spinner"></div><div id="loadingText" class="strong">Loading…</div></div></div>
+<!-- UI SECTION: Temporary success / warning / error messages. -->
 <div id="toasts" class="toasts"></div>
 <script>
 "use strict";
 
 /* ======================================================================
-   V17 COMPLETE ONE-FORM ENGINEERING DESIGN CONTROL
+   V17.5 ONE-FORM ENGINEERING DESIGN CONTROL — POC OPEN ACCESS
    ----------------------------------------------------------------------
    READS existing masters:
      - Project master
@@ -95,7 +101,23 @@ body{font:14px/1.48 Inter,"Segoe UI",Arial,sans-serif}button,input,select,textar
      Parent_Design_ID = previous revision record ID
 
    Therefore no new transaction form and no extra Revision form are needed.
+
+   POC OPEN-ACCESS MODE (TEMPORARY):
+     - Widget-level logged-in-user ownership checks are disabled.
+     - Any Creator user with backend permission can assign further from any node.
+     - Any such user can start/edit the current working revision.
+     - Any such user can perform the next status-appropriate workflow action.
+     - Checker / Reviewer / Approver are still stored for tracking, but their
+       email is NOT used to block buttons during this POC.
+     - My Work / My Team still use the logged-in user only to FILTER the view.
+
+   ORIGINAL validation lines are preserved as comments near each bypass so
+   they can be restored later for production. Creator permission sets remain
+   the real backend security layer.
    ====================================================================== */
+/* ==================== SECTION 01: CREATOR CONFIG ====================
+   Keeps all Creator app/report/form link names and API limits in one place.
+   ======================================================================= */
 const CONFIG={
   APP_NAME:"mega-engineering-sales",
   DEMO:new URLSearchParams(location.search).get("demo")==="1",
@@ -123,6 +145,9 @@ const CONFIG={
   MAX_BATCH:250
 };
 
+/* ================= SECTION 02: DESIGN_TRACKING FIELDS =================
+   Maps readable code names to the exact existing Design_Tracking link names.
+   ======================================================================= */
 const AF={
   projectCode:"Project_Code",projectRecordId:"Project_Record_ID",
   sourceEquipmentRecordId:"Source_Equipment_Record_ID",
@@ -146,6 +171,10 @@ const AF={
   assignedBy:"Assigned_By",criteria:"Assignment_Criteria",responsibility:"Responsibility",furtherAssigned:"Further_Assigned"
 };
 
+/* ================= SECTION 03: ASSIGNMENT CRITERIA ==================
+   Defines which business filters can be used for further assignment:
+   Section, Section Type, Tag, Group, Department, Category and Type.
+   ======================================================================= */
 const CRITERIA=[
   {key:"plantSection",label:"Plant Section",field:AF.plantSection,icon:"§",equipment:["Plant_Section_Name","Plant_Section"]},
   {key:"plantSectionType",label:"Plant Section Type",field:AF.plantSectionType,icon:"◇",equipment:["Plant_Section_Type","Section_Type"]},
@@ -161,9 +190,56 @@ const DESIGN_STATUSES=["Not Started","In Progress","Submitted for Check","Checki
 const DESIGN_PROGRESS={"Not Started":0,"In Progress":10,"Submitted for Check":50,"Checking":55,"Checked":60,"Submitted for Review":65,"Reviewing":70,"Reviewed":80,"Submitted for Approval":85,"Approving":90,"Approved":95,"Issued":100,"Completed":100,"Returned":40,"On Hold":10,"Cancelled":0};
 const MONTHS=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 
+/* ======================================================================
+   POC OPEN-ACCESS / OPEN-VALIDATION MODE
+   ----------------------------------------------------------------------
+   IMPORTANT: The production validations below are intentionally COMMENTED
+   for the current proof-of-concept. They are NOT deleted. Restore them later
+   when the business flow is finalized.
+
+   CURRENTLY COMMENTED / BYPASSED VALIDATIONS:
+   01. Logged-in user must be the assignment owner to Assign Further.
+   02. Logged-in user must be Owner / Checker / Reviewer / Approver to act.
+   03. Child scope must remain inside the exact received responsibility.
+       - Plant Section inheritance guard is disabled.
+       - Plant Section Type inheritance guard is disabled.
+       - Group / Department / Category / Type / Tag inheritance guards disabled.
+       - Project + Drawing remain the identity of the opened work item so that
+         records are not mixed between different Project + Drawing structures.
+   04. Workflow must follow a strict sequential order.
+       Any known design status can be selected in POC mode.
+   05. Checker must be selected before Submit for Check.
+   06. Reviewer must be selected before Submit for Review.
+   07. Approver must be selected before Submit for Approval.
+   08. Approved / Issued / Completed current revisions are locked.
+       In POC mode the CURRENT revision remains editable regardless of status.
+       Historical revisions are still read-only so old revision records are not
+       accidentally overwritten while testing.
+   09. Revision Description is mandatory for R0 / new revisions.
+       It is optional in POC mode.
+   10. Return Reason is mandatory when returning a drawing.
+       It is optional in POC mode.
+
+   VALIDATIONS STILL KEPT FOR BASIC DATA INTEGRITY:
+   - A Project + Drawing must exist before a Primary Assignment can be created.
+   - Assigned To / Start Date / Target Date remain mandatory for assignments.
+   - Duplicate Primary Assignment is still prevented.
+   - Duplicate R0 for the same responsibility is still prevented.
+   - Old historical revisions remain read-only.
+   - Creator's own Form/Report permissions and mandatory-field rules still apply.
+   - New revision creation still uses the existing R0 -> R1 -> R2 numbering chain.
+
+   This block is deliberately detailed so a future developer can clearly see
+   what must be restored before production go-live.
+   ====================================================================== */
+
 // Legacy aliases copied from the working Engineering Design Control widget.
 // The old Creator reports contain several generations of field-link names, so
 // the new interface deliberately accepts all of them instead of assuming one.
+/* ================== SECTION 04: LEGACY FIELD ALIASES =================
+   Supports old field-link variations from existing Project/Drawing/Employee/
+   Equipment reports so the widget continues using your old working sources.
+   ======================================================================= */
 const PROJECT_ALIASES={
   id:["ID"],
   code:["Project_Code","Project_Code1","ProjectCode","Project"],
@@ -208,6 +284,9 @@ const EQ_ALIASES={
 };
 const SYSTEM_ALIASES={addedTime:["Added_Time","Created_Time","Created_Time1"],addedUser:["Added_User","Created_By","Created_User"],modifiedTime:["Modified_Time","Updated_Time","Modified_Time1"],modifiedUser:["Modified_User","Updated_By","Modified_By"]};
 
+/* ===================== SECTION 05: RUNTIME STATE ======================
+   Stores loaded masters, assignment/revision data and current UI selections.
+   ======================================================================= */
 const S={
   demo:CONFIG.DEMO,user:"",app:CONFIG.APP_NAME,view:"home",previousView:"home",globalSearch:"",
   projects:[],drawings:[],employees:[],equipment:[],records:[],assignments:[],revisions:[],
@@ -218,6 +297,10 @@ const S={
 const $=id=>document.getElementById(id);
 const h=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
 const nk=v=>String(v??"").toLowerCase().replace(/[^a-z0-9]/g,"");
+/* ================= SECTION 06: GENERIC HELPER FUNCTIONS =================
+   Utility functions for Creator values, dates, status badges and formatting.
+   ======================================================================= */
+// scalar(): converts Creator lookup/object/array values into readable text.
 function scalar(v){if(v==null)return"";if(typeof v!=="object")return String(v);if(v.display_value!=null)return scalar(v.display_value);if(v.zc_display_value!=null)return scalar(v.zc_display_value);if(v.email)return String(v.email);if(v.ID!=null)return String(v.ID);const vals=Object.values(v).filter(x=>x!=null&&typeof x!=="object");return vals.join(" ");}
 function pick(r,aliases,f=""){if(!r)return f;for(const a of aliases||[])if(Object.prototype.hasOwnProperty.call(r,a))return scalar(r[a]);const keys=Object.fromEntries(Object.keys(r).map(k=>[nk(k),k]));for(const a of aliases||[]){const k=keys[nk(a)];if(k)return scalar(r[k]);}return f;}
 function idOf(r){return scalar(r?.ID||r?.id)}
@@ -287,6 +370,11 @@ function prepareCreatorPayload(data){
 
 // Legacy-compatible report reader. Code 9220 means the report exists but is
 // empty; 9280 means the criteria matched no records. Both are valid empty data.
+/* =================== SECTION 07: CREATOR DATA API =====================
+   Reads/writes Design_Tracking and handles file upload/download.
+   Zoho Creator permissions still apply even in POC open-access mode.
+   ======================================================================= */
+// fetchRecords(): reads paginated rows from one Creator report.
 async function fetchRecords(report,criteria="",max=20){
   if(S.demo)return demoFetch(report,criteria);
   const out=[];
@@ -377,6 +465,11 @@ async function resolveTrackingSource(){
   }
 }
 
+/* ============== SECTION 08: ONE-FORM RECORD CLASSIFICATION ==============
+   Separates assignment rows from revision rows inside the same Design_Tracking
+   form and rebuilds the assignment/revision hierarchy in memory.
+   ======================================================================= */
+// isAssignmentRecord(): identifies an Assignment row.
 function isAssignmentRecord(r){return scalar(r?.[AF.assignmentLevel])!==""||Boolean(scalar(r?.[AF.primaryAssignment]))||Boolean(scalar(r?.[AF.assignedFrom]))}
 function isRevisionRecord(r){if(isAssignmentRecord(r))return false;const key=scalar(r?.[AF.logicalTaskKey]);return Boolean(scalar(r?.[AF.revision])||scalar(r?.[AF.parentDesignId])||key.startsWith("EXEC::"))}
 function executionPrefix(assignmentId){return `EXEC::${assignmentId}::`}
@@ -386,6 +479,7 @@ function currentRevision(a){const rows=revisionsForAssignment(a);return rows.len
 function isHistoricalRevision(r,a){const cur=currentRevision(a);return r&&cur&&idOf(r)!==idOf(cur)}
 function employeeNameFor(value){const v=String(value||"");const e=S.employees.find(x=>String(x.email||"").toLowerCase()===v.toLowerCase()||String(x.id||"")===v);return e?.name||v}
 function personDisplay(value){const raw=scalar(value).trim();if(!raw)return"";const e=S.employees.find(x=>String(x.email||"").toLowerCase()===raw.toLowerCase()||String(x.id||"")===raw);return e?.name||raw}
+// currentUserMatches(): compares email/ID/name to logged-in user. In POC it is used only for My Work / My Team filtering, not permissions.
 function currentUserMatches(value){const raw=scalar(value).trim().toLowerCase(),me=String(S.user||"").trim().toLowerCase();if(!raw||!me)return false;if(raw===me||raw.includes(me))return true;const emp=S.employees.find(e=>String(e.email||"").toLowerCase()===me);return emp?raw===String(emp.id||"").toLowerCase()||raw===String(emp.name||"").toLowerCase():false}
 function assignmentUser(a){return scalar(a?.[AF.assignedTo])||"Unassigned"}
 function assignmentDisplayUser(a){return scalar(a?.[AF.assignedEmployeeName])||personDisplay(a?.[AF.assignedTo])||"Unassigned"}
@@ -408,6 +502,11 @@ function assignmentDueClass(a){if(isClosedAssignment(a))return"completed";const 
 function assignmentDueText(a){const iso=toInputDate(a[AF.targetDate]);const diff=dateDiffDays(iso);if(!iso)return"No target";if(isClosedAssignment(a))return displayDate(iso);if(diff<0)return `${Math.abs(diff)} day${Math.abs(diff)===1?"":"s"} overdue`;if(diff===0)return"Due today";if(diff<=7)return`Due in ${diff} day${diff===1?"":"s"}`;return displayDate(iso)}
 function primaryAssignmentFor(project,drawing){return S.assignments.find(a=>scalar(a[AF.projectCode])===project.code&&(scalar(a[AF.drawingMasterId])===drawing.id||scalar(a[AF.drawingDocument])===drawing.name)&&num(a[AF.assignmentLevel],-1)===0&&!scalar(a[AF.assignedFrom]))||null}
 
+/* ================== SECTION 09: STARTUP / DATA LOADING =================
+   Initializes Creator SDK and loads Project, Drawing, Employee, Equipment and
+   Design_Tracking data using the existing old report link names.
+   ======================================================================= */
+// bootstrap(): starts the complete widget.
 async function bootstrap(){
   busy("Loading projects, drawings and team…");
   try{
@@ -487,9 +586,15 @@ function drawingOptions(value=""){return `<option value="">Select drawing / docu
 function setView(v){if(S.view!=="detail")S.previousView=S.view;S.view=v;document.querySelectorAll(".navtab").forEach(b=>b.classList.toggle("active",b.dataset.view===v));renderView()}
 function renderView(){document.querySelectorAll(".navtab").forEach(b=>b.classList.toggle("active",b.dataset.view===S.view));if(S.view==="home")return renderHome();if(S.view==="mine")return renderMyWork();if(S.view==="team")return renderMyTeam();if(S.view==="projects")return renderProjects();if(S.view==="new")return renderNewAssignment();if(S.view==="detail")return renderDetailPage();}
 
+// myAssignments(): records assigned directly to the logged-in user for the My Work view.
 function myAssignments(){return S.assignments.filter(a=>currentUserMatches(a[AF.assignedTo]))}
+// myDirectDelegations(): records the logged-in user assigned further for the My Team view.
 function myDirectDelegations(){return S.assignments.filter(a=>{const parent=assignmentById(scalar(a[AF.assignedFrom]));return currentUserMatches(a[AF.assignedBy])||(parent&&currentUserMatches(parent[AF.assignedTo]))})}
 function renderWorkCard(a){const d=drawingForAssignment(a),r=currentRevision(a),cls=assignmentDueClass(a);return `<div class="work-card ${cls}"><div class="work-top"><div class="doc-badge">${h(d.short||"DOC")}</div><div class="work-main"><div class="work-title">${h(d.name)}</div><div class="work-project">Project ${h(scalar(a[AF.projectCode]))} • ${h(assignmentCriteria(a))}</div></div>${statusPill(scalar(a[AF.status]))}</div><div class="scope">${h(scopeSummary(a))}</div><div class="work-meta"><div><span>Assigned by</span><strong>${h(assignmentByDisplay(a))}</strong></div><div><span>Target</span><strong>${h(assignmentDueText(a))}</strong></div></div><div class="work-foot">${r?`<span class="rev-chip">${h(scalar(r[AF.revision])||"R0")} · ${h(scalar(r[AF.status])||"Not Started")}</span>`:'<span class="rev-chip">No design started</span>'}<button class="btn sm primary" data-open-assignment="${h(idOf(a))}">Open</button></div></div>`}
+/* ================= SECTION 10: DASHBOARD / MAIN VIEWS ==================
+   Renders Home, My Work, My Team, Projects and New Assignment screens.
+   ======================================================================= */
+// renderHome(): builds the user dashboard and priority-work cards.
 function renderHome(){const mine=myAssignments(),active=mine.filter(a=>!isClosedAssignment(a)),inProg=mine.filter(a=>scalar(a[AF.status])==="In Progress"),overdue=mine.filter(a=>{const d=dateDiffDays(toInputDate(a[AF.targetDate]));return d!=null&&d<0&&!isClosedAssignment(a)}),completed=mine.filter(a=>scalar(a[AF.status])==="Completed"),q=S.globalSearch.trim().toLowerCase();const attention=mine.filter(a=>searchMatchAssignment(a,q)).sort((a,b)=>{const ad=dateDiffDays(toInputDate(a[AF.targetDate]));const bd=dateDiffDays(toInputDate(b[AF.targetDate]));return (ad??9999)-(bd??9999)}).slice(0,6);$("page").innerHTML=`<section class="hero"><div><h2>${h(greeting())}, ${h(personDisplay(S.user)||"Team Member")}</h2><p>See what needs your attention, continue design work, upload drawings, track revisions and delegate responsibility without opening the large Creator form.</p></div><div class="hero-badge"><div class="n">${active.length}</div><div class="l">ACTIVE RESPONSIBILITIES</div></div></section><section class="metrics"><div class="metric"><div class="metric-icon brand">✓</div><div><div class="num">${mine.length}</div><div class="label">Assigned to me</div></div></div><div class="metric"><div class="metric-icon blue">↻</div><div><div class="num">${inProg.length}</div><div class="label">In progress</div></div></div><div class="metric"><div class="metric-icon amber">!</div><div><div class="num">${overdue.length}</div><div class="label">Overdue</div></div></div><div class="metric"><div class="metric-icon green">✓</div><div><div class="num">${completed.length}</div><div class="label">Completed</div></div></div></section><div class="section-row"><div><h2>My priority work</h2><p>Nearest target dates are shown first.</p></div><button class="btn sm" data-view-jump="mine">View all my work</button></div>${attention.length?`<div class="cards">${attention.map(renderWorkCard).join("")}</div>`:`<div class="empty"><div class="ico">✓</div><strong>No work needs attention</strong>Your assigned drawing responsibilities will appear here.</div>`}<div class="section-row"><div><h2>My team activity</h2><p>Responsibilities you assigned further.</p></div><button class="btn sm" data-view-jump="team">View my team</button></div>${renderTeamPreview()}`}
 function greeting(){const h=new Date().getHours();return h<12?"Good morning":h<17?"Good afternoon":"Good evening"}
 function renderTeamPreview(){const rows=myDirectDelegations().slice(0,5);if(!rows.length)return`<div class="empty compact"><strong>No delegated work yet</strong>Open one of your assignments and use <b>Assign Further</b>.</div>`;return `<div class="panel"><div class="panel-body"><div class="child-list">${rows.map(a=>`<div class="child-row"><div class="avatar">${h(initials(assignmentDisplayUser(a)))}</div><div class="main"><div class="name">${h(assignmentDisplayUser(a))}</div><div class="sc">${h(scalar(a[AF.projectCode]))} • ${h(drawingForAssignment(a).short||drawingForAssignment(a).name)} • ${h(scopeSummary(a))}</div></div>${statusPill(scalar(a[AF.status]))}<button class="btn sm" data-open-assignment="${h(idOf(a))}">Open</button></div>`).join("")}</div></div></div>`}
@@ -508,63 +613,224 @@ function openGroup(key){const g=groupAssignments().find(x=>x.key===key);if(!g||!
 function openAssignment(id){const a=assignmentById(id);if(!a)return;S.previousView=S.view==="detail"?S.previousView:S.view;S.current=a;S.project=projectForCode(scalar(a[AF.projectCode]));S.drawing=drawingForAssignment(a);S.detailTab="overview";S.expanded.add(idOf(primaryForRows(groupForAssignment(a)?.rows||[])));S.selectedCriteria.clear();S.selectedTargets.clear();S.targetRows=[];S.targetSearch="";S.bulk={};S.view="detail";renderView()}
 function currentGroupRows(){return S.current?(groupForAssignment(S.current)?.rows||[]):[]}
 function familyPath(a){const rows=currentGroupRows(),map=new Map(rows.map(x=>[idOf(x),x])),path=[];let cur=a;while(cur){path.unshift(cur);const pid=scalar(cur[AF.assignedFrom]);cur=pid?map.get(pid):null}return path}
+/* ================= SECTION 11: FAMILY TREE / DETAIL ====================
+   Builds the N-level tree using Assigned_From_ID and shows one responsibility
+   with Overview, Design Files, Revision History and Assign Further tabs.
+   ======================================================================= */
+// renderTree(): recursively renders the assignment family tree.
 function renderTree(){const rows=currentGroupRows(),root=primaryForRows(rows);if(!root)return`<div class="tree-empty">No primary assignment.</div>`;const q=(S.treeSearch||"").toLowerCase();const allowed=new Set();if(q){for(const r of rows){const hay=[assignmentDisplayUser(r),scopeSummary(r),assignmentCriteria(r)].join(" ").toLowerCase();if(hay.includes(q)){let cur=r;while(cur){allowed.add(idOf(cur));cur=assignmentById(scalar(cur[AF.assignedFrom]))}}}}else rows.forEach(r=>allowed.add(idOf(r)));const renderNode=r=>{const id=idOf(r),kids=assignmentChildren(id,rows).filter(k=>allowed.has(idOf(k))),open=S.expanded.has(id),active=idOf(S.current)===id,rev=currentRevision(r);return `<div class="tree-node"><div class="node-row ${active?"active":""}" data-node="${h(id)}"><button class="expander ${kids.length?"":"blank"}" data-expand="${h(id)}">${open?"−":"+"}</button><div class="avatar">${h(initials(assignmentDisplayUser(r)))}</div><div class="node-main"><div class="node-user">${h(assignmentDisplayUser(r))}</div><div class="node-scope">${h(scopeSummary(r))}</div></div><div class="node-side">${rev?`<span class="pill purple">${h(scalar(rev[AF.revision])||"R0")}</span>`:statusPill(scalar(r[AF.status]))}<div class="node-level">Level ${num(r[AF.assignmentLevel])}</div></div></div>${open&&kids.length?`<div class="tree-children">${kids.map(renderNode).join("")}</div>`:""}</div>`};return renderNode(root)}
 function renderDetailPage(){if(!S.current){S.view="home";return renderHome()}const a=S.current,d=S.drawing||drawingForAssignment(a),path=familyPath(a);$("page").innerHTML=`<div class="detail-shell"><aside class="panel tree-panel"><div class="tree-head"><div class="strong">Assignment Structure</div><div class="tiny muted" style="margin:2px 0 9px">Expand people and responsibilities.</div><div class="tree-search"><input id="treeSearch" class="input" placeholder="Search person / scope…" value="${h(S.treeSearch||"")}"></div></div><div id="treeArea" class="tree-scroll">${renderTree()}</div></aside><section class="detail-main"><div class="detail-hero"><div class="crumbs"><button data-back>← Back</button><span>›</span><span>Project ${h(scalar(a[AF.projectCode]))}</span><span>›</span><span>${h(d.short||d.name)}</span>${path.length>1?`<span>›</span><span>${h(assignmentDisplayUser(a))}</span>`:""}</div><div class="detail-top"><div class="detail-title"><div class="doc-badge">${h(d.short||"DOC")}</div><div><h2>${h(d.name)}</h2><p>Project ${h(scalar(a[AF.projectCode]))} • ${h(assignmentDisplayUser(a))}'s responsibility</p></div></div><div class="detail-actions">${statusPill(scalar(a[AF.status]))}${currentRevision(a)?`<span class="pill purple">Current ${h(scalar(currentRevision(a)[AF.revision])||"R0")}</span>`:""}</div></div><div class="detail-meta"><span class="pill">Assigned by ${h(assignmentByDisplay(a))}</span><span class="pill">Level ${num(a[AF.assignmentLevel])}</span><span class="pill">Target ${h(displayDate(a[AF.targetDate]))}</span></div></div><div class="subtabs"><button class="subtab ${S.detailTab==="overview"?"active":""}" data-detail-tab="overview">Overview</button><button class="subtab ${S.detailTab==="files"?"active":""}" data-detail-tab="files">Design Files</button><button class="subtab ${S.detailTab==="revisions"?"active":""}" data-detail-tab="revisions">Revision History</button><button class="subtab ${S.detailTab==="delegate"?"active":""}" data-detail-tab="delegate">Assign Further</button></div><div id="detailTabBody">${renderDetailTab()}</div></section></div>`}
 function renderDetailTab(){if(S.detailTab==="files")return renderFilesTab();if(S.detailTab==="revisions")return renderRevisionTab();if(S.detailTab==="delegate")return renderDelegateTab();return renderOverviewTab()}
-function renderOverviewTab(){const a=S.current,k=childStats(a),r=currentRevision(a),canEdit=currentUserMatches(a[AF.assignedTo]);return `<div class="tab-card"><div class="scope-box"><div class="k">RESPONSIBILITY</div><div class="v">${h(scopeSummary(a))}</div></div><div class="summary"><div class="summary-item"><div class="k">ASSIGNED TO</div><div class="v">${h(assignmentDisplayUser(a))}</div></div><div class="summary-item"><div class="k">ASSIGNED BY</div><div class="v">${h(assignmentByDisplay(a))}</div></div><div class="summary-item"><div class="k">START DATE</div><div class="v">${h(displayDate(a[AF.startDate]))}</div></div><div class="summary-item"><div class="k">TARGET DATE</div><div class="v">${h(displayDate(a[AF.targetDate]))}</div></div><div class="summary-item"><div class="k">STATUS</div><div class="v">${statusPill(scalar(a[AF.status]))}</div></div><div class="summary-item"><div class="k">PROGRESS</div><div class="v">${num(a[AF.progress])}%</div></div><div class="summary-item"><div class="k">CRITERIA</div><div class="v">${h(assignmentCriteria(a))}</div></div><div class="summary-item"><div class="k">END DATE</div><div class="v">${h(displayDate(a[AF.endDate]))}</div></div></div><div class="two-col"><div><div class="section-row" style="margin-top:0"><div><h2>Design execution</h2><p>Files, workflow and current revision for this responsibility.</p></div></div>${r?`<div class="exec-hero"><div class="exec-rev"><div class="rev-circle">${h(scalar(r[AF.revision])||"R0")}</div><div><h3>${h(scalar(r[AF.status])||"Not Started")}</h3><p>${h(scalar(r[AF.revisionDescription])||"No revision description")}</p></div></div><button class="btn sm primary" data-detail-tab="files">Open design</button></div>`:`<div class="empty compact"><strong>No design revision started</strong>${canEdit?`<div style="margin-top:9px"><button class="btn sm primary" data-detail-tab="files">Start R0</button></div>`:"The assignee can start R0 from Design Files."}</div>`}</div><div><div class="section-row" style="margin-top:0"><div><h2>Further assignments</h2><p>${k.total} responsibility${k.total===1?"":"ies"} below this node.</p></div>${canEdit?'<button class="btn sm soft" data-detail-tab="delegate">Assign Further</button>':""}</div>${k.total?`<div class="child-list">${assignmentChildren(idOf(a)).slice(0,5).map(c=>`<div class="child-row"><div class="avatar">${h(initials(assignmentDisplayUser(c)))}</div><div class="main"><div class="name">${h(assignmentDisplayUser(c))}</div><div class="sc">${h(scopeSummary(c))}</div></div>${statusPill(scalar(c[AF.status]))}</div>`).join("")}</div>`:`<div class="empty compact"><strong>No further assignment</strong>This responsibility has not been divided further.</div>`}</div></div><div class="actions" style="margin-top:14px">${canEdit?'<button class="btn" data-act="edit-assignment">Update status / progress</button>':""}<button class="btn" data-detail-tab="revisions">Revision history (${revisionsForAssignment(a).length})</button></div></div>`}
+function renderOverviewTab(){const a=S.current,k=childStats(a),r=currentRevision(a),canEdit=true; /* POC OPEN ACCESS: show update/delegate controls to any permitted Creator user. */ return `<div class="tab-card"><div class="scope-box"><div class="k">RESPONSIBILITY</div><div class="v">${h(scopeSummary(a))}</div></div><div class="summary"><div class="summary-item"><div class="k">ASSIGNED TO</div><div class="v">${h(assignmentDisplayUser(a))}</div></div><div class="summary-item"><div class="k">ASSIGNED BY</div><div class="v">${h(assignmentByDisplay(a))}</div></div><div class="summary-item"><div class="k">START DATE</div><div class="v">${h(displayDate(a[AF.startDate]))}</div></div><div class="summary-item"><div class="k">TARGET DATE</div><div class="v">${h(displayDate(a[AF.targetDate]))}</div></div><div class="summary-item"><div class="k">STATUS</div><div class="v">${statusPill(scalar(a[AF.status]))}</div></div><div class="summary-item"><div class="k">PROGRESS</div><div class="v">${num(a[AF.progress])}%</div></div><div class="summary-item"><div class="k">CRITERIA</div><div class="v">${h(assignmentCriteria(a))}</div></div><div class="summary-item"><div class="k">END DATE</div><div class="v">${h(displayDate(a[AF.endDate]))}</div></div></div><div class="two-col"><div><div class="section-row" style="margin-top:0"><div><h2>Design execution</h2><p>Files, workflow and current revision for this responsibility.</p></div></div>${r?`<div class="exec-hero"><div class="exec-rev"><div class="rev-circle">${h(scalar(r[AF.revision])||"R0")}</div><div><h3>${h(scalar(r[AF.status])||"Not Started")}</h3><p>${h(scalar(r[AF.revisionDescription])||"No revision description")}</p></div></div><button class="btn sm primary" data-detail-tab="files">Open design</button></div>`:`<div class="empty compact"><strong>No design revision started</strong>${canEdit?`<div style="margin-top:9px"><button class="btn sm primary" data-detail-tab="files">Start R0</button></div>`:"The assignee can start R0 from Design Files."}</div>`}</div><div><div class="section-row" style="margin-top:0"><div><h2>Further assignments</h2><p>${k.total} responsibility${k.total===1?"":"ies"} below this node.</p></div>${canEdit?'<button class="btn sm soft" data-detail-tab="delegate">Assign Further</button>':""}</div>${k.total?`<div class="child-list">${assignmentChildren(idOf(a)).slice(0,5).map(c=>`<div class="child-row"><div class="avatar">${h(initials(assignmentDisplayUser(c)))}</div><div class="main"><div class="name">${h(assignmentDisplayUser(c))}</div><div class="sc">${h(scopeSummary(c))}</div></div>${statusPill(scalar(c[AF.status]))}</div>`).join("")}</div>`:`<div class="empty compact"><strong>No further assignment</strong>This responsibility has not been divided further.</div>`}</div></div><div class="actions" style="margin-top:14px">${canEdit?'<button class="btn" data-act="edit-assignment">Update status / progress</button>':""}<button class="btn" data-detail-tab="revisions">Revision history (${revisionsForAssignment(a).length})</button></div></div>`}
 
-function revisionLocked(r,a){return isHistoricalRevision(r,a)||["Approved","Issued","Completed","Cancelled"].includes(scalar(r?.[AF.status]))}
-function canEditRevision(a,r){return currentUserMatches(a?.[AF.assignedTo])&&!isHistoricalRevision(r,a)&&!["Approved","Issued","Completed","Cancelled"].includes(scalar(r?.[AF.status]))}
-function renderFilesTab(){const a=S.current,r=currentRevision(a);if(!r)return renderStartR0();const locked=revisionLocked(r,a),editable=canEditRevision(a,r),fileRows=[[AF.drawingFile,"Drawing File","PDF / controlled drawing"],[AF.nativeFile,"Native File","DWG / XLSX / source"],[AF.supportingFile,"Supporting File","Calculation / reference"]];return `<div class="tab-card"><div class="exec-hero"><div class="exec-rev"><div class="rev-circle">${h(scalar(r[AF.revision])||"R0")}</div><div><h3>${h(locked?"Controlled revision":"Current working revision")}</h3><p>${h(scalar(r[AF.revisionDescription])||"No revision description")}</p></div></div><div class="actions">${statusPill(scalar(r[AF.status]))}${isHistoricalRevision(r,a)?'<span class="pill amber">Read only</span>':""}</div></div><div class="grid2"><div class="field"><label>Drawing Number</label><input id="execDrawingNo" value="${h(scalar(r[AF.drawingNumber]))}" ${editable?"":"disabled"}></div><div class="field"><label>Revision Description</label><input id="execRevDesc" value="${h(scalar(r[AF.revisionDescription]))}" ${editable?"":"disabled"}></div></div><div class="role-grid" style="margin-top:11px"><div class="field"><label>Checker</label><select id="execChecker" ${editable?"":"disabled"}>${employeeOptions(scalar(r[AF.checker]),"Select checker…")}</select></div><div class="field"><label>Reviewer</label><select id="execReviewer" ${editable?"":"disabled"}>${employeeOptions(scalar(r[AF.reviewer]),"Select reviewer…")}</select></div><div class="field"><label>Approver</label><select id="execApprover" ${editable?"":"disabled"}>${employeeOptions(scalar(r[AF.approver]),"Select approver…")}</select></div></div><div class="field" style="margin-top:11px"><label>Design Remark</label><textarea id="execRemark" ${editable?"":"disabled"}>${h(scalar(r[AF.remark]))}</textarea></div><div class="file-grid">${fileRows.map(([field,label,hint])=>renderFileBox(r,field,label,hint,editable)).join("")}</div>${editable?'<div class="actions"><button class="btn primary" data-act="save-revision">Save Design</button></div>':""}${renderWorkflow(r,a)}${(["Approved","Issued","Completed"].includes(scalar(r[AF.status]))&&currentUserMatches(a[AF.assignedTo]))?'<div style="margin-top:13px"><button class="btn soft" data-act="new-revision">＋ Create New Revision</button></div>':""}</div>`}
-function renderStartR0(){const a=S.current;if(!currentUserMatches(a[AF.assignedTo]))return `<div class="tab-card"><div class="empty"><div class="ico">🔒</div><strong>No design revision yet</strong>Only ${h(assignmentDisplayUser(a))}, the user responsible for this assignment, can start R0.</div></div>`;return `<div class="tab-card"><div class="empty compact" style="margin-bottom:13px"><strong>Start the first controlled design revision</strong>R0 will be linked to this exact assignment responsibility. All later revisions remain in history.</div><div class="grid2"><div class="field"><label>Drawing Number</label><input id="r0DrawingNo" placeholder="Example: 25005-SLP-001"></div><div class="field"><label>Revision</label><input value="R0" disabled></div></div><div class="field" style="margin-top:11px"><label>Revision Description *</label><input id="r0Desc" placeholder="Initial issue / first design"></div><div class="role-grid" style="margin-top:11px"><div class="field"><label>Checker</label><select id="r0Checker">${employeeOptions("","Select checker…")}</select></div><div class="field"><label>Reviewer</label><select id="r0Reviewer">${employeeOptions("","Select reviewer…")}</select></div><div class="field"><label>Approver</label><select id="r0Approver">${employeeOptions("","Select approver…")}</select></div></div><div class="field" style="margin-top:11px"><label>Design Remark</label><textarea id="r0Remark" placeholder="Optional design note"></textarea></div><div class="file-grid">${renderNewFileBox("r0DrawingFile","Drawing File","PDF / controlled drawing")}${renderNewFileBox("r0NativeFile","Native File","DWG / XLSX / source")}${renderNewFileBox("r0SupportingFile","Supporting File","Calculation / reference")}</div><div class="actions"><button class="btn primary lg" data-act="start-r0">Start R0</button></div></div>`}
+/* =============== SECTION 12: DESIGN FILES / WORKFLOW ===================
+   Controls R0/R1/R2 files, Checker/Reviewer/Approver and workflow statuses.
+   POC: identity, strict workflow order, role prerequisites and controlled-status locking are commented out.
+   ======================================================================= */
+// revisionLocked(): controls whether the Design Files UI is shown as read-only.
+function revisionLocked(r,a){
+  // ORIGINAL PRODUCTION VALIDATION — COMMENTED FOR POC:
+  // return isHistoricalRevision(r,a) ||
+  //        ["Approved","Issued","Completed","Cancelled"].includes(scalar(r?.[AF.status]));
+
+  // POC RULE:
+  // Only an OLD/HISTORICAL revision is locked. The current revision can still
+  // be edited even when its status is Approved / Issued / Completed / Cancelled.
+  return isHistoricalRevision(r,a);
+}
+
+// canEditRevision(): decides whether current revision fields/files can be changed.
+function canEditRevision(a,r){
+  // ORIGINAL PRODUCTION VALIDATION — COMMENTED FOR POC:
+  // return currentUserMatches(a?.[AF.assignedTo]) &&
+  //        !isHistoricalRevision(r,a) &&
+  //        !["Approved","Issued","Completed","Cancelled"].includes(scalar(r?.[AF.status]));
+
+  // POC RULE:
+  // Any permitted Creator user may edit the CURRENT revision regardless of
+  // Approved / Issued / Completed status. Historical revisions stay read-only.
+  return !isHistoricalRevision(r,a);
+}
+function renderFilesTab(){const a=S.current,r=currentRevision(a);if(!r)return renderStartR0();const locked=revisionLocked(r,a),editable=canEditRevision(a,r),fileRows=[[AF.drawingFile,"Drawing File","PDF / controlled drawing"],[AF.nativeFile,"Native File","DWG / XLSX / source"],[AF.supportingFile,"Supporting File","Calculation / reference"]];return `<div class="tab-card"><div class="exec-hero"><div class="exec-rev"><div class="rev-circle">${h(scalar(r[AF.revision])||"R0")}</div><div><h3>${h(locked?"Controlled revision":"Current working revision")}</h3><p>${h(scalar(r[AF.revisionDescription])||"No revision description")}</p></div></div><div class="actions">${statusPill(scalar(r[AF.status]))}${isHistoricalRevision(r,a)?'<span class="pill amber">Read only</span>':""}</div></div><div class="grid2"><div class="field"><label>Drawing Number</label><input id="execDrawingNo" value="${h(scalar(r[AF.drawingNumber]))}" ${editable?"":"disabled"}></div><div class="field"><label>Revision Description</label><input id="execRevDesc" value="${h(scalar(r[AF.revisionDescription]))}" ${editable?"":"disabled"}></div></div><div class="role-grid" style="margin-top:11px"><div class="field"><label>Checker</label><select id="execChecker" ${editable?"":"disabled"}>${employeeOptions(scalar(r[AF.checker]),"Select checker…")}</select></div><div class="field"><label>Reviewer</label><select id="execReviewer" ${editable?"":"disabled"}>${employeeOptions(scalar(r[AF.reviewer]),"Select reviewer…")}</select></div><div class="field"><label>Approver</label><select id="execApprover" ${editable?"":"disabled"}>${employeeOptions(scalar(r[AF.approver]),"Select approver…")}</select></div></div><div class="field" style="margin-top:11px"><label>Design Remark</label><textarea id="execRemark" ${editable?"":"disabled"}>${h(scalar(r[AF.remark]))}</textarea></div><div class="file-grid">${fileRows.map(([field,label,hint])=>renderFileBox(r,field,label,hint,editable)).join("")}</div>${editable?'<div class="actions"><button class="btn primary" data-act="save-revision">Save Design</button></div>':""}${renderWorkflow(r,a)}${(["Approved","Issued","Completed"].includes(scalar(r[AF.status])))?'<div style="margin-top:13px"><button class="btn soft" data-act="new-revision">＋ Create New Revision</button></div>':""}</div>`}
+// renderStartR0(): shows the R0 form before any revision exists.
+function renderStartR0(){const a=S.current;
+  // POC OPEN ACCESS — ORIGINAL assignee-only validation disabled:
+  // if(!currentUserMatches(a[AF.assignedTo]))
+  //   return `Only the assigned user can start R0`;
+  return `<div class="tab-card"><div class="empty compact" style="margin-bottom:13px"><strong>Start the first controlled design revision</strong>R0 will be linked to this exact assignment responsibility. All later revisions remain in history.</div><div class="grid2"><div class="field"><label>Drawing Number</label><input id="r0DrawingNo" placeholder="Example: 25005-SLP-001"></div><div class="field"><label>Revision</label><input value="R0" disabled></div></div><div class="field" style="margin-top:11px"><label>Revision Description <span class="muted">(optional in POC)</span></label><input id="r0Desc" placeholder="Optional: Initial issue / first design"></div><div class="role-grid" style="margin-top:11px"><div class="field"><label>Checker</label><select id="r0Checker">${employeeOptions("","Select checker…")}</select></div><div class="field"><label>Reviewer</label><select id="r0Reviewer">${employeeOptions("","Select reviewer…")}</select></div><div class="field"><label>Approver</label><select id="r0Approver">${employeeOptions("","Select approver…")}</select></div></div><div class="field" style="margin-top:11px"><label>Design Remark</label><textarea id="r0Remark" placeholder="Optional design note"></textarea></div><div class="file-grid">${renderNewFileBox("r0DrawingFile","Drawing File","PDF / controlled drawing")}${renderNewFileBox("r0NativeFile","Native File","DWG / XLSX / source")}${renderNewFileBox("r0SupportingFile","Supporting File","Calculation / reference")}</div><div class="actions"><button class="btn primary lg" data-act="start-r0">Start R0</button></div></div>`}
 function renderNewFileBox(id,label,hint){return `<div class="file-box"><div class="label">${h(label)}</div><div class="current">${h(hint)}</div><input id="${h(id)}" type="file"></div>`}
 function renderFileBox(r,field,label,hint,editable){const existing=scalar(r[field]);return `<div class="file-box"><div class="label">${h(label)}</div><div class="current">${existing?h(existing):h(hint)}</div>${existing?`<button class="btn link sm" data-download-file="${h(idOf(r))}" data-file-field="${h(field)}" data-file-label="${h(label)}">Download current</button>`:""}${editable?`<input id="file_${h(field)}" type="file">`:""}</div>`}
-function workflowRoleAllowed(role,a,r){if(role==="owner")return currentUserMatches(a[AF.assignedTo]);if(role==="checker")return currentUserMatches(r[AF.checker]);if(role==="reviewer")return currentUserMatches(r[AF.reviewer]);if(role==="approver")return currentUserMatches(r[AF.approver]);if(role==="ownerOrApprover")return currentUserMatches(a[AF.assignedTo])||currentUserMatches(r[AF.approver]);return false}
-function workflowActions(r,a){const s=scalar(r[AF.status])||"Not Started";const map={
-  "Not Started":[["Start Design","In Progress","owner","primary"]],
-  "In Progress":[["Submit for Check","Submitted for Check","owner","primary"],["Put On Hold","On Hold","owner",""]],
-  "On Hold":[["Resume Work","In Progress","owner","primary"]],
-  "Returned":[["Resume Work","In Progress","owner","primary"]],
-  "Submitted for Check":[["Begin Checking","Checking","checker","primary"]],
-  "Checking":[["Mark Checked","Checked","checker","success"],["Return to Designer","Returned","checker","danger"]],
-  "Checked":[["Submit for Review","Submitted for Review","owner","primary"]],
-  "Submitted for Review":[["Begin Review","Reviewing","reviewer","primary"]],
-  "Reviewing":[["Mark Reviewed","Reviewed","reviewer","success"],["Return to Designer","Returned","reviewer","danger"]],
-  "Reviewed":[["Submit for Approval","Submitted for Approval","owner","primary"]],
-  "Submitted for Approval":[["Begin Approval","Approving","approver","primary"]],
-  "Approving":[["Approve","Approved","approver","success"],["Return to Designer","Returned","approver","danger"]],
-  "Approved":[["Issue Drawing","Issued","ownerOrApprover","primary"]],
-  "Issued":[["Complete","Completed","ownerOrApprover","success"]]
-  };return (map[s]||[]).filter(x=>workflowRoleAllowed(x[2],a,r))}
-function renderWorkflow(r,a){const acts=workflowActions(r,a);if(!acts.length)return `<div class="workflow"><h4>Workflow</h4><div class="small muted">No workflow action is available to the signed-in user at status <b>${h(scalar(r[AF.status])||"Not Started")}</b>.</div></div>`;return `<div class="workflow"><h4>Workflow actions</h4><div class="workflow-actions">${acts.map(([label,to,role,style])=>`<button class="btn ${style}" data-workflow-to="${h(to)}">${h(label)}</button>`).join("")}</div></div>`}
+// workflowRoleAllowed(): normally checks Owner / Checker / Reviewer / Approver identity.
+// POC OPEN ACCESS: ANY permitted Creator user may perform the next status action.
+function workflowRoleAllowed(role,a,r){
+  // ORIGINAL PRODUCTION VALIDATION — restore later:
+  // if(role==="owner") return currentUserMatches(a[AF.assignedTo]);
+  // if(role==="checker") return currentUserMatches(r[AF.checker]);
+  // if(role==="reviewer") return currentUserMatches(r[AF.reviewer]);
+  // if(role==="approver") return currentUserMatches(r[AF.approver]);
+  // if(role==="ownerOrApprover") return currentUserMatches(a[AF.assignedTo]) || currentUserMatches(r[AF.approver]);
+  // return false;
 
-function renderRevisionTab(){const a=S.current,rows=revisionsForAssignment(a).slice().reverse(),cur=currentRevision(a);return `<div class="tab-card"><div class="section-row" style="margin-top:0"><div><h2>Revision History</h2><p>Every revision is a separate Design_Tracking record. Older revisions remain read-only.</p></div>${cur&&["Approved","Issued","Completed"].includes(scalar(cur[AF.status]))&&currentUserMatches(a[AF.assignedTo])?'<button class="btn soft" data-act="new-revision">＋ New Revision</button>':""}</div>${rows.length?`<div class="timeline">${rows.map(r=>renderRevisionCard(r,cur)).join("")}</div>`:`<div class="empty"><div class="ico">R0</div><strong>No revision history yet</strong>Start R0 from Design Files.</div>`}</div>`}
+  return true;
+}
+// workflowActions(): returns workflow buttons for the current revision.
+function workflowActions(r,a){
+  const s=scalar(r[AF.status])||"Not Started";
+
+  /* ORIGINAL PRODUCTION SEQUENCE — COMMENTED FOR POC:
+     Restore this strict map when the workflow is finalized.
+
+  const map={
+    "Not Started":[["Start Design","In Progress","owner","primary"]],
+    "In Progress":[["Submit for Check","Submitted for Check","owner","primary"],["Put On Hold","On Hold","owner",""]],
+    "On Hold":[["Resume Work","In Progress","owner","primary"]],
+    "Returned":[["Resume Work","In Progress","owner","primary"]],
+    "Submitted for Check":[["Begin Checking","Checking","checker","primary"]],
+    "Checking":[["Mark Checked","Checked","checker","success"],["Return to Designer","Returned","checker","danger"]],
+    "Checked":[["Submit for Review","Submitted for Review","owner","primary"]],
+    "Submitted for Review":[["Begin Review","Reviewing","reviewer","primary"]],
+    "Reviewing":[["Mark Reviewed","Reviewed","reviewer","success"],["Return to Designer","Returned","reviewer","danger"]],
+    "Reviewed":[["Submit for Approval","Submitted for Approval","owner","primary"]],
+    "Submitted for Approval":[["Begin Approval","Approving","approver","primary"]],
+    "Approving":[["Approve","Approved","approver","success"],["Return to Designer","Returned","approver","danger"]],
+    "Approved":[["Issue Drawing","Issued","ownerOrApprover","primary"]],
+    "Issued":[["Complete","Completed","ownerOrApprover","success"]]
+  };
+  return (map[s]||[]).filter(x=>workflowRoleAllowed(x[2],a,r));
+  */
+
+  // POC OPEN WORKFLOW:
+  // Any known design status can be selected directly. This intentionally bypasses
+  // the normal status sequence so the team can test every stage without waiting
+  // for the previous stage to be completed.
+  const styleFor=(status)=>{
+    if(["Completed","Approved","Issued","Checked","Reviewed"].includes(status))return "success";
+    if(["Returned","Cancelled"].includes(status))return "danger";
+    if(["On Hold"].includes(status))return "";
+    return "primary";
+  };
+
+  return DESIGN_STATUSES
+    .filter(status=>status!==s)
+    .map(status=>[status,status,"poc",styleFor(status)]);
+}
+function renderWorkflow(r,a){const acts=workflowActions(r,a);if(!acts.length)return `<div class="workflow"><h4>Workflow</h4><div class="small muted">No further workflow action is available at status <b>${h(scalar(r[AF.status])||"Not Started")}</b>.</div></div>`;return `<div class="workflow"><h4>Workflow actions</h4><div class="workflow-actions">${acts.map(([label,to,role,style])=>`<button class="btn ${style}" data-workflow-to="${h(to)}">${h(label)}</button>`).join("")}</div></div>`}
+
+function renderRevisionTab(){const a=S.current,rows=revisionsForAssignment(a).slice().reverse(),cur=currentRevision(a);return `<div class="tab-card"><div class="section-row" style="margin-top:0"><div><h2>Revision History</h2><p>Every revision is a separate Design_Tracking record. Older revisions remain read-only.</p></div>${cur&&["Approved","Issued","Completed"].includes(scalar(cur[AF.status]))?'<button class="btn soft" data-act="new-revision">＋ New Revision</button>':""}</div>${rows.length?`<div class="timeline">${rows.map(r=>renderRevisionCard(r,cur)).join("")}</div>`:`<div class="empty"><div class="ico">R0</div><strong>No revision history yet</strong>Start R0 from Design Files.</div>`}</div>`}
 function renderRevisionCard(r,cur){const current=idOf(r)===idOf(cur),files=[[AF.drawingFile,"Drawing"],[AF.nativeFile,"Native"],[AF.supportingFile,"Support"]].filter(([f])=>scalar(r[f]));return `<div class="revision-card ${current?"current":""}"><div class="rev-tag">${h(scalar(r[AF.revision])||"R0")}</div><div class="rev-info"><h4>${h(scalar(r[AF.revisionDescription])||"No revision description")}</h4><p>${h(displayDateTime(pick(r,SYSTEM_ALIASES.addedTime)))} • ${h(personDisplay(pick(r,SYSTEM_ALIASES.addedUser))||pick(r,SYSTEM_ALIASES.addedUser)||"Creator User")}</p><div class="rev-files">${files.length?files.map(([f,l])=>`<button class="btn sm" data-download-file="${h(idOf(r))}" data-file-field="${h(f)}" data-file-label="${h(l)}">${h(l)}</button>`).join(""):'<span class="tiny muted">No files attached</span>'}</div></div><div class="rev-side">${current?'<span class="pill purple">Current</span>':""}${statusPill(scalar(r[AF.status]))}<button class="btn sm" data-view-revision="${h(idOf(r))}">View details</button></div></div>`}
 
-function canAssignFurther(a){return currentUserMatches(a?.[AF.assignedTo])}
-function equipmentWithinAssignment(eq,a){if(String(eq.project||"")!==scalar(a[AF.projectCode]))return false;const checks=[[AF.plantSection,"plantSection"],[AF.plantSectionType,"plantSectionType"],[AF.groupCode,"groupCode"],[AF.department,"department"],[AF.equipmentCategory,"equipmentCategory"],[AF.equipmentType,"equipmentType"],[AF.tagNo,"tag"]];for(const [f,k] of checks){const v=scalar(a[f]);if(v&&String(eq[k]||"")!==v)return false}return true}
+/* ============= SECTION 13: FURTHER ASSIGNMENT / SCOPE =================
+   Builds child targets from Equipment data. POC: inherited Section/Type/Tag/etc.
+   scope guards are commented; any permitted Creator user may assign further.
+   ======================================================================= */
+// canAssignFurther(): normally limits delegation to the user who received the responsibility.
+function canAssignFurther(a){
+  // POC OPEN ACCESS — ORIGINAL validation disabled:
+  // return currentUserMatches(a?.[AF.assignedTo]);
+
+  // CURRENT POC RULE: any permitted Creator user can delegate this node to anyone.
+  return true;
+}
+// equipmentWithinAssignment(): scope inheritance guard; child targets must stay inside Project/Section/Type/Tag/etc. already received.
+function equipmentWithinAssignment(eq,a){
+  /* ORIGINAL PRODUCTION SCOPE-INHERITANCE VALIDATION — COMMENTED FOR POC:
+
+  if(String(eq.project||"")!==scalar(a[AF.projectCode])) return false;
+
+  const checks=[
+    [AF.plantSection,"plantSection"],
+    [AF.plantSectionType,"plantSectionType"],
+    [AF.groupCode,"groupCode"],
+    [AF.department,"department"],
+    [AF.equipmentCategory,"equipmentCategory"],
+    [AF.equipmentType,"equipmentType"],
+    [AF.tagNo,"tag"]
+  ];
+
+  for(const [field,equipmentKey] of checks){
+    const receivedValue=scalar(a[field]);
+    if(receivedValue && String(eq[equipmentKey]||"")!==receivedValue){
+      return false;
+    }
+  }
+
+  return true;
+  */
+
+  // POC OPEN-SCOPE RULE:
+  // Received Section / Section Type / Group / Department / Category / Type / Tag
+  // are NOT used to restrict the next assignment. Users can choose another value
+  // anywhere inside the same Project while testing the delegation model.
+  // Project + Drawing are intentionally kept as the identity of the family tree.
+  return String(eq.project||"")===scalar(a[AF.projectCode]);
+}
 function targetKey(row){return [...S.selectedCriteria].map(k=>k==="tag"?`${row.tag}::${row.name}`:String(row[k]||"")).join("||")}
 function targetLabel(row){return [...S.selectedCriteria].map(k=>{const c=CRITERIA.find(x=>x.key===k);return k==="tag"?`${row.tag||"—"} — ${row.name||"—"}`:`${c.label}: ${row[k]||"—"}`}).join(" • ")}
+// makeTargetRows(): groups Equipment master rows according to selected assignment criteria.
 function makeTargetRows(a){if(!S.selectedCriteria.size)return[];const base=S.equipment.filter(eq=>equipmentWithinAssignment(eq,a)),map=new Map();for(const eq of base){const row={plantSection:eq.plantSection,plantSectionType:eq.plantSectionType,equipmentCategory:eq.equipmentCategory,tag:eq.tag,name:eq.name,equipmentRecordId:eq.id,groupCode:eq.groupCode,department:eq.department,equipmentType:eq.equipmentType};const k=targetKey(row);if(k&&!map.has(k))map.set(k,row)}return [...map.values()].sort((x,y)=>targetLabel(x).localeCompare(targetLabel(y),undefined,{numeric:true}))}
 function existingChildForTarget(parent,row){return assignmentChildren(idOf(parent)).find(ch=>[...S.selectedCriteria].every(k=>{const c=CRITERIA.find(x=>x.key===k);if(k==="tag")return scalar(ch[AF.tagNo])===row.tag;return scalar(ch[c.field])===String(row[k]||"")}))}
-function renderDelegateTab(){const a=S.current;if(!canAssignFurther(a))return `<div class="tab-card"><div class="empty"><div class="ico">🔒</div><strong>Only ${h(assignmentDisplayUser(a))} can assign this responsibility further</strong>You can still view the family tree and design history.</div></div>`;S.targetRows=makeTargetRows(a);return `<div class="tab-card"><div class="scope-box"><div class="k">CURRENT RESPONSIBILITY — LOCKED</div><div class="v">${h(scopeSummary(a))}</div></div><div class="section-row" style="margin-top:0"><div><h2>How do you want to divide this work?</h2><p>Select one or more criteria. The system only shows values inside your received responsibility.</p></div></div><div class="criteria-grid">${CRITERIA.map(c=>`<div class="criterion ${S.selectedCriteria.has(c.key)?"selected":""}" data-criterion="${h(c.key)}"><div class="t">${h(c.icon)} &nbsp;${h(c.label)}</div><div class="s">${c.key==="tag"?"Select individual equipment / tags":"Group work by this business value"}</div></div>`).join("")}</div><div id="targetArea">${renderTargetArea(a)}</div></div>`}
-function renderTargetArea(a){S.targetRows=makeTargetRows(a);if(!S.selectedCriteria.size)return `<div class="notice">Choose at least one option above. Example: <b>Plant Section + Plant Section Type</b>, or <b>Tag / Equipment</b>.</div>`;const q=S.targetSearch||"",rows=S.targetRows.filter(r=>!q||targetLabel(r).toLowerCase().includes(q.toLowerCase())),selected=S.selectedTargets.size;return `<div class="target-toolbar"><input id="targetSearch" class="input search" placeholder="Search matching responsibility…" value="${h(q)}"><div class="actions"><button class="btn sm" data-act="select-next-10">Select next 10</button><button class="btn sm" data-act="select-all-targets">Select all</button><button class="btn link sm" data-act="clear-targets">Clear</button></div></div><div class="selection-note"><b>${selected}</b> selected of ${rows.length} matching responsibility values.</div><div class="table-wrap" style="margin-top:8px"><table><thead><tr><th></th>${[...S.selectedCriteria].map(k=>{const c=CRITERIA.find(x=>x.key===k);return k==="tag"?'<th>Tag No</th><th>Equipment Name</th>':`<th>${h(c.label)}</th>`}).join("")}<th>Availability</th></tr></thead><tbody>${rows.length?rows.map(r=>{const key=targetKey(r),ex=existingChildForTarget(a,r),sel=S.selectedTargets.has(key);return `<tr class="${sel?"selected":""}"><td><input class="check target-check" type="checkbox" data-target="${h(key)}" ${sel?"checked":""} ${ex?"disabled":""}></td>${[...S.selectedCriteria].map(k=>{const c=CRITERIA.find(x=>x.key===k);return k==="tag"?`<td><b>${h(r.tag||"—")}</b></td><td>${h(r.name||"—")}</td>`:`<td>${h(r[k]||"—")}</td>`}).join("")}<td>${ex?'<span class="pill green">Already assigned</span>':'<span class="pill">New</span>'}</td></tr>`}).join(""):'<tr><td colspan="12" style="padding:20px;text-align:center;color:#667085">No matching values exist inside this responsibility.</td></tr>'}</tbody></table></div>${selected?renderBulkBar():""}`}
+function renderDelegateTab(){const a=S.current;if(!canAssignFurther(a))return `<div class="tab-card"><div class="empty"><div class="ico">🔒</div><strong>Only ${h(assignmentDisplayUser(a))} can assign this responsibility further</strong>You can still view the family tree and design history.</div></div>`;S.targetRows=makeTargetRows(a);return `<div class="tab-card"><div class="scope-box"><div class="k">CURRENT RESPONSIBILITY — REFERENCE</div><div class="v">${h(scopeSummary(a))}</div></div><div class="section-row" style="margin-top:0"><div><h2>How do you want to divide this work?</h2><p>Select one or more criteria. POC open-scope mode: inherited Section / Type / Tag / Category restrictions are disabled. Choose any matching value in this Project.</p></div></div><div class="criteria-grid">${CRITERIA.map(c=>`<div class="criterion ${S.selectedCriteria.has(c.key)?"selected":""}" data-criterion="${h(c.key)}"><div class="t">${h(c.icon)} &nbsp;${h(c.label)}</div><div class="s">${c.key==="tag"?"Select individual equipment / tags":"Group work by this business value"}</div></div>`).join("")}</div><div id="targetArea">${renderTargetArea(a)}</div></div>`}
+function renderTargetArea(a){S.targetRows=makeTargetRows(a);if(!S.selectedCriteria.size)return `<div class="notice">Choose at least one option above. Example: <b>Plant Section + Plant Section Type</b>, or <b>Tag / Equipment</b>.</div>`;const q=S.targetSearch||"",rows=S.targetRows.filter(r=>!q||targetLabel(r).toLowerCase().includes(q.toLowerCase())),selected=S.selectedTargets.size;return `<div class="target-toolbar"><input id="targetSearch" class="input search" placeholder="Search matching responsibility…" value="${h(q)}"><div class="actions"><button class="btn sm" data-act="select-next-10">Select next 10</button><button class="btn sm" data-act="select-all-targets">Select all</button><button class="btn link sm" data-act="clear-targets">Clear</button></div></div><div class="selection-note"><b>${selected}</b> selected of ${rows.length} matching responsibility values.</div><div class="table-wrap" style="margin-top:8px"><table><thead><tr><th></th>${[...S.selectedCriteria].map(k=>{const c=CRITERIA.find(x=>x.key===k);return k==="tag"?'<th>Tag No</th><th>Equipment Name</th>':`<th>${h(c.label)}</th>`}).join("")}<th>Availability</th></tr></thead><tbody>${rows.length?rows.map(r=>{const key=targetKey(r),ex=existingChildForTarget(a,r),sel=S.selectedTargets.has(key);return `<tr class="${sel?"selected":""}"><td><input class="check target-check" type="checkbox" data-target="${h(key)}" ${sel?"checked":""} ${ex?"disabled":""}></td>${[...S.selectedCriteria].map(k=>{const c=CRITERIA.find(x=>x.key===k);return k==="tag"?`<td><b>${h(r.tag||"—")}</b></td><td>${h(r.name||"—")}</td>`:`<td>${h(r[k]||"—")}</td>`}).join("")}<td>${ex?'<span class="pill green">Already assigned</span>':'<span class="pill">New</span>'}</td></tr>`}).join(""):'<tr><td colspan="12" style="padding:20px;text-align:center;color:#667085">No matching values exist for the selected criteria in this Project.</td></tr>'}</tbody></table></div>${selected?renderBulkBar():""}`}
 function renderBulkBar(){const d=S.bulk||{};return `<div class="bulk-bar"><div class="bulk-grid"><div class="field"><label>Assign selected to *</label><select id="bulkUser">${employeeOptions(d.user||"")}</select></div><div class="field"><label>Priority</label><select id="bulkPriority">${PRIORITIES.map(p=>`<option ${p===(d.priority||"Medium")?"selected":""}>${h(p)}</option>`).join("")}</select></div><div class="field"><label>Start Date *</label><input id="bulkStart" type="date" value="${h(d.start||todayIso())}"></div><div class="field"><label>Target Date *</label><input id="bulkTarget" type="date" value="${h(d.target||"")}"></div><div class="field"><label>End Date</label><input id="bulkEnd" type="date" value="${h(d.end||"")}"></div><div class="field"><label>Common Remark</label><input id="bulkRemark" value="${h(d.remark||"")}" placeholder="Optional instruction"></div><button class="btn primary" data-act="review-bulk">Review ${S.selectedTargets.size}</button></div><div class="bulk-summary">Each selected row becomes an independent Design_Tracking assignment record. The receiver can divide it again later.</div></div>`}
 function collectBulk(){S.bulk={user:$("bulkUser")?.value||"",priority:$("bulkPriority")?.value||"Medium",start:$("bulkStart")?.value||"",target:$("bulkTarget")?.value||"",end:$("bulkEnd")?.value||"",remark:$("bulkRemark")?.value||""};return S.bulk}
 function responsibilityFromData(data){const bits=[`Project ${scalar(data[AF.projectCode])||S.project?.code||""}`],s=scalar(data[AF.plantSection]),st=scalar(data[AF.plantSectionType]),g=scalar(data[AF.groupCode]),d=scalar(data[AF.department]),c=scalar(data[AF.equipmentCategory]),t=scalar(data[AF.equipmentType]),tag=scalar(data[AF.tagNo]),name=scalar(data[AF.equipmentName]);if(s)bits.push(s);if(st)bits.push(st);if(g)bits.push(`Group: ${g}`);if(d)bits.push(`Department: ${d}`);if(c)bits.push(`Category: ${c}`);if(t)bits.push(`Type: ${t}`);if(tag||name)bits.push(`Tag: ${[tag,name].filter(Boolean).join(" — ")}`);return bits.filter(Boolean).join(" › ")}
 function assignmentCriteriaPayload(labels){return (Array.isArray(labels)?labels:String(labels||"").split(",")).map(x=>String(x||"").trim()).filter(Boolean).join(", ")}
+// buildChildPayload(): creates one independent child assignment payload linked by Assigned_From_ID.
 function buildChildPayload(parent,row,draft){const d=drawingForAssignment(parent),criteriaLabels=[...S.selectedCriteria].map(k=>CRITERIA.find(c=>c.key===k).label),data={
   [AF.projectCode]:scalar(parent[AF.projectCode]),[AF.projectRecordId]:scalar(parent[AF.projectRecordId]),[AF.drawingDocument]:d.name,[AF.drawingMasterId]:d.id,[AF.shortName]:d.short||"",
   [AF.primaryAssignment]:scalar(parent[AF.primaryAssignment])||idOf(primaryForRows(groupForAssignment(parent)?.rows||[])),[AF.assignedFrom]:idOf(parent),[AF.assignmentLevel]:num(parent[AF.assignmentLevel])+1,
   [AF.assignedBy]:S.user||assignmentUser(parent),[AF.assignedTo]:draft.user,[AF.assignedEmployeeName]:employeeNameFor(draft.user),[AF.criteria]:assignmentCriteriaPayload(criteriaLabels),
   [AF.startDate]:toCreatorDate(draft.start),[AF.targetDate]:toCreatorDate(draft.target),[AF.endDate]:toCreatorDate(draft.end),[AF.priority]:draft.priority||scalar(parent[AF.priority])||"Medium",[AF.status]:"Not Started",[AF.progress]:0,[AF.remark]:draft.remark||""
-};for(const c of CRITERIA){if(c.key==="tag"){if(parent[AF.tagNo])data[AF.tagNo]=scalar(parent[AF.tagNo]);if(parent[AF.equipmentName])data[AF.equipmentName]=scalar(parent[AF.equipmentName]);if(parent[AF.equipmentRecordId])data[AF.equipmentRecordId]=scalar(parent[AF.equipmentRecordId])}else if(parent[c.field])data[c.field]=scalar(parent[c.field])}for(const k of S.selectedCriteria){const c=CRITERIA.find(x=>x.key===k);if(k==="tag"){data[AF.tagNo]=row.tag||"";data[AF.equipmentName]=row.name||"";if(row.equipmentRecordId)data[AF.equipmentRecordId]=row.equipmentRecordId}else data[c.field]=row[k]||""}data[AF.responsibility]=responsibilityFromData(data);return data}
+};
 
+  /* ORIGINAL PRODUCTION SCOPE INHERITANCE — COMMENTED FOR POC:
+     This block copied every received scope field into the child assignment so
+     the child could only become MORE specific and could never broaden the scope.
+
+  for(const c of CRITERIA){
+    if(c.key==="tag"){
+      if(parent[AF.tagNo]) data[AF.tagNo]=scalar(parent[AF.tagNo]);
+      if(parent[AF.equipmentName]) data[AF.equipmentName]=scalar(parent[AF.equipmentName]);
+      if(parent[AF.equipmentRecordId]) data[AF.equipmentRecordId]=scalar(parent[AF.equipmentRecordId]);
+    }else if(parent[c.field]){
+      data[c.field]=scalar(parent[c.field]);
+    }
+  }
+  */
+
+  // POC RULE:
+  // Only the criteria selected for THIS new assignment are written into the child
+  // scope. The old inherited Section/Type/Tag/etc. values are not forced into it.
+  for(const k of S.selectedCriteria){
+    const c=CRITERIA.find(x=>x.key===k);
+    if(k==="tag"){
+      data[AF.tagNo]=row.tag||"";
+      data[AF.equipmentName]=row.name||"";
+      if(row.equipmentRecordId)data[AF.equipmentRecordId]=row.equipmentRecordId;
+    }else{
+      data[c.field]=row[k]||"";
+    }
+  }
+
+  data[AF.responsibility]=responsibilityFromData(data);
+  return data;
+}
+
+/* ================= SECTION 14: ASSIGNMENT CREATION =====================
+   Creates Level 0 primary assignments and bulk child assignments in the SAME
+   Design_Tracking form. No separate assignment form/subform is used.
+   ======================================================================= */
+// createPrimary(): creates the first Project + Drawing responsibility.
 async function createPrimary(){const p=S.projects.find(x=>x.id===S.newProjectId),d=S.drawings.find(x=>x.id===S.newDrawingId),user=$("primaryUser")?.value,priority=$("primaryPriority")?.value||"Medium",start=$("primaryStart")?.value,target=$("primaryTarget")?.value,end=$("primaryEnd")?.value,remark=$("primaryRemark")?.value.trim()||"",status=$("primaryStatus")?.value||"Not Started";if(!p||!d)throw new Error("Select Project and Drawing first.");if(!user||!start||!target)throw new Error("Assigned To, Start Date and Target Date are required.");if(end&&end<start)throw new Error("End Date cannot be before Start Date.");if(primaryAssignmentFor(p,d))throw new Error("Primary Assignment already exists for this Project + Drawing.");busy("Creating primary assignment…");try{const data={[AF.projectCode]:p.code,[AF.projectRecordId]:p.id||"",[AF.drawingDocument]:d.name,[AF.drawingMasterId]:d.id,[AF.shortName]:d.short||"",[AF.assignmentLevel]:0,[AF.assignedBy]:S.user||user,[AF.assignedTo]:user,[AF.assignedEmployeeName]:employeeNameFor(user),[AF.criteria]:"Project",[AF.responsibility]:`Entire Project ${p.code}`,[AF.startDate]:toCreatorDate(start),[AF.targetDate]:toCreatorDate(target),[AF.endDate]:toCreatorDate(end),[AF.priority]:priority,[AF.status]:status,[AF.progress]:status==="Completed"?100:0,[AF.remark]:remark};const id=await addRecord(data);if(!id)throw new Error("Creator did not return the new assignment ID.");await updateRecord(id,{[AF.primaryAssignment]:id});const record={ID:id,...data,[AF.primaryAssignment]:id};S.records.push(record);S.assignments.push(record);toast("Primary assignment created.","good");openAssignment(id)}finally{idle()}}
 async function reviewBulk(){const d=collectBulk();if(!d.user)throw new Error("Select Assigned To.");if(!d.start||!d.target)throw new Error("Start Date and Target Date are required.");if(d.end&&d.end<d.start)throw new Error("End Date cannot be before Start Date.");const parentTarget=toInputDate(S.current[AF.targetDate]),late=parentTarget&&d.target>parentTarget;if(late&&!d.remark.trim())throw new Error("Target Date is later than the received responsibility. Add a Remark to continue.");const rows=S.targetRows.filter(r=>S.selectedTargets.has(targetKey(r))&&!existingChildForTarget(S.current,r));if(!rows.length)throw new Error("No new responsibilities are selected.");openModal("Review Further Assignment",`${rows.length} independent responsibilities will be created under ${assignmentDisplayUser(S.current)}.`,reviewBulkHtml(rows,d,late),`<button class="btn" data-modal="close">Back</button><button class="btn primary" data-modal="confirm-bulk">Create ${rows.length} Assignments</button>`)}
-function reviewBulkHtml(rows,d,late){return `<div class="review-grid"><div class="review-metric"><div class="n">${rows.length}</div><div class="l">NEW ASSIGNMENTS</div></div><div class="review-metric"><div class="n">${h(employeeNameFor(d.user))}</div><div class="l">ASSIGNED TO</div></div><div class="review-metric"><div class="n">Level ${num(S.current[AF.assignmentLevel])+1}</div><div class="l">NEXT LEVEL • ${h(d.priority||"Medium")}</div></div></div>${late?'<div class="notice warn"><b>Date warning:</b> child Target Date is later than your received Target Date. Your remark will be stored with the assignment.</div>':""}<div class="notice good" style="margin-top:8px"><b>Scope inheritance passed.</b> All rows are inside your current responsibility.</div><div class="table-wrap" style="margin-top:12px"><table><thead><tr><th>#</th><th>Responsibility</th><th>Assigned To</th><th>Start</th><th>Target</th></tr></thead><tbody>${rows.map((r,i)=>`<tr><td>${i+1}</td><td>${h(targetLabel(r))}</td><td>${h(employeeNameFor(d.user))}</td><td>${h(d.start)}</td><td>${h(d.target)}</td></tr>`).join("")}</tbody></table></div>`}
+function reviewBulkHtml(rows,d,late){return `<div class="review-grid"><div class="review-metric"><div class="n">${rows.length}</div><div class="l">NEW ASSIGNMENTS</div></div><div class="review-metric"><div class="n">${h(employeeNameFor(d.user))}</div><div class="l">ASSIGNED TO</div></div><div class="review-metric"><div class="n">Level ${num(S.current[AF.assignmentLevel])+1}</div><div class="l">NEXT LEVEL • ${h(d.priority||"Medium")}</div></div></div>${late?'<div class="notice warn"><b>Date warning:</b> child Target Date is later than your received Target Date. Your remark will be stored with the assignment.</div>':""}<div class="notice warn" style="margin-top:8px"><b>POC open-scope mode:</b> received Section / Section Type / Tag / Group / Department / Category / Type restrictions are not enforced.</div><div class="table-wrap" style="margin-top:12px"><table><thead><tr><th>#</th><th>Responsibility</th><th>Assigned To</th><th>Start</th><th>Target</th></tr></thead><tbody>${rows.map((r,i)=>`<tr><td>${i+1}</td><td>${h(targetLabel(r))}</td><td>${h(employeeNameFor(d.user))}</td><td>${h(d.start)}</td><td>${h(d.target)}</td></tr>`).join("")}</tbody></table></div>`}
+// confirmBulk(): creates one Design_Tracking record for every selected bulk target.
 async function confirmBulk(){const d=S.bulk,rows=S.targetRows.filter(r=>S.selectedTargets.has(targetKey(r))&&!existingChildForTarget(S.current,r));if(rows.length>CONFIG.MAX_BATCH)throw new Error(`Maximum ${CONFIG.MAX_BATCH} assignments can be created in one batch.`);busy(`Creating ${rows.length} assignments…`);let ok=0,fail=0;try{for(const row of rows){try{const data=buildChildPayload(S.current,row,d),id=await addRecord(data);const rec={ID:id,...data};S.records.push(rec);S.assignments.push(rec);ok++}catch(e){console.error(e);fail++}}closeModal();S.selectedTargets.clear();S.selectedCriteria.clear();S.bulk={};S.detailTab="overview";renderView();toast(`${ok} assignment${ok===1?"":"s"} created${fail?`, ${fail} failed`:""}.`,fail?"warn":"good")}finally{idle()}}
 
+/* ================= SECTION 15: REVISION MANAGEMENT =====================
+   Creates/saves R0, R1, R2... and keeps Parent_Design_ID only for revisions.
+   ======================================================================= */
+// baseRevisionPayload(): builds the backend data for one revision record.
 function baseRevisionPayload(a,rev,desc,parentId=""){const d=drawingForAssignment(a),prefix=executionPrefix(idOf(a)),data={
   [AF.projectCode]:scalar(a[AF.projectCode]),[AF.projectRecordId]:scalar(a[AF.projectRecordId]),[AF.drawingDocument]:d.name,[AF.drawingMasterId]:d.id,[AF.shortName]:d.short||"",
   [AF.designType]:d.name,[AF.designTitle]:`${d.name} — ${scopeSummary(a)}`,[AF.assignedTo]:scalar(a[AF.assignedTo]),[AF.assignedEmployeeName]:assignmentDisplayUser(a),
@@ -573,21 +839,128 @@ function baseRevisionPayload(a,rev,desc,parentId=""){const d=drawingForAssignmen
   [AF.startDate]:scalar(a[AF.startDate]),[AF.targetDate]:scalar(a[AF.targetDate]),[AF.endDate]:scalar(a[AF.endDate]),[AF.priority]:scalar(a[AF.priority]),
   [AF.revision]:rev,[AF.revisionDescription]:desc,[AF.parentDesignId]:parentId,[AF.logicalTaskKey]:`${prefix}${rev}`,[AF.revisionKey]:`${prefix}${rev}`,[AF.status]:"In Progress",[AF.progress]:10,[AF.actualStart]:toCreatorDateTime(),[AF.startedBy]:S.user||scalar(a[AF.assignedTo])
 };return data}
-async function startR0(){const a=S.current;if(!currentUserMatches(a[AF.assignedTo]))throw new Error("Only the assigned user can start R0.");if(currentRevision(a))throw new Error("A design revision already exists for this responsibility.");const desc=$("r0Desc")?.value.trim(),drawingNo=$("r0DrawingNo")?.value.trim()||"",checker=$("r0Checker")?.value||"",reviewer=$("r0Reviewer")?.value||"",approver=$("r0Approver")?.value||"",remark=$("r0Remark")?.value.trim()||"";if(!desc)throw new Error("Revision Description is required.");busy("Creating R0…");try{const data={...baseRevisionPayload(a,"R0",desc),[AF.drawingNumber]:drawingNo,[AF.checker]:checker,[AF.reviewer]:reviewer,[AF.approver]:approver,[AF.remark]:remark};const id=await addRecord(data);const rec={ID:id,...data};S.records.push(rec);S.revisions.push(rec);await uploadRevisionFiles(id,[[AF.drawingFile,$("r0DrawingFile")?.files?.[0]],[AF.nativeFile,$("r0NativeFile")?.files?.[0]],[AF.supportingFile,$("r0SupportingFile")?.files?.[0]]],rec);if(CONFIG.SYNC_ASSIGNMENT_START&&scalar(a[AF.status])==="Not Started"){await updateRecord(idOf(a),{[AF.status]:"In Progress",[AF.progress]:10});a[AF.status]="In Progress";a[AF.progress]=10}toast("R0 created. Design execution has started.","good");renderView()}finally{idle()}}
-async function saveRevision(){const a=S.current,r=currentRevision(a);if(!r||!canEditRevision(a,r))throw new Error("This revision is read-only for the signed-in user.");const data={[AF.drawingNumber]:$("execDrawingNo")?.value.trim()||"",[AF.revisionDescription]:$("execRevDesc")?.value.trim()||scalar(r[AF.revisionDescription]),[AF.checker]:$("execChecker")?.value||"",[AF.reviewer]:$("execReviewer")?.value||"",[AF.approver]:$("execApprover")?.value||"",[AF.remark]:$("execRemark")?.value.trim()||""};busy("Saving design…");try{await updateRecord(idOf(r),data);Object.assign(r,data);await uploadRevisionFiles(idOf(r),[[AF.drawingFile,$(`file_${AF.drawingFile}`)?.files?.[0]],[AF.nativeFile,$(`file_${AF.nativeFile}`)?.files?.[0]],[AF.supportingFile,$(`file_${AF.supportingFile}`)?.files?.[0]]],r);toast("Design saved.","good");renderView()}finally{idle()}}
+// startR0(): creates first controlled design revision for selected assignment.
+async function startR0(){const a=S.current;
+  // POC OPEN ACCESS — ORIGINAL validation disabled:
+  // if(!currentUserMatches(a[AF.assignedTo]))
+  //   throw new Error("Only the assigned user can start R0.");
+  if(currentRevision(a))throw new Error("A design revision already exists for this responsibility.");
+  const desc=$("r0Desc")?.value.trim()||"",drawingNo=$("r0DrawingNo")?.value.trim()||"",checker=$("r0Checker")?.value||"",reviewer=$("r0Reviewer")?.value||"",approver=$("r0Approver")?.value||"",remark=$("r0Remark")?.value.trim()||"";
+
+  // ORIGINAL PRODUCTION VALIDATION — COMMENTED FOR POC:
+  // if(!desc) throw new Error("Revision Description is required.");
+
+  busy("Creating R0…");try{const data={...baseRevisionPayload(a,"R0",desc),[AF.drawingNumber]:drawingNo,[AF.checker]:checker,[AF.reviewer]:reviewer,[AF.approver]:approver,[AF.remark]:remark};const id=await addRecord(data);const rec={ID:id,...data};S.records.push(rec);S.revisions.push(rec);await uploadRevisionFiles(id,[[AF.drawingFile,$("r0DrawingFile")?.files?.[0]],[AF.nativeFile,$("r0NativeFile")?.files?.[0]],[AF.supportingFile,$("r0SupportingFile")?.files?.[0]]],rec);if(CONFIG.SYNC_ASSIGNMENT_START&&scalar(a[AF.status])==="Not Started"){await updateRecord(idOf(a),{[AF.status]:"In Progress",[AF.progress]:10});a[AF.status]="In Progress";a[AF.progress]=10}toast("R0 created. Design execution has started.","good");renderView()}finally{idle()}}
+// saveRevision(): saves drawing metadata and uploads Drawing/Native/Supporting files for current revision.
+async function saveRevision(){const a=S.current,r=currentRevision(a);if(!r||!canEditRevision(a,r))throw new Error("This historical revision is read-only. Open the current revision to edit it.");const data={[AF.drawingNumber]:$("execDrawingNo")?.value.trim()||"",[AF.revisionDescription]:$("execRevDesc")?.value.trim()||scalar(r[AF.revisionDescription]),[AF.checker]:$("execChecker")?.value||"",[AF.reviewer]:$("execReviewer")?.value||"",[AF.approver]:$("execApprover")?.value||"",[AF.remark]:$("execRemark")?.value.trim()||""};busy("Saving design…");try{await updateRecord(idOf(r),data);Object.assign(r,data);await uploadRevisionFiles(idOf(r),[[AF.drawingFile,$(`file_${AF.drawingFile}`)?.files?.[0]],[AF.nativeFile,$(`file_${AF.nativeFile}`)?.files?.[0]],[AF.supportingFile,$(`file_${AF.supportingFile}`)?.files?.[0]]],r);toast("Design saved.","good");renderView()}finally{idle()}}
 async function uploadRevisionFiles(id,files,record){for(const [field,file] of files){if(!file)continue;$("loadingText").textContent=`Uploading ${file.name}…`;await uploadFile(id,field,file);record[field]=file.name}}
 async function downloadRevisionFile(id,field,label){busy(`Downloading ${label||"file"}…`);try{const response=await readFile(id,field),content=response&&response.data!==undefined?response.data:response,blob=content instanceof Blob?content:new Blob([content],{type:"application/octet-stream"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=`${scalar(S.current?.[AF.projectCode])||"project"}_${drawingForAssignment(S.current).short||"drawing"}_${label||"file"}`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000)}finally{idle()}}
-function validateWorkflowPrereq(to,r){if(to==="Submitted for Check"&&!scalar(r[AF.checker]))throw new Error("Select a Checker and save the design before submitting for check.");if(to==="Submitted for Review"&&!scalar(r[AF.reviewer]))throw new Error("Select a Reviewer and save the design before submitting for review.");if(to==="Submitted for Approval"&&!scalar(r[AF.approver]))throw new Error("Select an Approver and save the design before submitting for approval.")}
-async function moveWorkflow(to){const a=S.current,r=currentRevision(a);if(!r)throw new Error("No current revision exists.");validateWorkflowPrereq(to,r);const acts=workflowActions(r,a);if(!acts.some(x=>x[1]===to))throw new Error("You are not allowed to perform this workflow action.");if(to==="Returned")return openReturnModal();const data={[AF.status]:to,[AF.progress]:DESIGN_PROGRESS[to]??num(r[AF.progress])};if(to==="In Progress"&&!scalar(r[AF.actualStart])){data[AF.actualStart]=toCreatorDateTime();data[AF.startedBy]=S.user}if(to==="Completed"){data[AF.actualEnd]=toCreatorDate(todayIso());data[AF.completedBy]=S.user}busy(`Updating design to ${to}…`);try{await updateRecord(idOf(r),data);Object.assign(r,data);if(to==="Completed"&&currentUserMatches(a[AF.assignedTo])){await updateRecord(idOf(a),{[AF.status]:"Completed",[AF.progress]:100});a[AF.status]="Completed";a[AF.progress]=100}toast(`Design status: ${to}.`,"good");renderView()}finally{idle()}}
-function openReturnModal(){openModal("Return Design",`Return ${scalar(currentRevision(S.current)?.[AF.revision])||"current revision"} to ${assignmentDisplayUser(S.current)}.`,`<div class="field"><label>Return Reason *</label><textarea id="returnReason" placeholder="Explain what must be corrected"></textarea></div>`,`<button class="btn" data-modal="close">Cancel</button><button class="btn danger" data-modal="confirm-return">Return to Designer</button>`)}
-async function confirmReturn(){const reason=$("returnReason")?.value.trim();if(!reason)throw new Error("Return Reason is required.");const r=currentRevision(S.current);busy("Returning design…");try{const data={[AF.status]:"Returned",[AF.progress]:DESIGN_PROGRESS.Returned,[AF.returnReason]:reason};await updateRecord(idOf(r),data);Object.assign(r,data);closeModal();toast("Design returned to the designer.","warn");renderView()}finally{idle()}}
-function openNewRevisionModal(){const a=S.current,r=currentRevision(a);if(!r||!["Approved","Issued","Completed"].includes(scalar(r[AF.status])))throw new Error("Create a new revision only after the current revision is Approved, Issued or Completed.");if(!currentUserMatches(a[AF.assignedTo]))throw new Error("Only the assignment owner can create the next revision.");const next=`R${revisionNumber(r[AF.revision])+1}`;openModal("Create New Revision",`${scalar(r[AF.revision])||"R0"} will remain read-only. ${next} becomes the new working revision.`,`<div class="notice good"><b>New revision: ${h(next)}</b><br>Drawing identity, responsibility, Checker, Reviewer and Approver will be copied. Files are intentionally not copied.</div><div class="field" style="margin-top:12px"><label>Revision Description *</label><textarea id="newRevisionDesc" placeholder="What changed in this revision?"></textarea></div>`,`<button class="btn" data-modal="close">Cancel</button><button class="btn primary" data-modal="confirm-new-revision" data-next-rev="${h(next)}">Create ${h(next)}</button>`)}
-async function confirmNewRevision(next){const a=S.current,prev=currentRevision(a),desc=$("newRevisionDesc")?.value.trim();if(!desc)throw new Error("Revision Description is required.");busy(`Creating ${next}…`);try{const base=baseRevisionPayload(a,next,desc,idOf(prev));base[AF.drawingNumber]=scalar(prev[AF.drawingNumber]);base[AF.checker]=scalar(prev[AF.checker]);base[AF.reviewer]=scalar(prev[AF.reviewer]);base[AF.approver]=scalar(prev[AF.approver]);base[AF.status]="Not Started";base[AF.progress]=0;delete base[AF.actualStart];delete base[AF.startedBy];const id=await addRecord(base),rec={ID:id,...base};S.records.push(rec);S.revisions.push(rec);closeModal();S.detailTab="files";toast(`${next} created. Upload the new revision files.`,"good");renderView()}finally{idle()}}
+// validateWorkflowPrereq(): production role-field prerequisites are disabled for POC.
+function validateWorkflowPrereq(to,r){
+  /* ORIGINAL PRODUCTION VALIDATIONS — COMMENTED FOR POC:
+
+  if(to==="Submitted for Check" && !scalar(r[AF.checker])){
+    throw new Error("Select a Checker and save the design before submitting for check.");
+  }
+
+  if(to==="Submitted for Review" && !scalar(r[AF.reviewer])){
+    throw new Error("Select a Reviewer and save the design before submitting for review.");
+  }
+
+  if(to==="Submitted for Approval" && !scalar(r[AF.approver])){
+    throw new Error("Select an Approver and save the design before submitting for approval.");
+  }
+  */
+
+  // POC RULE: no Checker / Reviewer / Approver prerequisite is enforced.
+  return true;
+}
+// moveWorkflow(): writes the next design status, progress and automatic start/completion audit fields.
+async function moveWorkflow(to){
+  const a=S.current,r=currentRevision(a);
+  if(!r)throw new Error("No current revision exists.");
+
+  // POC: this function is intentionally a no-op, but the original prerequisite
+  // checks remain commented inside validateWorkflowPrereq() for later restore.
+  validateWorkflowPrereq(to,r);
+
+  /* ORIGINAL PRODUCTION WORKFLOW-ORDER VALIDATION — COMMENTED FOR POC:
+  const acts=workflowActions(r,a);
+  if(!acts.some(x=>x[1]===to)){
+    throw new Error("You are not allowed to perform this workflow action.");
+  }
+  */
+
+  // Minimal POC integrity check: accept any status that exists in DESIGN_STATUSES.
+  if(!DESIGN_STATUSES.includes(to)){
+    throw new Error("Unknown design status.");
+  }
+
+  if(to==="Returned")return openReturnModal();
+  const data={[AF.status]:to,[AF.progress]:DESIGN_PROGRESS[to]??num(r[AF.progress])};if(to==="In Progress"&&!scalar(r[AF.actualStart])){data[AF.actualStart]=toCreatorDateTime();data[AF.startedBy]=S.user}if(to==="Completed"){data[AF.actualEnd]=toCreatorDate(todayIso());data[AF.completedBy]=S.user}busy(`Updating design to ${to}…`);try{await updateRecord(idOf(r),data);Object.assign(r,data);if(to==="Completed"){await updateRecord(idOf(a),{[AF.status]:"Completed",[AF.progress]:100});a[AF.status]="Completed";a[AF.progress]=100}toast(`Design status: ${to}.`,"good");renderView()}finally{idle()}}
+function openReturnModal(){openModal("Return Design",`Return ${scalar(currentRevision(S.current)?.[AF.revision])||"current revision"} to ${assignmentDisplayUser(S.current)}.`,`<div class="field"><label>Return Reason <span class="muted">(optional in POC)</span></label><textarea id="returnReason" placeholder="Optional: explain what must be corrected"></textarea></div>`,`<button class="btn" data-modal="close">Cancel</button><button class="btn danger" data-modal="confirm-return">Return to Designer</button>`)}
+async function confirmReturn(){
+  const reason=$("returnReason")?.value.trim()||"";
+
+  // ORIGINAL PRODUCTION VALIDATION — COMMENTED FOR POC:
+  // if(!reason) throw new Error("Return Reason is required.");
+
+  const r=currentRevision(S.current);
+  busy("Returning design…");try{const data={[AF.status]:"Returned",[AF.progress]:DESIGN_PROGRESS.Returned,[AF.returnReason]:reason};await updateRecord(idOf(r),data);Object.assign(r,data);closeModal();toast("Design returned to the designer.","warn");renderView()}finally{idle()}}
+// openNewRevisionModal(): creates the next R-number after Approved / Issued / Completed.
+function openNewRevisionModal(){
+  const a=S.current;
+  const r=currentRevision(a);
+  // NOTE: This gate is intentionally STILL ACTIVE because the current request
+  // did not ask to disable the R0 -> R1 -> R2 creation rule. It prevents creating
+  // a new revision before the current revision reaches a controlled end stage.
+  if(!r || !["Approved","Issued","Completed"].includes(scalar(r[AF.status]))){
+    throw new Error("Create a new revision only after the current revision is Approved, Issued or Completed.");
+  }
+
+  // POC OPEN ACCESS — ORIGINAL assignment-owner validation disabled:
+  // if(!currentUserMatches(a[AF.assignedTo]))
+  //   throw new Error("Only the assignment owner can create the next revision.");
+
+  const next=`R${revisionNumber(r[AF.revision])+1}`;
+  openModal(
+    "Create New Revision",
+    `${scalar(r[AF.revision])||"R0"} will remain read-only. ${next} becomes the new working revision.`,
+    `<div class="notice good"><b>New revision: ${h(next)}</b><br>Drawing identity, responsibility, Checker, Reviewer and Approver will be copied. Files are intentionally not copied.</div><div class="field" style="margin-top:12px"><label>Revision Description <span class="muted">(optional in POC)</span></label><textarea id="newRevisionDesc" placeholder="Optional: what changed in this revision?"></textarea></div>`,
+    `<button class="btn" data-modal="close">Cancel</button><button class="btn primary" data-modal="confirm-new-revision" data-next-rev="${h(next)}">Create ${h(next)}</button>`
+  );
+}
+// confirmNewRevision(): creates R1/R2/... by copying identity/roles but not old files.
+async function confirmNewRevision(next){
+  const a=S.current,prev=currentRevision(a),desc=$("newRevisionDesc")?.value.trim()||"";
+
+  // ORIGINAL PRODUCTION VALIDATION — COMMENTED FOR POC:
+  // if(!desc) throw new Error("Revision Description is required.");
+
+  busy(`Creating ${next}…`);try{const base=baseRevisionPayload(a,next,desc,idOf(prev));base[AF.drawingNumber]=scalar(prev[AF.drawingNumber]);base[AF.checker]=scalar(prev[AF.checker]);base[AF.reviewer]=scalar(prev[AF.reviewer]);base[AF.approver]=scalar(prev[AF.approver]);base[AF.status]="Not Started";base[AF.progress]=0;delete base[AF.actualStart];delete base[AF.startedBy];const id=await addRecord(base),rec={ID:id,...base};S.records.push(rec);S.revisions.push(rec);closeModal();S.detailTab="files";toast(`${next} created. Upload the new revision files.`,"good");renderView()}finally{idle()}}
 function viewRevisionModal(id){const r=S.revisions.find(x=>idOf(x)===String(id));if(!r)return;const files=[[AF.drawingFile,"Drawing File"],[AF.nativeFile,"Native File"],[AF.supportingFile,"Supporting File"]].filter(([f])=>scalar(r[f]));openModal(`${scalar(r[AF.revision])||"Revision"} — ${scalar(r[AF.status])||""}`,scalar(r[AF.revisionDescription])||"Revision details",`<div class="summary"><div class="summary-item"><div class="k">DRAWING NUMBER</div><div class="v">${h(scalar(r[AF.drawingNumber])||"—")}</div></div><div class="summary-item"><div class="k">CHECKER</div><div class="v">${h(personDisplay(r[AF.checker])||"—")}</div></div><div class="summary-item"><div class="k">REVIEWER</div><div class="v">${h(personDisplay(r[AF.reviewer])||"—")}</div></div><div class="summary-item"><div class="k">APPROVER</div><div class="v">${h(personDisplay(r[AF.approver])||"—")}</div></div></div><div class="scope-box"><div class="k">REVISION DESCRIPTION</div><div class="v">${h(scalar(r[AF.revisionDescription])||"—")}</div></div><div class="actions">${files.map(([f,l])=>`<button class="btn" data-download-file="${h(idOf(r))}" data-file-field="${h(f)}" data-file-label="${h(l)}">Download ${h(l)}</button>`).join("")}</div>`,`<button class="btn primary" data-modal="close">Close</button>`)}
 
-function editAssignmentModal(){const a=S.current;if(!currentUserMatches(a[AF.assignedTo]))throw new Error("Only the assigned user can update this responsibility.");openModal("Update Assignment",`${assignmentDisplayUser(a)} — ${scopeSummary(a)}`,`<div class="grid2"><div class="field"><label>Status</label><select id="assignmentStatusEdit">${ASSIGNMENT_STATUSES.map(s=>`<option ${s===scalar(a[AF.status])?"selected":""}>${h(s)}</option>`).join("")}</select></div><div class="field"><label>Progress %</label><input id="assignmentProgressEdit" type="number" min="0" max="100" value="${num(a[AF.progress])}"></div></div><div class="field" style="margin-top:11px"><label>Remark</label><textarea id="assignmentRemarkEdit">${h(scalar(a[AF.remark]))}</textarea></div>`,`<button class="btn" data-modal="close">Cancel</button><button class="btn primary" data-modal="save-assignment-status">Save</button>`)}
+// editAssignmentModal(): updates assignment status, progress and remark.
+function editAssignmentModal(){
+  const a=S.current;
+
+  // POC OPEN ACCESS — ORIGINAL assigned-user validation disabled:
+  // if(!currentUserMatches(a[AF.assignedTo]))
+  //   throw new Error("Only the assigned user can update this responsibility.");
+
+  openModal(
+    "Update Assignment",
+    `${assignmentDisplayUser(a)} — ${scopeSummary(a)}`,
+    `<div class="grid2"><div class="field"><label>Status</label><select id="assignmentStatusEdit">${ASSIGNMENT_STATUSES.map(s=>`<option ${s===scalar(a[AF.status])?"selected":""}>${h(s)}</option>`).join("")}</select></div><div class="field"><label>Progress %</label><input id="assignmentProgressEdit" type="number" min="0" max="100" value="${num(a[AF.progress])}"></div></div><div class="field" style="margin-top:11px"><label>Remark</label><textarea id="assignmentRemarkEdit">${h(scalar(a[AF.remark]))}</textarea></div>`,
+    `<button class="btn" data-modal="close">Cancel</button><button class="btn primary" data-modal="save-assignment-status">Save</button>`
+  );
+}
 async function saveAssignmentStatus(){const a=S.current,s=$("assignmentStatusEdit")?.value,p=Math.max(0,Math.min(100,num($("assignmentProgressEdit")?.value))),remark=$("assignmentRemarkEdit")?.value.trim()||"";busy("Updating assignment…");try{const data={[AF.status]:s,[AF.progress]:s==="Completed"?100:p,[AF.remark]:remark};await updateRecord(idOf(a),data);Object.assign(a,data);closeModal();toast("Assignment updated.","good");renderView()}finally{idle()}}
 
+/* ================= SECTION 16: UI ACTIONS / EVENTS =====================
+   Reusable modal, action routing, click handlers, keyboard handlers and errors.
+   ======================================================================= */
+// openModal(): opens the reusable dialog shell.
 function openModal(title,sub,body,foot){$("modalTitle").textContent=title;$("modalSub").textContent=sub||"";$("modalBody").innerHTML=body||"";$("modalFoot").innerHTML=foot||"";$("modalBackdrop").classList.remove("hidden")}
 function closeModal(){$("modalBackdrop").classList.add("hidden")}
 function setupModal(){openModal("V17 One-Form Architecture","Assignment + Design Files + Revision History use your existing Design_Tracking form.",`<div class="notice good"><b>No new transaction form is used.</b> Assignment rows and Revision rows are both stored in Design_Tracking and separated by their backend identity fields.</div><div class="section-row"><div><h2>Assignment hierarchy</h2><p>Already added to your form.</p></div></div><div class="table-wrap"><table><thead><tr><th>Field</th><th>Link Name</th><th>Purpose</th></tr></thead><tbody><tr><td>Primary Assignment ID</td><td>Primary_Assignment_ID</td><td>First project-level assignment</td></tr><tr><td>Assigned From ID</td><td>Assigned_From_ID</td><td>Immediate previous responsibility</td></tr><tr><td>Assignment Level</td><td>Assignment_Level</td><td>0, 1, 2, 3… N</td></tr><tr><td>Assignment Criteria</td><td>Assignment_Criteria</td><td>Single Line</td></tr><tr><td>Responsibility</td><td>Responsibility</td><td>Readable scope</td></tr></tbody></table></div><div class="section-row"><div><h2>Design / revision identity</h2><p>Uses fields already visible in your Design_Tracking screenshots.</p></div></div><div class="table-wrap"><table><thead><tr><th>Field</th><th>Link Name</th><th>Use</th></tr></thead><tbody><tr><td>Logical Task Key</td><td>Logical_Task_Key</td><td>EXEC::AssignmentID::R0 / R1 / R2</td></tr><tr><td>Revision Key</td><td>Revision_Key</td><td>Unique revision identity</td></tr><tr><td>Parent Design ID</td><td>Parent_Design_ID</td><td>R0 → R1 → R2 chain</td></tr><tr><td>Revision</td><td>Revision</td><td>R0 / R1 / R2</td></tr><tr><td>Files</td><td>Drawing_File / Native_File / Supporting_File</td><td>Controlled document files</td></tr></tbody></table></div><div class="notice warn" style="margin-top:12px"><b>Do not use Parent_Design_ID for assignment hierarchy.</b> It is reserved only for revision history. Further_Assigned and Active are not written by the widget because this Creator app rejected Decision Box API values; children are derived from Assigned_From_ID.</div>`,`<button class="btn primary" data-modal="close">Close</button>`)}
@@ -595,6 +968,7 @@ function setupModal(){openModal("V17 One-Form Architecture","Assignment + Design
 async function handleAction(act){if(act==="create-primary")return createPrimary();if(act==="edit-assignment")return editAssignmentModal();if(act==="start-r0")return startR0();if(act==="save-revision")return saveRevision();if(act==="new-revision")return openNewRevisionModal();if(act==="select-next-10"){const rows=S.targetRows.filter(r=>!existingChildForTarget(S.current,r)&&!S.selectedTargets.has(targetKey(r))).slice(0,10);rows.forEach(r=>S.selectedTargets.add(targetKey(r)));return renderView()}if(act==="select-all-targets"){S.targetRows.filter(r=>!existingChildForTarget(S.current,r)).forEach(r=>S.selectedTargets.add(targetKey(r)));return renderView()}if(act==="clear-targets"){S.selectedTargets.clear();return renderView()}if(act==="review-bulk")return reviewBulk()}
 async function handleModal(act,el){if(act==="close")return closeModal();if(act==="confirm-bulk")return confirmBulk();if(act==="save-assignment-status")return saveAssignmentStatus();if(act==="confirm-return")return confirmReturn();if(act==="confirm-new-revision")return confirmNewRevision(el.dataset.nextRev)}
 function toggleExpand(id){S.expanded.has(id)?S.expanded.delete(id):S.expanded.add(id);renderView()}
+// wire(): connects all buttons, tabs, tree nodes, workflow buttons and inputs to their handlers.
 function wire(){
   document.querySelectorAll(".navtab").forEach(b=>b.onclick=()=>setView(b.dataset.view));
   $("refreshBtn").onclick=()=>guarded(refreshData);$("setupBtn").onclick=setupModal;$("modalClose").onclick=closeModal;$("modalBackdrop").addEventListener("click",e=>{if(e.target===$("modalBackdrop"))closeModal()});
@@ -649,6 +1023,10 @@ const DEMO={
     {ID:"R002",Project_Code:"25005",Drawing_Document_Name:"Site Location Plan",Drawing_Master_ID:"D1",Short_Name:"SLP",Design_Type:"Site Location Plan",Design_Title:"Site Location Plan — Project 25005 › Fermentation › 3 Fermenter › Category: Control Valves",Assigned_To:"tejas@mega.tc",Assigned_Employee_Name:"Tejas",Plant_Section_Name:"Fermentation",Plant_Section_Type:"3 Fermenter",Equipment_Category:"Control Valves",Drawing_Number:"25005-SLP-CV-001",Checker:"kunal@mega.tc",Reviewer:"rahul@mega.tc",Approver:"rohan@mega.tc",Status:"In Progress",Progress:10,Revision:"R1",Revision_Description:"Valve locations revised",Logical_Task_Key:"EXEC::A004::R1",Revision_Key:"EXEC::A004::R1",Parent_Design_ID:"R001",Added_Time:"08-Sep-2026 09:30:00",Added_User:"tejas@mega.tc"}
   ]
 };
+/* =================== SECTION 17: OPTIONAL DEMO DATA ====================
+   Used only when the widget URL contains ?demo=1.
+   ======================================================================= */
+// demoFetch(): returns local sample rows instead of Creator data.
 function demoFetch(report){if(report===CONFIG.REPORTS.projects)return DEMO.projects.map(x=>({...x}));if(report===CONFIG.REPORTS.drawings)return DEMO.drawings.map(x=>({...x}));if(report===CONFIG.REPORTS.employees)return DEMO.employees.map(x=>({...x}));if(report===CONFIG.REPORTS.equipment)return DEMO.equipment.map(x=>({...x}));if(report===CONFIG.REPORTS.tracking)return DEMO.tracking.map(x=>({...x}));return[]}
 let demoSeq=500;function demoAdd(data){const id=(isAssignmentRecord(data)?"A":"R")+(++demoSeq);const rec={ID:id,...data};DEMO.tracking.push(rec);return id}function demoUpdate(id,data){const r=DEMO.tracking.find(x=>String(x.ID)===String(id));if(r)Object.assign(r,data);return id}
 
