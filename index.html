@@ -782,16 +782,56 @@ function pdsFilteredRows(type){
   const q=S.pds.search.trim();
   return pdsRowsInScope(type).filter(r=>pdsSearchMatch(r,q)&&pdsRowPassesStatus(r,type,S.pds.status));
 }
-function pdsSummaryStats(type){
-  if(type==="all")return {total:pdsRowsInScope("all").length,pending:0,under:0,approved:0};
+/* ================= V17.11: LEVEL-0 PDS DASHBOARD COUNTS =================
+   IMPORTANT BUSINESS RULE:
+   - The Level-0 / Primary PDS assignment is the management dashboard.
+   - Count ONLY the PDS discipline that the All_PD_Sheet source row actually
+     belongs to, using PDS_Related_To.
+   - Example: if a CL-1401 row says PDS Related To = Nozzle PDS, that row is
+     counted ONLY in Nozzle PDS. Its Structure/Piping "Pending" columns do NOT
+     increase Structure/Piping dashboard counts.
+   - Therefore, if the project contains 10 actual Structure PDS source rows,
+     the Structure PDS card shows 10. If there is no Consumable PDS source row,
+     the Consumable PDS card is hidden.
+   - "Total PDS" is the total number of actual PDS work items across all
+     disciplines (Equipment + Nozzle + Structure + Piping + Bought Out +
+     Consumable + E&I) within the current Level-0 responsibility.
+   ======================================================================= */
+function pdsActualRowsForType(type){
   const rows=pdsRowsInScope("all");
+  const hasRelated=rows.some(r=>Boolean(pdsRelatedTypeKey(r)));
+
+  // Preferred / current data model: PDS_Related_To tells us the real PDS type.
+  if(hasRelated){
+    return rows.filter(r=>pdsRelatedTypeKey(r)===type);
+  }
+
+  // Legacy compatibility only: if old All_PD_Sheet data has no PDS_Related_To
+  // at all, fall back to the populated discipline status column.
+  return rows.filter(r=>Boolean(pdsStatusValue(r,type)));
+}
+function pdsSummaryStats(type){
+  if(type==="all"){
+    const rows=pdsRowsInScope("all");
+    const hasRelated=rows.some(r=>Boolean(pdsRelatedTypeKey(r)));
+    if(hasRelated){
+      const actual=rows.filter(r=>Boolean(pdsRelatedTypeKey(r)));
+      return {total:actual.length,pending:0,under:0,approved:0};
+    }
+    return {total:rows.length,pending:0,under:0,approved:0};
+  }
+
+  const rows=pdsActualRowsForType(type);
   const statuses=rows.map(r=>pdsStatusValue(r,type)).filter(Boolean);
   return {
-    total:statuses.length,
-    pending:statuses.filter(s=>nk(s).includes("pending")).length,
+    total:rows.length,
+    pending:statuses.filter(s=>nk(s).includes("pending")&&!nk(s).includes("under")).length,
     under:statuses.filter(s=>nk(s).includes("underapproval")).length,
     approved:statuses.filter(s=>nk(s).includes("approved")&&!nk(s).includes("under")).length
   };
+}
+function isLevelZeroPdsDashboard(){
+  return num(S.current?.[AF.assignmentLevel])===0;
 }
 /* ================= V17.9: PDS BULK ASSIGNMENT ENGINE =================
    Business rule:
@@ -835,7 +875,7 @@ function addPdsSourceRowToGroup(map,row,type){
   }
 
   // -------------------------------------------------------------------
-  // V17.10 IMPORTANT PDS RULE
+  // V17.11 IMPORTANT PDS RULE
   // -------------------------------------------------------------------
   // All_PD_Sheet can contain multiple physical rows for the SAME Tag.
   // Example CL-1401:
@@ -1019,13 +1059,32 @@ function reviewPdsBulk(){const d=collectPdsBulkDraft(),items=pdsBulkAssignmentsD
 async function confirmPdsBulk(){const d=S.pds.bulkDraft||{},items=pdsBulkAssignmentsDraft();if(items.length>CONFIG.MAX_BATCH)throw new Error(`Maximum ${CONFIG.MAX_BATCH} assignments can be created in one batch.`);busy(`Creating ${items.length} PDS assignments…`);let ok=0,fail=0;try{for(const x of items){try{const data=buildPdsAssignmentPayload(S.current,x.unit,d,x.user,x.target),id=await addRecord(data);const rec={ID:id,...data};S.records.push(rec);S.assignments.push(rec);ok++}catch(e){console.error("PDS assignment failed",x,e);fail++}}closeModal();S.pds.selectedUnits.clear();S.pds.individualDraft={};S.pds.bulkDraft={};S.pds.assignmentMode=false;renderView();toast(`${ok} PDS assignment${ok===1?"":"s"} created${fail?`, ${fail} failed`:""}.`,fail?"warn":"good")}finally{idle()}}
 
 function pdsTypeCardsHtml(){
-  return `<div class="pds-type-grid">${PDS_TYPES.map(t=>{
-    const active=S.pds.activeType===t.key,loaded=t.key==="all"?Array.isArray(S.pds.summary):Array.isArray(S.pds.detail[t.key]);
-    const st=pdsSummaryStats(t.key),detailCount=t.key!=="all"&&loaded?pdsRowsInScope(t.key).length:null;
-    const count=t.key==="all"?st.total:(st.total||detailCount||0);
-    const meta=t.key==="all"?"Project / responsibility summary":`${st.pending} pending • ${st.under} under approval • ${st.approved} approved`;
-    return `<button class="pds-type-card ${active?"active":""}" data-pds-type="${h(t.key)}"><div class="pds-type-top"><div class="pds-type-icon">${h(t.icon)}</div>${loaded?'<span class="pill green">Loaded</span>':''}</div><div class="pds-type-name">${h(t.label)}</div><div class="pds-type-count">${count}</div><div class="pds-type-meta">${h(meta)}</div></button>`;
-  }).join("")}</div>`;
+  const level0=isLevelZeroPdsDashboard();
+
+  // LEVEL 1+:
+  // Do not repeat the project-wide management dashboard on every delegated
+  // responsibility. The detailed PDS workspace below is still available and
+  // continues to follow the selected responsibility / Tag / PDS Type.
+  if(!level0){
+    const dt=scalar(S.current?.[AF.designType]);
+    return `<div class="notice" style="margin-bottom:12px"><b>Current PDS Responsibility</b><br>${h(dt||"PDS")} • ${h(scopeSummary(S.current))}<div class="tiny muted" style="margin-top:4px">Project-level PDS totals are shown only on the Level 0 / Primary Assignment dashboard.</div></div>`;
+  }
+
+  // LEVEL 0:
+  // Show Total PDS plus ONLY disciplines that actually exist in All_PD_Sheet.
+  const total=pdsSummaryStats("all");
+  const visibleTypes=PDS_TYPES.filter(t=>t.key!=="all"&&pdsSummaryStats(t.key).total>0);
+  const cards=[
+    `<button class="pds-type-card ${S.pds.activeType==="all"?"active":""}" data-pds-type="all"><div class="pds-type-top"><div class="pds-type-icon">PD</div><span class="pill brand">Level 0</span></div><div class="pds-type-name">Total PDS</div><div class="pds-type-count">${total.total}</div><div class="pds-type-meta">Actual PDS work items in this responsibility</div></button>`
+  ];
+
+  for(const t of visibleTypes){
+    const st=pdsSummaryStats(t.key);
+    const active=S.pds.activeType===t.key;
+    cards.push(`<button class="pds-type-card ${active?"active":""}" data-pds-type="${h(t.key)}"><div class="pds-type-top"><div class="pds-type-icon">${h(t.icon)}</div><span class="pill green">${st.total}</span></div><div class="pds-type-name">${h(t.label)}</div><div class="pds-type-count">${st.total}</div><div class="pds-type-meta">${st.pending} pending • ${st.under} under approval • ${st.approved} approved</div></button>`);
+  }
+
+  return `<div class="pds-type-grid">${cards.join("")}</div>`;
 }
 function pdsAvailableStatuses(type){
   const base=["All","Pending","Under Approval","Approved"];
@@ -1630,7 +1689,7 @@ async function saveAssignmentStatus(){const a=S.current,s=$("assignmentStatusEdi
 // openModal(): opens the reusable dialog shell.
 function openModal(title,sub,body,foot){$("modalTitle").textContent=title;$("modalSub").textContent=sub||"";$("modalBody").innerHTML=body||"";$("modalFoot").innerHTML=foot||"";$("modalBackdrop").classList.remove("hidden")}
 function closeModal(){$("modalBackdrop").classList.add("hidden")}
-function setupModal(){openModal("V17 One-Form Architecture","Assignment + Design Files + Revision History use your existing Design_Tracking form.",`<div class="notice good"><b>No new transaction form is used.</b> Assignment rows and Revision rows are both stored in Design_Tracking and separated by their backend identity fields.</div><div class="section-row"><div><h2>Assignment hierarchy</h2><p>Already added to your form.</p></div></div><div class="table-wrap"><table><thead><tr><th>Field</th><th>Link Name</th><th>Purpose</th></tr></thead><tbody><tr><td>Primary Assignment ID</td><td>Primary_Assignment_ID</td><td>First project-level assignment</td></tr><tr><td>Assigned From ID</td><td>Assigned_From_ID</td><td>Immediate previous responsibility</td></tr><tr><td>Assignment Level</td><td>Assignment_Level</td><td>0, 1, 2, 3… N</td></tr><tr><td>Assignment Criteria</td><td>Assignment_Criteria</td><td>Single Line</td></tr><tr><td>Responsibility</td><td>Responsibility</td><td>Readable scope</td></tr></tbody></table></div><div class="section-row"><div><h2>Design / revision identity</h2><p>Uses fields already visible in your Design_Tracking screenshots.</p></div></div><div class="table-wrap"><table><thead><tr><th>Field</th><th>Link Name</th><th>Use</th></tr></thead><tbody><tr><td>Logical Task Key</td><td>Logical_Task_Key</td><td>EXEC::AssignmentID::R0 / R1 / R2</td></tr><tr><td>Revision Key</td><td>Revision_Key</td><td>Unique revision identity</td></tr><tr><td>Parent Design ID</td><td>Parent_Design_ID</td><td>R0 → R1 → R2 chain</td></tr><tr><td>Revision</td><td>Revision</td><td>R0 / R1 / R2</td></tr><tr><td>Files</td><td>Drawing_File / Native_File / Supporting_File</td><td>Controlled document files</td></tr></tbody></table></div><div class="notice warn" style="margin-top:12px"><b>Do not use Parent_Design_ID for assignment hierarchy.</b> It is reserved only for revision history. Further_Assigned and Active are not written by the widget because this Creator app rejected Decision Box API values; children are derived from Assigned_From_ID.</div><div class="notice good" style="margin-top:10px"><b>PDS Workspace:</b> When the selected Drawing is PDS, the widget reads existing All_PD_Sheet plus Equipment / Nozzle / Structure / Piping / Bought Out / Consumable / E&amp;I PDS reports as read-only source data. V17.9 can bulk-assign Tag + PDS Type responsibilities; each assignment is a separate Design_Tracking row, while the source PDS report itself is never modified or copied.</div>`,`<button class="btn primary" data-modal="close">Close</button>`)}
+function setupModal(){openModal("V17 One-Form Architecture","Assignment + Design Files + Revision History use your existing Design_Tracking form.",`<div class="notice good"><b>No new transaction form is used.</b> Assignment rows and Revision rows are both stored in Design_Tracking and separated by their backend identity fields.</div><div class="section-row"><div><h2>Assignment hierarchy</h2><p>Already added to your form.</p></div></div><div class="table-wrap"><table><thead><tr><th>Field</th><th>Link Name</th><th>Purpose</th></tr></thead><tbody><tr><td>Primary Assignment ID</td><td>Primary_Assignment_ID</td><td>First project-level assignment</td></tr><tr><td>Assigned From ID</td><td>Assigned_From_ID</td><td>Immediate previous responsibility</td></tr><tr><td>Assignment Level</td><td>Assignment_Level</td><td>0, 1, 2, 3… N</td></tr><tr><td>Assignment Criteria</td><td>Assignment_Criteria</td><td>Single Line</td></tr><tr><td>Responsibility</td><td>Responsibility</td><td>Readable scope</td></tr></tbody></table></div><div class="section-row"><div><h2>Design / revision identity</h2><p>Uses fields already visible in your Design_Tracking screenshots.</p></div></div><div class="table-wrap"><table><thead><tr><th>Field</th><th>Link Name</th><th>Use</th></tr></thead><tbody><tr><td>Logical Task Key</td><td>Logical_Task_Key</td><td>EXEC::AssignmentID::R0 / R1 / R2</td></tr><tr><td>Revision Key</td><td>Revision_Key</td><td>Unique revision identity</td></tr><tr><td>Parent Design ID</td><td>Parent_Design_ID</td><td>R0 → R1 → R2 chain</td></tr><tr><td>Revision</td><td>Revision</td><td>R0 / R1 / R2</td></tr><tr><td>Files</td><td>Drawing_File / Native_File / Supporting_File</td><td>Controlled document files</td></tr></tbody></table></div><div class="notice warn" style="margin-top:12px"><b>Do not use Parent_Design_ID for assignment hierarchy.</b> It is reserved only for revision history. Further_Assigned and Active are not written by the widget because this Creator app rejected Decision Box API values; children are derived from Assigned_From_ID.</div><div class="notice good" style="margin-top:10px"><b>PDS Workspace:</b> When the selected Drawing is PDS, the widget reads existing All_PD_Sheet plus Equipment / Nozzle / Structure / Piping / Bought Out / Consumable / E&amp;I PDS reports as read-only source data. V17.11 can bulk-assign Tag + PDS Type responsibilities; each assignment is a separate Design_Tracking row, while the source PDS report itself is never modified or copied.</div>`,`<button class="btn primary" data-modal="close">Close</button>`)}
 
 async function handleAction(act){if(act==="create-primary")return createPrimary();if(act==="edit-assignment")return editAssignmentModal();if(act==="start-r0")return startR0();if(act==="save-revision")return saveRevision();if(act==="new-revision")return openNewRevisionModal();if(act==="select-next-10"){const rows=S.targetRows.filter(r=>!existingChildForTarget(S.current,r)&&!S.selectedTargets.has(targetKey(r))).slice(0,10);rows.forEach(r=>S.selectedTargets.add(targetKey(r)));return renderView()}if(act==="select-all-targets"){S.targetRows.filter(r=>!existingChildForTarget(S.current,r)).forEach(r=>S.selectedTargets.add(targetKey(r)));return renderView()}if(act==="clear-targets"){S.selectedTargets.clear();return renderView()}if(act==="review-bulk")return reviewBulk()}
 async function handleModal(act,el){if(act==="close")return closeModal();if(act==="confirm-bulk")return confirmBulk();if(act==="confirm-pds-bulk")return confirmPdsBulk();if(act==="save-assignment-status")return saveAssignmentStatus();if(act==="confirm-return")return confirmReturn();if(act==="confirm-new-revision")return confirmNewRevision(el.dataset.nextRev)}
