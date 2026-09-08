@@ -101,19 +101,23 @@ const CONFIG={
   DEMO:new URLSearchParams(location.search).get("demo")==="1",
   LIVE_WRITES:true,
   MAX_FILE_BYTES:50*1024*1024,
+  // Restored from the last working legacy widget. Keep these Creator link names
+  // centralized here. The new V17 UI reads the same old Creator sources.
   REPORTS:{
     projects:"All_Associated_Projects",
     drawings:"All_Drawing_Types",
     equipment:"Master_Equipment_List_Subform_Report",
     employees:"Employ_to_Create_ticket_Report",
+    plantSections:"All_Plant_Section_Types",
+    pds:"All_Equipment_PDS",
+    bom:"All_Equipment_BOM_Details",
     tracking:"Design_Tracking_Report"
   },
   FORMS:{tracking:"Design_Tracking"},
-  TRACKING_REPORT_CANDIDATES:[
-    "Design_Tracking_Report",
-    "All_Design_Tracking",
-    "Design_Tracking"
-  ],
+  // The current Creator response already proves Design_Tracking_Report exists:
+  // code 9220 means the report is valid but empty. We therefore use this exact
+  // old report link and never fail startup merely because it has zero records.
+  TRACKING_REPORT_CANDIDATES:["Design_Tracking_Report"],
   SYNC_ASSIGNMENT_START:true,
   PAGE_SIZE:100,
   MAX_BATCH:250
@@ -157,10 +161,51 @@ const DESIGN_STATUSES=["Not Started","In Progress","Submitted for Check","Checki
 const DESIGN_PROGRESS={"Not Started":0,"In Progress":10,"Submitted for Check":50,"Checking":55,"Checked":60,"Submitted for Review":65,"Reviewing":70,"Reviewed":80,"Submitted for Approval":85,"Approving":90,"Approved":95,"Issued":100,"Completed":100,"Returned":40,"On Hold":10,"Cancelled":0};
 const MONTHS=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 
-const PROJECT_ALIASES={id:["ID"],code:["Project_Code","Project_Code1","Project"],name:["Project_Name","Project_Description","Description","Customer_Name"]};
-const DRAWING_ALIASES={id:["ID"],name:["Drawing_Name","Drawing_Document_Name","Drawing_Document","Name"],short:["Drawing_Abbreviation","Short_Name","Abbreviation"],type:["Drawing_Type","Type"],active:["Active"]};
-const EMP_ALIASES={id:["ID"],name:["Employee_Name","Name","Employee"],email:["Email","Employee_Email"],dept:["Department","Department_Name"]};
-const EQ_ALIASES={id:["ID"],project:["Project_Code","Project_Code1","Project"],section:["Plant_Section_Name","Plant_Section"],sectionType:["Plant_Section_Type","Section_Type"],tag:["Tag_Number","Tag_No"],name:["Equipment_Name","Equipment"],group:["Group_Code","Group"],department:["Department_Code","Department"],category:["Equipment_Category","Category"],type:["Equipment_Type","Type"]};
+// Legacy aliases copied from the working Engineering Design Control widget.
+// The old Creator reports contain several generations of field-link names, so
+// the new interface deliberately accepts all of them instead of assuming one.
+const PROJECT_ALIASES={
+  id:["ID"],
+  code:["Project_Code","Project_Code1","ProjectCode","Project"],
+  name:["Project_Name","Project_Description","Description","Project_Desc","Customer_Name","Customer","Client_Name","Client"]
+};
+const DRAWING_ALIASES={
+  id:["ID"],
+  name:["Drawing_Name","Drawing_Document_Name","Drawing_Document","Name"],
+  short:["Drawing_Abbreviation","Short_Name","Abbreviation"],
+  type:["Drawing_Type","Type"],
+  active:["Active"]
+};
+const EMP_ALIASES={
+  id:["ID"],
+  name:["Employee_Name","Name","Employee"],
+  email:["Email","Employee_Email"],
+  dept:["Department","Department_Name"]
+};
+const EQ_ALIASES={
+  id:["ID"],
+  project:[
+    "Project_Code","Project_Code1","Project_Code2","Project_Code3",
+    "Project","Project1","Project_Lookup","Project_Code_Lookup",
+    "Project_Details","Project_Detail","Associated_Project","Associated_Projects",
+    "Project_Name","Project_No","Project_Number","Project_ID"
+  ],
+  section:[
+    "Plant_Section_Name","Plant_Section_Name1","Plant_Section_Name2",
+    "Plant_Section","Plant_Section1","Section_Name","Section_Name1",
+    "Plant_Name","Plant_Section_Lookup"
+  ],
+  sectionType:[
+    "Plant_Section_Type","Plant_Section_Type1","Plant_Section_Type2",
+    "Section_Type","Section_Type1","Plant_Type"
+  ],
+  tag:["Tag_Number","Tag_No","Tag_Number1","Equipment_Tag"],
+  name:["Equipment_Name","Equipment_Name1","Equipment","Name"],
+  group:["Group_Code","Group_Code1","Group"],
+  department:["Department_Code","Department_Code1","Department"],
+  category:["Equipment_Category","Equipment_Category1","Category"],
+  type:["Equipment_Type","Equipment_Type1","Type"]
+};
 const SYSTEM_ALIASES={addedTime:["Added_Time","Created_Time","Created_Time1"],addedUser:["Added_User","Created_By","Created_User"],modifiedTime:["Modified_Time","Updated_Time","Modified_Time1"],modifiedUser:["Modified_User","Updated_By","Modified_By"]};
 
 const S={
@@ -203,12 +248,75 @@ function withApp(c){return{app_name:S.app||CONFIG.APP_NAME,...c}}
 function errorText(e){
   if(e==null)return "Unknown Creator error";
   if(typeof e==="string")return e;
-  if(e instanceof Error)return e.message||String(e);
-  try{return JSON.stringify(e)}catch(_){return String(e)}
+  // Creator SDK rejected promises often expose responseText on a plain object.
+  const parts=[];
+  try{if(e.message)parts.push(String(e.message))}catch(_){ }
+  try{if(e.responseText)parts.push(String(e.responseText))}catch(_){ }
+  try{if(e.statusText)parts.push(String(e.statusText))}catch(_){ }
+  try{parts.push(JSON.stringify(e))}catch(_){parts.push(String(e))}
+  return [...new Set(parts.filter(Boolean))].join(" | ");
 }
-function assertResp(r,label){if(!r)throw new Error(`${label}: empty response.`);if(r.code!=null&&Number(r.code)!==3000)throw new Error(`${label}: ${r.message||r.description||JSON.stringify(r)}`);return r}
-function prepareCreatorPayload(data){const out={...data};delete out[AF.furtherAssigned];delete out[AF.active];return out}
-async function fetchRecords(report,criteria="",max=20){if(S.demo)return demoFetch(report,criteria);const out=[];let cursor="";for(let i=0;i<max;i++){const c=withApp({report_name:report,field_config:"all",max_records:1000});if(criteria)c.criteria=criteria;if(cursor)c.record_cursor=cursor;let r;try{r=assertResp(await ZOHO.CREATOR.DATA.getRecords(c),`Read ${report}`)}catch(e){const msg=errorText(e);/* Creator returns code 9220 when a valid, accessible report simply has no rows. Treat that as a successful empty result, not an access error. 9280 is also used by some Creator responses for no-data conditions. */if(/(?:^|\D)(?:9220|9280)(?:\D|$)|No records (?:exist|found)/i.test(msg))return out;throw e}const rows=Array.isArray(r.data)?r.data:[];out.push(...rows);cursor=r.record_cursor||r.cursor||"";if(!cursor||!rows.length)break}return out}
+function creatorErrorCode(e){
+  const raw=errorText(e);
+  let m=raw.match(/\\?"code\\?"\s*:\s*(\d+)/i);
+  if(!m)m=raw.match(/(?:^|\D)(\d{4})(?:\D|$)/);
+  return m?Number(m[1]):0;
+}
+function isNoDataError(e){
+  const raw=errorText(e);
+  const code=creatorErrorCode(e);
+  return code===9220||code===9280||/No records (?:exist|found)|No records found matching/i.test(raw);
+}
+function assertResp(r,label){
+  if(!r)throw new Error(`${label}: empty response.`);
+  if(r.code!=null&&Number(r.code)!==3000){
+    const err=new Error(`${label}: ${r.message||r.description||JSON.stringify(r)}`);
+    err.creatorResponse=r;
+    throw err;
+  }
+  return r;
+}
+function prepareCreatorPayload(data){
+  const out={...data};
+  // These decision boxes are intentionally not written by the widget. The
+  // hierarchy itself tells us whether an assignment has children.
+  delete out[AF.furtherAssigned];
+  delete out[AF.active];
+  return out;
+}
+
+// Legacy-compatible report reader. Code 9220 means the report exists but is
+// empty; 9280 means the criteria matched no records. Both are valid empty data.
+async function fetchRecords(report,criteria="",max=20){
+  if(S.demo)return demoFetch(report,criteria);
+  const out=[];
+  let cursor="";
+  for(let i=0;i<max;i++){
+    const c=withApp({report_name:report,field_config:"all",max_records:1000});
+    if(criteria)c.criteria=criteria;
+    if(cursor)c.record_cursor=cursor;
+    let raw;
+    try{
+      raw=await ZOHO.CREATOR.DATA.getRecords(c);
+    }catch(e){
+      if(isNoDataError(e))return out;
+      throw e;
+    }
+    let r;
+    try{
+      r=assertResp(raw,`Read ${report}`);
+    }catch(e){
+      if(isNoDataError(e)||isNoDataError(raw))return out;
+      throw e;
+    }
+    const rows=Array.isArray(r.data)?r.data:[];
+    out.push(...rows);
+    cursor=r.record_cursor||r.cursor||"";
+    if(!cursor||!rows.length)break;
+  }
+  return out;
+}
+
 async function addRecord(data){if(S.demo)return demoAdd(data);if(!CONFIG.LIVE_WRITES)throw new Error("Live writes are disabled in CONFIG.");const r=assertResp(await ZOHO.CREATOR.DATA.addRecords(withApp({form_name:CONFIG.FORMS.tracking,payload:{data:prepareCreatorPayload(data)}})),"Create Design_Tracking");return String(r?.data?.ID||r?.data?.id||"")}
 async function updateRecord(id,data){if(S.demo)return demoUpdate(id,data);if(!CONFIG.LIVE_WRITES)throw new Error("Live writes are disabled in CONFIG.");assertResp(await ZOHO.CREATOR.DATA.updateRecordById(withApp({report_name:CONFIG.REPORTS.tracking,id:String(id),payload:{data:prepareCreatorPayload(data)}})),"Update Design_Tracking");return id}
 async function uploadFile(id,field,file){if(!file)return;if(file.size>CONFIG.MAX_FILE_BYTES)throw new Error(`${file.name} is larger than 50 MB.`);if(S.demo){const r=S.records.find(x=>idOf(x)===String(id));if(r)r[field]=file.name;return}assertResp(await ZOHO.CREATOR.FILE.uploadFile(withApp({report_name:CONFIG.REPORTS.tracking,id:String(id),field_name:field,file})),`Upload ${field}`)}
@@ -226,7 +334,7 @@ async function safeSource(report,label,{required=false}={}){
 }
 
 /*
-  V17.1 FIX:
+  V17.3 FIX:
   Do not hard-code Design_Tracking_Report. Different Creator apps commonly have
   a generated report link such as All_Design_Tracking or Design_Tracking.
   Normal users may also lack META API permission, so we resolve the report only
@@ -235,40 +343,38 @@ async function safeSource(report,label,{required=false}={}){
 async function resolveTrackingSource(){
   if(S.demo)return {report:CONFIG.REPORTS.tracking,rows:await fetchRecords(CONFIG.REPORTS.tracking)};
 
-  const candidates=[...new Set([
-    CONFIG.REPORTS.tracking,
-    ...(CONFIG.TRACKING_REPORT_CANDIDATES||[])
-  ].filter(Boolean))];
+  // First use the exact report link from the old working widget.
+  try{
+    const rows=await fetchRecords(CONFIG.REPORTS.tracking,"",20);
+    log("tracking-report-resolved",{report:CONFIG.REPORTS.tracking,records:rows.length});
+    return {report:CONFIG.REPORTS.tracking,rows};
+  }catch(firstError){
+    console.warn("Direct Design_Tracking_Report read failed",firstError);
 
-  let emptySuccess=null;
-  const failures=[];
-
-  for(const report of candidates){
+    // Legacy widget fallback: discover the report from Creator metadata when
+    // the logged-in user's permission allows META.getReports().
     try{
-      const rows=await fetchRecords(report,"",20);
-      if(rows.length){
-        CONFIG.REPORTS.tracking=report;
-        log("tracking-report-resolved",{report,records:rows.length});
-        return {report,rows};
+      if(ZOHO.CREATOR.META&&ZOHO.CREATOR.META.getReports){
+        const meta=assertResp(await ZOHO.CREATOR.META.getReports(withApp({})),"Get Reports");
+        const reports=meta.reports||[];
+        const match=reports.find(r=>{
+          const ln=nk(r.link_name||"");
+          const dn=nk(r.display_name||"");
+          return ln==="designtrackingreport"||ln.includes("designtracking")||dn.includes("designtracking");
+        });
+        if(match?.link_name){
+          const rows=await fetchRecords(match.link_name,"",20);
+          CONFIG.REPORTS.tracking=match.link_name;
+          log("tracking-report-meta-resolved",{report:match.link_name,records:rows.length});
+          return {report:match.link_name,rows};
+        }
       }
-      if(!emptySuccess)emptySuccess={report,rows};
-    }catch(e){
-      failures.push(`${report}: ${errorText(e)}`);
-      console.warn(`Tracking report candidate failed: ${report}`,e);
+    }catch(metaError){
+      console.warn("META report discovery unavailable",metaError);
     }
-  }
 
-  if(emptySuccess){
-    CONFIG.REPORTS.tracking=emptySuccess.report;
-    log("tracking-report-resolved-empty",{report:emptySuccess.report});
-    return emptySuccess;
+    throw firstError;
   }
-
-  throw new Error(
-    `Design Tracking data is not accessible. Tried report links: ${candidates.join(", ")}. `+
-    `Open the Design Tracking report in Creator, copy its exact link name, or grant this user View permission. `+
-    (failures.length?`Details: ${failures.join(" | ")}`:"")
-  );
 }
 
 function isAssignmentRecord(r){return scalar(r?.[AF.assignmentLevel])!==""||Boolean(scalar(r?.[AF.primaryAssignment]))||Boolean(scalar(r?.[AF.assignedFrom]))}
@@ -302,28 +408,78 @@ function assignmentDueClass(a){if(isClosedAssignment(a))return"completed";const 
 function assignmentDueText(a){const iso=toInputDate(a[AF.targetDate]);const diff=dateDiffDays(iso);if(!iso)return"No target";if(isClosedAssignment(a))return displayDate(iso);if(diff<0)return `${Math.abs(diff)} day${Math.abs(diff)===1?"":"s"} overdue`;if(diff===0)return"Due today";if(diff<=7)return`Due in ${diff} day${diff===1?"":"s"}`;return displayDate(iso)}
 function primaryAssignmentFor(project,drawing){return S.assignments.find(a=>scalar(a[AF.projectCode])===project.code&&(scalar(a[AF.drawingMasterId])===drawing.id||scalar(a[AF.drawingDocument])===drawing.name)&&num(a[AF.assignmentLevel],-1)===0&&!scalar(a[AF.assignedFrom]))||null}
 
-async function bootstrap(){busy("Loading your drawing workspace…");try{
-  if(S.demo){S.user="rohan@mega.tc";$("demoBanner").classList.remove("hidden")}else{
-    if(!window.ZOHO||!ZOHO.CREATOR)throw new Error("Zoho Creator Widget SDK is not available in this page.");
-    const init=await Promise.race([ZOHO.CREATOR.UTIL.getInitParams(),new Promise((_,rej)=>setTimeout(()=>rej(new Error("Creator session timed out.")),9000))]);
-    S.user=init?.loginUser||"";S.app=init?.appLinkName||CONFIG.APP_NAME;
+async function bootstrap(){
+  busy("Loading projects, drawings and team…");
+  try{
+    if(S.demo){
+      S.user="rohan@mega.tc";
+      $("demoBanner").classList.remove("hidden");
+    }else{
+      if(!window.ZOHO||!ZOHO.CREATOR)throw new Error("Zoho Creator Widget SDK is not available in this page.");
+      const init=await Promise.race([
+        ZOHO.CREATOR.UTIL.getInitParams(),
+        new Promise((_,rej)=>setTimeout(()=>rej(new Error("Creator session timed out.")),9000))
+      ]);
+      S.user=init?.loginUser||"";
+      S.app=init?.appLinkName||CONFIG.APP_NAME;
+    }
+
+    // IMPORTANT: the old working widget loaded master reports independently.
+    // Do that first so an empty/blocked tracking report can never blank the
+    // Project and Drawing dropdowns.
+    const [pr,dr,er,eq]=await Promise.all([
+      safeSource(CONFIG.REPORTS.projects,"Project master"),
+      safeSource(CONFIG.REPORTS.drawings,"Drawing master"),
+      safeSource(CONFIG.REPORTS.employees,"Employee master"),
+      safeSource(CONFIG.REPORTS.equipment,"Equipment master")
+    ]);
+
+    S.projects=pr.map(adaptProject).filter(x=>x.code)
+      .sort((a,b)=>String(b.code).localeCompare(String(a.code),undefined,{numeric:true}));
+    S.drawings=dr.map(adaptDrawing).filter(x=>x.name)
+      .sort((a,b)=>a.name.localeCompare(b.name));
+    S.employees=er.map(adaptEmployee).filter(x=>x.email||x.name)
+      .sort((a,b)=>a.name.localeCompare(b.name));
+    S.equipment=eq.map(adaptEquipment);
+
+    // Tracking is secondary. An empty Design_Tracking_Report is valid and a
+    // permission/read problem is shown as a warning without disabling masters.
+    let tr=[];
+    try{
+      const trackingSource=await resolveTrackingSource();
+      tr=trackingSource.rows||[];
+      log("tracking-report-in-use",{report:CONFIG.REPORTS.tracking,records:tr.length});
+    }catch(trackError){
+      console.error("Design Tracking read failed",trackError);
+      toast(`Design Tracking could not be read: ${errorText(trackError)}`,"warn");
+      log("tracking-read-warning",{error:errorText(trackError)});
+    }
+
+    S.records=tr.map(adaptRecord);
+    S.assignments=S.records.filter(isAssignmentRecord);
+    S.revisions=S.records.filter(isRevisionRecord);
+
+    $("sessionPill").textContent=S.user?`Signed in: ${personDisplay(S.user)||S.user}`:"Creator session connected";
+    renderView();
+
+    const missing=[];
+    if(!S.projects.length)missing.push(CONFIG.REPORTS.projects);
+    if(!S.drawings.length)missing.push(CONFIG.REPORTS.drawings);
+    if(!S.employees.length)missing.push(CONFIG.REPORTS.employees);
+    if(!S.equipment.length)missing.push(CONFIG.REPORTS.equipment);
+    if(missing.length)toast(`No rows could be read from: ${missing.join(", ")}. Check report permission only for those reports.`,"warn");
+  }catch(e){
+    console.error(e);
+    const detail=errorText(e);
+    $("sessionPill").textContent="Creator session error";
+    $("page").innerHTML=`<div class="panel"><div class="panel-body"><div class="empty"><div class="ico">⚠</div><strong>Creator masters could not be loaded</strong><div>${h(detail)}</div><div class="small" style="margin-top:8px">Expected old report links: All_Associated_Projects, All_Drawing_Types, Employ_to_Create_ticket_Report and Master_Equipment_List_Subform_Report.</div></div></div></div>`;
+    toast(detail,"error");
+  }finally{
+    idle();
   }
-  const trackingSource=await resolveTrackingSource();
-  const tr=trackingSource.rows;
-  const [pr,dr,er,eq]=await Promise.all([
-    safeSource(CONFIG.REPORTS.projects,"Project master"),safeSource(CONFIG.REPORTS.drawings,"Drawing master"),safeSource(CONFIG.REPORTS.employees,"Employee master"),safeSource(CONFIG.REPORTS.equipment,"Equipment master")
-  ]);
-  S.projects=pr.map(adaptProject).filter(x=>x.code).sort((a,b)=>String(b.code).localeCompare(String(a.code),undefined,{numeric:true}));
-  S.drawings=dr.map(adaptDrawing).filter(x=>x.name).sort((a,b)=>a.name.localeCompare(b.name));
-  S.employees=er.map(adaptEmployee).filter(x=>x.email||x.name).sort((a,b)=>a.name.localeCompare(b.name));
-  S.equipment=eq.map(adaptEquipment);
-  S.records=tr.map(adaptRecord);S.assignments=S.records.filter(isAssignmentRecord);S.revisions=S.records.filter(isRevisionRecord);
-  $("sessionPill").textContent=S.user?`Signed in: ${personDisplay(S.user)||S.user}`:"Creator session connected";
-  log("tracking-report-in-use",{report:CONFIG.REPORTS.tracking});
-  renderView();
-  if(!S.projects.length||!S.drawings.length||!S.employees.length||!S.equipment.length)toast("Some master reports are not accessible. Existing assignments still work, but new assignment/delegation options may be limited.","warn");
-}catch(e){console.error(e);const detail=errorText(e);$("sessionPill").textContent="Creator data access error";$("page").innerHTML=`<div class="panel"><div class="panel-body"><div class="empty"><div class="ico">⚠</div><strong>Creator data could not be loaded</strong><div>${h(detail)}</div><div class="small" style="margin-top:8px">The widget accepts an empty Design_Tracking report as valid. If loading still fails, verify the exact report link name and this user's View permission.</div></div></div></div>`;toast(detail,"error")}finally{idle()}}
-async function refreshData(){busy("Refreshing assignments and design revisions…");try{const source=await resolveTrackingSource();const tr=source.rows;S.records=tr.map(adaptRecord);S.assignments=S.records.filter(isAssignmentRecord);S.revisions=S.records.filter(isRevisionRecord);renderView();toast("Workspace refreshed.","good")}finally{idle()}}
+}
+
+async function refreshData(){busy("Refreshing assignments and design revisions…");try{let tr=[];try{const source=await resolveTrackingSource();tr=source.rows||[]}catch(e){toast(`Design Tracking refresh warning: ${errorText(e)}`,"warn");return}S.records=tr.map(adaptRecord);S.assignments=S.records.filter(isAssignmentRecord);S.revisions=S.records.filter(isRevisionRecord);renderView();toast("Workspace refreshed.","good")}finally{idle()}}
 
 function employeeOptions(value="",blank="Select team member…"){const v=String(value||"");return `<option value="">${h(blank)}</option>`+S.employees.map(e=>{const val=e.email||e.id;return `<option value="${h(val)}" ${String(val)===v?"selected":""}>${h(e.name||e.email)}${e.department?` — ${h(e.department)}`:""}</option>`}).join("")}
 function projectOptions(value=""){return `<option value="">Select project…</option>`+S.projects.map(p=>`<option value="${h(p.id)}" ${p.id===value?"selected":""}>${h(p.code)}${p.name?` — ${h(p.name)}`:""}</option>`).join("")}
