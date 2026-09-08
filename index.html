@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="color-scheme" content="light">
-<title>MEGA Engineering | Drawing & Document Control V17.5 POC Open Access</title>
+<title>MEGA Engineering | Drawing & Document Control V17.6 POC Full Open Delegation</title>
 <script src="https://static.zohocdn.com/creator/widgets/version/2.0/widgetsdk-min.js"></script>
 <style>
 :root{
@@ -81,7 +81,7 @@ body{font:14px/1.48 Inter,"Segoe UI",Arial,sans-serif}button,input,select,textar
 "use strict";
 
 /* ======================================================================
-   V17.5 ONE-FORM ENGINEERING DESIGN CONTROL — POC OPEN ACCESS
+   V17.6 ONE-FORM ENGINEERING DESIGN CONTROL — POC FULL OPEN DELEGATION
    ----------------------------------------------------------------------
    READS existing masters:
      - Project master
@@ -769,13 +769,34 @@ function targetLabel(row){return [...S.selectedCriteria].map(k=>{const c=CRITERI
 // makeTargetRows(): groups Equipment master rows according to selected assignment criteria.
 function makeTargetRows(a){if(!S.selectedCriteria.size)return[];const base=S.equipment.filter(eq=>equipmentWithinAssignment(eq,a)),map=new Map();for(const eq of base){const row={plantSection:eq.plantSection,plantSectionType:eq.plantSectionType,equipmentCategory:eq.equipmentCategory,tag:eq.tag,name:eq.name,equipmentRecordId:eq.id,groupCode:eq.groupCode,department:eq.department,equipmentType:eq.equipmentType};const k=targetKey(row);if(k&&!map.has(k))map.set(k,row)}return [...map.values()].sort((x,y)=>targetLabel(x).localeCompare(targetLabel(y),undefined,{numeric:true}))}
 function existingChildForTarget(parent,row){return assignmentChildren(idOf(parent)).find(ch=>[...S.selectedCriteria].every(k=>{const c=CRITERIA.find(x=>x.key===k);if(k==="tag")return scalar(ch[AF.tagNo])===row.tag;return scalar(ch[c.field])===String(row[k]||"")}))}
-function renderDelegateTab(){const a=S.current;
-                             
-                             /* ORIGINAL PRODUCTION ASSIGN-FURTHER VALIDATION — COMMENTED FOR POC:
-                             if(!canAssignFurther(a))return `<div class="tab-card"><div class="empty"><div class="ico">🔒</div><strong>Only ${h(assignmentDisplayUser(a))} 
-                             can assign this responsibility further</strong>You can still view the family tree and design history.</div></div>`;
-                             END ORIGINAL PRODUCTION VALIDATION */
-                             S.targetRows=makeTargetRows(a);return `<div class="tab-card"><div class="scope-box"><div class="k">CURRENT RESPONSIBILITY — REFERENCE</div><div class="v">${h(scopeSummary(a))}</div></div><div class="section-row" style="margin-top:0"><div><h2>How do you want to divide this work?</h2><p>Select one or more criteria. POC open-scope mode: inherited Section / Type / Tag / Category restrictions are disabled. Choose any matching value in this Project.</p></div></div><div class="criteria-grid">${CRITERIA.map(c=>`<div class="criterion ${S.selectedCriteria.has(c.key)?"selected":""}" data-criterion="${h(c.key)}"><div class="t">${h(c.icon)} &nbsp;${h(c.label)}</div><div class="s">${c.key==="tag"?"Select individual equipment / tags":"Group work by this business value"}</div></div>`).join("")}</div><div id="targetArea">${renderTargetArea(a)}</div></div>`}
+function renderDelegateTab(){
+  const a=S.current;
+
+  /* ORIGINAL PRODUCTION ASSIGN-FURTHER VALIDATION — COMMENTED FOR POC:
+
+  // Only the user who received this responsibility was allowed to delegate it.
+  // When this condition was active, another logged-in user saw the lock message:
+  // "Only <Assigned User> can assign this responsibility further".
+  if(!canAssignFurther(a))
+  {
+    return `<div class="tab-card"><div class="empty"><div class="ico">🔒</div><strong>Only ${h(assignmentDisplayUser(a))} can assign this responsibility further</strong>You can still view the family tree and design history.</div></div>`;
+  }
+
+  END ORIGINAL PRODUCTION VALIDATION */
+
+  // V17.6 POC FULL OPEN DELEGATION:
+  // No logged-in-user ownership validation is applied here.
+  // Any Creator user who can open this widget and has Creator permission to create/update
+  // Design_Tracking records may open ANY assignment node and assign that responsibility
+  // to ANY employee available in the employee master.
+  // Example: Megha can open Kunal's assignment and assign a child task to Ram.
+  // Example: Ram can open Megha's assignment and assign a child task to Tejas.
+  // The family-tree relationship is still stored with Assigned_From_ID and
+  // Primary_Assignment_ID; only the "who is allowed to delegate" restriction is disabled.
+
+  S.targetRows=makeTargetRows(a);
+  return `<div class="tab-card"><div class="notice good" style="margin-bottom:14px"><b>POC Open Delegation:</b> Any permitted user can assign this responsibility further to any employee.</div><div class="scope-box"><div class="k">CURRENT RESPONSIBILITY — REFERENCE</div><div class="v">${h(scopeSummary(a))}</div></div><div class="section-row" style="margin-top:0"><div><h2>How do you want to divide this work?</h2><p>Select one or more criteria. POC open-scope mode: inherited Section / Type / Tag / Category restrictions are disabled. Choose any matching value in this Project.</p></div></div><div class="criteria-grid">${CRITERIA.map(c=>`<div class="criterion ${S.selectedCriteria.has(c.key)?"selected":""}" data-criterion="${h(c.key)}"><div class="t">${h(c.icon)} &nbsp;${h(c.label)}</div><div class="s">${c.key==="tag"?"Select individual equipment / tags":"Group work by this business value"}</div></div>`).join("")}</div><div id="targetArea">${renderTargetArea(a)}</div></div>`;
+}
 function renderTargetArea(a){S.targetRows=makeTargetRows(a);if(!S.selectedCriteria.size)return `<div class="notice">Choose at least one option above. Example: <b>Plant Section + Plant Section Type</b>, or <b>Tag / Equipment</b>.</div>`;const q=S.targetSearch||"",rows=S.targetRows.filter(r=>!q||targetLabel(r).toLowerCase().includes(q.toLowerCase())),selected=S.selectedTargets.size;return `<div class="target-toolbar"><input id="targetSearch" class="input search" placeholder="Search matching responsibility…" value="${h(q)}"><div class="actions"><button class="btn sm" data-act="select-next-10">Select next 10</button><button class="btn sm" data-act="select-all-targets">Select all</button><button class="btn link sm" data-act="clear-targets">Clear</button></div></div><div class="selection-note"><b>${selected}</b> selected of ${rows.length} matching responsibility values.</div><div class="table-wrap" style="margin-top:8px"><table><thead><tr><th></th>${[...S.selectedCriteria].map(k=>{const c=CRITERIA.find(x=>x.key===k);return k==="tag"?'<th>Tag No</th><th>Equipment Name</th>':`<th>${h(c.label)}</th>`}).join("")}<th>Availability</th></tr></thead><tbody>${rows.length?rows.map(r=>{const key=targetKey(r),ex=existingChildForTarget(a,r),sel=S.selectedTargets.has(key);return `<tr class="${sel?"selected":""}"><td><input class="check target-check" type="checkbox" data-target="${h(key)}" ${sel?"checked":""} ${ex?"disabled":""}></td>${[...S.selectedCriteria].map(k=>{const c=CRITERIA.find(x=>x.key===k);return k==="tag"?`<td><b>${h(r.tag||"—")}</b></td><td>${h(r.name||"—")}</td>`:`<td>${h(r[k]||"—")}</td>`}).join("")}<td>${ex?'<span class="pill green">Already assigned</span>':'<span class="pill">New</span>'}</td></tr>`}).join(""):'<tr><td colspan="12" style="padding:20px;text-align:center;color:#667085">No matching values exist for the selected criteria in this Project.</td></tr>'}</tbody></table></div>${selected?renderBulkBar():""}`}
 function renderBulkBar(){const d=S.bulk||{};return `<div class="bulk-bar"><div class="bulk-grid"><div class="field"><label>Assign selected to *</label><select id="bulkUser">${employeeOptions(d.user||"")}</select></div><div class="field"><label>Priority</label><select id="bulkPriority">${PRIORITIES.map(p=>`<option ${p===(d.priority||"Medium")?"selected":""}>${h(p)}</option>`).join("")}</select></div><div class="field"><label>Start Date *</label><input id="bulkStart" type="date" value="${h(d.start||todayIso())}"></div><div class="field"><label>Target Date *</label><input id="bulkTarget" type="date" value="${h(d.target||"")}"></div><div class="field"><label>End Date</label><input id="bulkEnd" type="date" value="${h(d.end||"")}"></div><div class="field"><label>Common Remark</label><input id="bulkRemark" value="${h(d.remark||"")}" placeholder="Optional instruction"></div><button class="btn primary" data-act="review-bulk">Review ${S.selectedTargets.size}</button></div><div class="bulk-summary">Each selected row becomes an independent Design_Tracking assignment record. The receiver can divide it again later.</div></div>`}
 function collectBulk(){S.bulk={user:$("bulkUser")?.value||"",priority:$("bulkPriority")?.value||"Medium",start:$("bulkStart")?.value||"",target:$("bulkTarget")?.value||"",end:$("bulkEnd")?.value||"",remark:$("bulkRemark")?.value||""};return S.bulk}
