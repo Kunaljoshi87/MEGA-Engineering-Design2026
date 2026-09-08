@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="color-scheme" content="light">
-<title>MEGA Engineering | Drawing & Document Control V17.7 POC Step-by-Step Open Workflow</title>
+<title>MEGA Engineering | Drawing & Document Control V17.8 POC Step-by-Step Workflow + PDS Workspace</title>
 <script src="https://static.zohocdn.com/creator/widgets/version/2.0/widgetsdk-min.js"></script>
 <style>
 :root{
@@ -40,6 +40,21 @@ body{font:14px/1.48 Inter,"Segoe UI",Arial,sans-serif}button,input,select,textar
 .criteria-grid{display:grid;grid-template-columns:repeat(4,minmax(130px,1fr));gap:9px;margin:12px 0}.criterion{border:1px solid var(--line);border-radius:11px;padding:11px;background:#fff;cursor:pointer;transition:.12s}.criterion:hover{border-color:#dcb5c8;background:#fffafd}.criterion.selected{border-color:var(--brand);background:var(--brand-soft);box-shadow:0 0 0 2px rgba(196,39,112,.08)}.criterion .t{font-weight:900}.criterion .s{font-size:10px;color:var(--muted);margin-top:2px}.target-toolbar{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin:12px 0 7px}.target-toolbar .search{flex:1;min-width:220px}.selection-note{font-size:11px;color:var(--muted)}.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:11px}.table-wrap table{width:100%;border-collapse:collapse;min-width:650px}.table-wrap th{background:#f8fafc;text-align:left;font-size:9px;color:#667085;text-transform:uppercase;letter-spacing:.04em;padding:8px;border-bottom:1px solid var(--line)}.table-wrap td{padding:8px;border-bottom:1px solid var(--line2);font-size:11px;vertical-align:middle}.table-wrap tr:last-child td{border-bottom:0}.table-wrap tr.selected{background:#fff7fb}.check{width:16px;height:16px;accent-color:var(--brand)}.bulk-bar{margin-top:12px;padding:13px;border:1px solid #eccbd9;background:#fff8fb;border-radius:12px}.bulk-grid{display:grid;grid-template-columns:1.25fr .8fr 1fr 1fr 1fr 1.2fr auto;gap:9px;align-items:end}.bulk-summary{font-size:10px;color:var(--muted);margin-top:8px}
 .modal-backdrop{position:fixed;inset:0;background:#10182885;backdrop-filter:blur(2px);display:flex;align-items:center;justify-content:center;padding:18px;z-index:120}.modal{width:min(920px,100%);max-height:92vh;background:#fff;border-radius:16px;box-shadow:0 24px 80px rgba(16,24,40,.25);overflow:hidden;display:flex;flex-direction:column}.modal-head{padding:15px 18px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:12px}.modal-title{font-size:17px;font-weight:900}.modal-sub{font-size:11px;color:var(--muted);margin-top:2px}.modal-body{padding:17px;overflow:auto}.modal-foot{padding:12px 17px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap}.icon-btn{width:34px;height:34px;border:0;border-radius:9px;background:#f0f2f5;font-size:19px}.review-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:12px}.review-metric{border:1px solid var(--line);border-radius:10px;padding:12px}.review-metric .n{font-size:22px;font-weight:900}.review-metric .l{font-size:9px;color:var(--muted);font-weight:800}
 .loading{position:fixed;inset:0;background:#ffffffd9;backdrop-filter:blur(2px);z-index:150;display:flex;align-items:center;justify-content:center}.loading-box{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px 21px;box-shadow:var(--shadow);min-width:280px}.spinner{width:23px;height:23px;border-radius:50%;border:3px solid #efd2df;border-top-color:var(--brand);animation:spin .8s linear infinite;margin-bottom:8px}@keyframes spin{to{transform:rotate(360deg)}}.toasts{position:fixed;right:18px;bottom:18px;z-index:170;max-width:450px}.toast{margin-top:7px;padding:11px 13px;border-radius:10px;background:#253348;color:#fff;font-size:12px;box-shadow:var(--shadow)}.toast.error{background:#a82b3d}.toast.good{background:#176541}.toast.warn{background:#8a5c0a}
+
+/* ========================= PDS WORKSPACE UI =========================
+   Read-only engineering reference workspace shown only when the selected
+   Drawing / Document is PDS (Process Data Sheet). It reads the existing
+   PD Sheet reports and never copies PDS rows into Design_Tracking.
+   =================================================================== */
+.pds-shell{display:grid;gap:12px}.pds-context{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 15px;border:1px solid #eadde5;border-radius:13px;background:linear-gradient(135deg,#fff,#fff7fb)}
+.pds-context h3{margin:0;font-size:15px}.pds-context p{margin:3px 0 0;font-size:11px;color:var(--muted)}
+.pds-type-grid{display:grid;grid-template-columns:repeat(4,minmax(150px,1fr));gap:9px}.pds-type-card{border:1px solid var(--line);background:#fff;border-radius:12px;padding:12px;text-align:left;transition:.12s;box-shadow:var(--shadow-sm)}.pds-type-card:hover{border-color:#d8a8bf;transform:translateY(-1px)}.pds-type-card.active{border-color:var(--brand);background:var(--brand-soft);box-shadow:0 0 0 2px rgba(196,39,112,.06)}
+.pds-type-top{display:flex;align-items:center;justify-content:space-between;gap:8px}.pds-type-icon{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;background:#f5f7fa;font-weight:900;color:#475467}.pds-type-card.active .pds-type-icon{background:#fff;color:var(--brand2)}.pds-type-name{font-weight:900;font-size:12px}.pds-type-count{font-size:18px;font-weight:900;margin-top:7px}.pds-type-meta{font-size:9px;color:var(--muted);margin-top:2px}
+.pds-status-row{display:flex;gap:7px;align-items:center;flex-wrap:wrap}.pds-status-btn{border:1px solid var(--line);background:#fff;border-radius:999px;padding:6px 10px;font-size:10px;font-weight:850;color:#475467}.pds-status-btn.active{background:#253348;color:#fff;border-color:#253348}.pds-status-btn.pending.active{background:var(--red);border-color:var(--red)}.pds-status-btn.approved.active{background:var(--green);border-color:var(--green)}.pds-status-btn.underapproval.active{background:var(--amber);border-color:var(--amber)}
+.pds-toolbar{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap}.pds-toolbar .search{flex:1;min-width:240px}.pds-source{font-size:9px;color:var(--muted);padding:5px 8px;background:#f8fafc;border:1px solid var(--line2);border-radius:8px}.pds-summary-name{font-weight:850}.pds-status-stack{display:flex;gap:5px;flex-wrap:wrap}.pds-empty-source{padding:22px;border:1px dashed #d6dce5;border-radius:12px;background:#fcfcfd;color:var(--muted);font-size:11px;text-align:center}
+@media(max-width:1150px){.pds-type-grid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:780px){.pds-type-grid{grid-template-columns:repeat(2,1fr)}.pds-context{align-items:flex-start;flex-direction:column}}
+@media(max-width:520px){.pds-type-grid{grid-template-columns:1fr}}
 @media(max-width:1250px){.cards,.group-grid{grid-template-columns:repeat(2,1fr)}.detail-shell{grid-template-columns:300px minmax(0,1fr)}.bulk-grid{grid-template-columns:1fr 1fr 1fr}.bulk-grid .field:nth-child(5){grid-column:1/3}.summary{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:900px){.top-search{display:none}.app{padding:12px}.metrics{grid-template-columns:repeat(2,1fr)}.cards,.group-grid{grid-template-columns:1fr}.detail-shell{grid-template-columns:1fr}.tree-scroll{max-height:340px}.grid2,.grid3,.two-col,.role-grid,.file-grid{grid-template-columns:1fr}.criteria-grid{grid-template-columns:repeat(2,1fr)}.bulk-grid{grid-template-columns:1fr}.bulk-grid .field:nth-child(5){grid-column:auto}.summary{grid-template-columns:1fr 1fr}.session{display:none}.brand{min-width:0}.topbar-inner{padding:11px 13px}.hero{align-items:flex-start;flex-direction:column}.hero-badge{width:100%}}
 @media(max-width:560px){.metrics{grid-template-columns:1fr 1fr}.metric{padding:11px}.navtabs{width:100%;overflow:auto}.navtab{white-space:nowrap}.summary{grid-template-columns:1fr}.criteria-grid{grid-template-columns:1fr}.detail-top{flex-direction:column}.revision-card{grid-template-columns:52px minmax(0,1fr)}.rev-side{grid-column:2;text-align:left;align-items:flex-start}}
@@ -81,7 +96,7 @@ body{font:14px/1.48 Inter,"Segoe UI",Arial,sans-serif}button,input,select,textar
 "use strict";
 
 /* ======================================================================
-   V17.7 ONE-FORM ENGINEERING DESIGN CONTROL — POC STEP-BY-STEP OPEN WORKFLOW
+   V17.8 ONE-FORM ENGINEERING DESIGN CONTROL — POC WORKFLOW + PDS WORKSPACE
    ----------------------------------------------------------------------
    READS existing masters:
      - Project master
@@ -145,6 +160,23 @@ const CONFIG={
   MAX_BATCH:250
 };
 
+/* ===================== EXISTING PDS REPORT SOURCES =====================
+   All_PD_Sheet is confirmed from the existing Creator report URL shown in
+   the current application. The remaining arrays contain the normal Creator
+   link-name variants for the existing submenu reports. The resolver tries
+   them lazily only when the user opens that PDS type. No new form is used.
+   ======================================================================= */
+const PDS_REPORTS={
+  all:["All_PD_Sheet"],
+  equipment:["All_Equipment_PDS"],
+  nozzle:["All_Nozzle_PDS","All_Nozzle_PDS_Report"],
+  structure:["All_Structure_PDS","All_Structure_PDS_Report"],
+  piping:["All_Piping_PDS","All_Piping_PDS_Report"],
+  boughtout:["All_Bought_Out_PDS","All_Bought_Out_PDS_Report","All_Boughtout_PDS"],
+  consumable:["All_Consumable_PDS","All_Consumable_PDS_Report"],
+  ei:["All_E_I_PDS","All_E_I_PDS_Report","All_EI_PDS","All_E_and_I_PDS"]
+};
+
 /* ================= SECTION 02: DESIGN_TRACKING FIELDS =================
    Maps readable code names to the exact existing Design_Tracking link names.
    ======================================================================= */
@@ -184,6 +216,91 @@ const CRITERIA=[
   {key:"equipmentCategory",label:"Equipment Category",field:AF.equipmentCategory,icon:"C",equipment:["Equipment_Category","Category"]},
   {key:"equipmentType",label:"Equipment Type",field:AF.equipmentType,icon:"T",equipment:["Equipment_Type","Type"]}
 ];
+/* ===================== PDS WORKSPACE DEFINITIONS =====================
+   These aliases intentionally accept legacy field-name variations because
+   the PD Sheet reports were created at different times in the same app.
+   ===================================================================== */
+const PDS_SCOPE_ALIASES={
+  project:["Project_Code","Project_Code1","Project","Project_Code2","Project_Code3"],
+  plantSection:["Plant_Section_Name","Plant_Section","Section_Name","Plant_Section_Name1"],
+  plantSectionType:["Plant_Section_Type","Section_Type","Plant_Section_Type1"],
+  tag:["Tag_Number","Tag_No","Equipment_Tag","Tag_Number1"],
+  equipmentName:["Equipment_Name","Equipment","Equipment_Name1","Name"],
+  groupCode:["Group_Code","Group","Group_Code1"],
+  department:["Department_Code","Department","Equipment_Department","Department_Code1"],
+  category:["Equipment_Category","Category","Equipment_Category1"],
+  equipmentType:["Equipment_Type","Type","Equipment_Type1"],
+  subtype:["Equipment_Subtype","Equipment_Sub_Type","Subtype"],
+  sectionRef:["Section_Ref","Section_Reference"],
+  actualCost:["Actual_Cost","Estimated_Cost","Cost"]
+};
+const PDS_STATUS_ALIASES={
+  equipment:["Equipment_PDS_Status","Equipment_PDS_Status1","PDS_Status","Status"],
+  nozzle:["Nozzle_PDS_Status","Nozzle_PDS_Status1","PDS_Status","Status"],
+  structure:["Structure_PDS_Status","Structure_PDS_Status1","PDS_Status","Status"],
+  piping:["Piping_PDS_Status","Piping_PDS_Status1","PDS_Status","Status"],
+  boughtout:["Bought_Out_PDS_Status","Boughtout_PDS_Status","Bought_Out_Status","PDS_Status","Status"],
+  consumable:["Consumable_PDS_Status","Consumable_Status","PDS_Status","Status"],
+  ei:["E_I_PDS_Status","EI_PDS_Status","E_I_Status","PDS_Status","Status"]
+};
+const PDS_TYPES=[
+  {key:"all",label:"All PD Sheet",icon:"PD"},
+  {key:"equipment",label:"Equipment PDS",icon:"EQ"},
+  {key:"nozzle",label:"Nozzle PDS",icon:"NZ"},
+  {key:"structure",label:"Structure PDS",icon:"ST"},
+  {key:"piping",label:"Piping PDS",icon:"PI"},
+  {key:"boughtout",label:"Bought Out PDS",icon:"BO"},
+  {key:"consumable",label:"Consumable PDS",icon:"CO"},
+  {key:"ei",label:"E&I PDS",icon:"EI"}
+];
+const PDS_DETAIL_COLUMNS={
+  equipment:[
+    ["PDS",["PDS_Name","PDS_Name1","PDS"]],
+    ["Tag",PDS_SCOPE_ALIASES.tag],["Equipment",PDS_SCOPE_ALIASES.equipmentName],
+    ["Category",PDS_SCOPE_ALIASES.category],["Type",PDS_SCOPE_ALIASES.equipmentType],
+    ["Subtype",PDS_SCOPE_ALIASES.subtype],["Section Ref",PDS_SCOPE_ALIASES.sectionRef]
+  ],
+  nozzle:[
+    ["Tag",PDS_SCOPE_ALIASES.tag],["Equipment",PDS_SCOPE_ALIASES.equipmentName],
+    ["Nozzle No.",["Nozzle_No","Nozzle_Number","Nozzle_No1"]],
+    ["Size",["Nozzle_Size","Size","Nozzle_Size_Unit"]],
+    ["Service",["Service","Nozzle_Service","Description"]],
+    ["Type",["Nozzle_Type","Type"]],["Section Ref",PDS_SCOPE_ALIASES.sectionRef]
+  ],
+  structure:[
+    ["Tag",PDS_SCOPE_ALIASES.tag],["Equipment",PDS_SCOPE_ALIASES.equipmentName],
+    ["Structure No.",["Structure_No","Structure_Number","Structure_No1"]],
+    ["Member",["Structure_Member","Member","Structure_Member1"]],
+    ["Structure Type",["Structure_Type","Type"]],["Item Size",["Item_Size","Size"]],
+    ["Section Ref",PDS_SCOPE_ALIASES.sectionRef]
+  ],
+  piping:[
+    ["Line No.",["Line_No","Line_Number","Line_No1"]],
+    ["Tag",PDS_SCOPE_ALIASES.tag],["Equipment",PDS_SCOPE_ALIASES.equipmentName],
+    ["From",["From","From_Equipment","From_Tag"]],["To",["To","To_Equipment","To_Tag"]],
+    ["Size",["Pipe_Size","Line_Size","Size"]],["Class",["Piping_Class","Pipe_Class","Class"]]
+  ],
+  boughtout:[
+    ["PDS",["PDS_Name","PDS_Name1","PDS"]],["Tag",PDS_SCOPE_ALIASES.tag],
+    ["Equipment",PDS_SCOPE_ALIASES.equipmentName],["Category",PDS_SCOPE_ALIASES.category],
+    ["Type",PDS_SCOPE_ALIASES.equipmentType],["Vendor",["Vendor","Vendor_Name","Supplier"]],
+    ["Section Ref",PDS_SCOPE_ALIASES.sectionRef]
+  ],
+  consumable:[
+    ["Item",["Item_Name","Consumable_Name","Material_Name","Item"]],
+    ["Tag",PDS_SCOPE_ALIASES.tag],["Equipment",PDS_SCOPE_ALIASES.equipmentName],
+    ["Category",PDS_SCOPE_ALIASES.category],["Type",PDS_SCOPE_ALIASES.equipmentType],
+    ["Section Ref",PDS_SCOPE_ALIASES.sectionRef]
+  ],
+  ei:[
+    ["Tag",["Instrument_Tag","Tag_Number","Tag_No"]],
+    ["Equipment / Instrument",["Instrument_Name","Equipment_Name","Equipment","Name"]],
+    ["Category",PDS_SCOPE_ALIASES.category],["Type",PDS_SCOPE_ALIASES.equipmentType],
+    ["Cable / Panel",["Cable_No","Cable_Number","Panel_Name","Panel"]],
+    ["Section Ref",PDS_SCOPE_ALIASES.sectionRef]
+  ]
+};
+
 const ASSIGNMENT_STATUSES=["Not Started","In Progress","On Hold","Completed","Cancelled"];
 const PRIORITIES=["Low","Medium","High","Critical"];
 const DESIGN_STATUSES=["Not Started","In Progress","Submitted for Check","Checking","Checked","Submitted for Review","Reviewing","Reviewed","Submitted for Approval","Approving","Approved","Issued","Completed","Returned","On Hold","Cancelled"];
@@ -292,7 +409,10 @@ const S={
   projects:[],drawings:[],employees:[],equipment:[],records:[],assignments:[],revisions:[],
   project:null,drawing:null,current:null,detailTab:"overview",expanded:new Set(),
   selectedCriteria:new Set(),selectedTargets:new Set(),targetRows:[],targetSearch:"",bulk:{},
-  newProjectId:"",newDrawingId:"",logs:[]
+  newProjectId:"",newDrawingId:"",logs:[],
+  // PDS data is loaded lazily. Summary is read from All_PD_Sheet; each detailed
+  // source is loaded only after its Equipment/Nozzle/Structure/etc. card is used.
+  pds:{activeType:"all",status:"All",search:"",summary:null,detail:{},resolved:{},errors:{},loading:{}}
 };
 const $=id=>document.getElementById(id);
 const h=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
@@ -502,6 +622,203 @@ function assignmentDueClass(a){if(isClosedAssignment(a))return"completed";const 
 function assignmentDueText(a){const iso=toInputDate(a[AF.targetDate]);const diff=dateDiffDays(iso);if(!iso)return"No target";if(isClosedAssignment(a))return displayDate(iso);if(diff<0)return `${Math.abs(diff)} day${Math.abs(diff)===1?"":"s"} overdue`;if(diff===0)return"Due today";if(diff<=7)return`Due in ${diff} day${diff===1?"":"s"}`;return displayDate(iso)}
 function primaryAssignmentFor(project,drawing){return S.assignments.find(a=>scalar(a[AF.projectCode])===project.code&&(scalar(a[AF.drawingMasterId])===drawing.id||scalar(a[AF.drawingDocument])===drawing.name)&&num(a[AF.assignmentLevel],-1)===0&&!scalar(a[AF.assignedFrom]))||null}
 
+
+/* ====================== SECTION 08B: PDS WORKSPACE =====================
+   The PDS Workspace is a READ-ONLY reference layer inside the selected PDS
+   assignment. Assignment and revision records remain in Design_Tracking.
+   Existing PD Sheet reports remain the source of truth.
+   ===================================================================== */
+function isPdsDrawing(a=S.current){
+  if(!a)return false;
+  const d=drawingForAssignment(a);
+  const text=`${d.short||""} ${d.name||""}`.toLowerCase();
+  return /(^|\s)pds($|\s)|process\s*data\s*sheet|pd\s*sheet/.test(text);
+}
+function pdsTypeConfig(key){return PDS_TYPES.find(x=>x.key===key)||PDS_TYPES[0]}
+function pdsStatusValue(row,type){return type==="all"?"":pick(row,PDS_STATUS_ALIASES[type]||["Status"],"")}
+function pdsStatusPill(status){
+  const s=scalar(status).trim();
+  const k=nk(s);
+  let cls="";
+  if(k.includes("approved")&&!k.includes("under"))cls="green";
+  else if(k.includes("underapproval")||k.includes("submitted")||k.includes("approval"))cls="amber";
+  else if(k.includes("pending")||k.includes("rejected"))cls="red";
+  return `<span class="pill ${cls}">${h(s||"—")}</span>`;
+}
+function pdsSameValue(actual,expected){
+  const a=nk(actual),e=nk(expected);if(!e)return true;if(!a)return false;
+  return a===e||a.startsWith(e)||e.startsWith(a);
+}
+function assignmentScopedEquipment(a){
+  if(!a)return[];
+  const project=scalar(a[AF.projectCode]),sec=scalar(a[AF.plantSection]),stype=scalar(a[AF.plantSectionType]),tag=scalar(a[AF.tagNo]),group=scalar(a[AF.groupCode]),dept=scalar(a[AF.department]),cat=scalar(a[AF.equipmentCategory]),etype=scalar(a[AF.equipmentType]);
+  return S.equipment.filter(e=>{
+    if(project&&!pdsSameValue(e.project,project))return false;
+    if(sec&&!pdsSameValue(e.plantSection,sec))return false;
+    if(stype&&!pdsSameValue(e.plantSectionType,stype))return false;
+    if(tag&&!pdsSameValue(e.tag,tag))return false;
+    if(group&&!pdsSameValue(e.groupCode,group))return false;
+    if(dept&&!pdsSameValue(e.department,dept))return false;
+    if(cat&&!pdsSameValue(e.equipmentCategory,cat))return false;
+    if(etype&&!pdsSameValue(e.equipmentType,etype))return false;
+    return true;
+  });
+}
+function pdsRowMatchesAssignment(row,a){
+  if(!a)return true;
+  const expected=[
+    [scalar(a[AF.projectCode]),PDS_SCOPE_ALIASES.project,"project"],
+    [scalar(a[AF.plantSection]),PDS_SCOPE_ALIASES.plantSection,"scope"],
+    [scalar(a[AF.plantSectionType]),PDS_SCOPE_ALIASES.plantSectionType,"scope"],
+    [scalar(a[AF.tagNo]),PDS_SCOPE_ALIASES.tag,"scope"],
+    [scalar(a[AF.groupCode]),PDS_SCOPE_ALIASES.groupCode,"scope"],
+    [scalar(a[AF.department]),PDS_SCOPE_ALIASES.department,"scope"],
+    [scalar(a[AF.equipmentCategory]),PDS_SCOPE_ALIASES.category,"scope"],
+    [scalar(a[AF.equipmentType]),PDS_SCOPE_ALIASES.equipmentType,"scope"]
+  ];
+  let comparedScope=false;
+  for(const [wanted,aliases,kind] of expected){
+    if(!wanted)continue;
+    const actual=pick(row,aliases,"");
+    if(actual){if(!pdsSameValue(actual,wanted))return false;if(kind==="scope")comparedScope=true;}
+  }
+  // Some detail reports do not repeat Plant Section/Type fields. When that
+  // happens, fall back to Tag / Equipment Name and the already-loaded Master
+  // Equipment List so the current responsibility still narrows the PDS data.
+  const hasDetailedScope=expected.slice(1).some(([v])=>Boolean(v));
+  if(hasDetailedScope&&!comparedScope){
+    const allowed=assignmentScopedEquipment(a);
+    if(allowed.length){
+      const tag=pick(row,PDS_SCOPE_ALIASES.tag,""),name=pick(row,PDS_SCOPE_ALIASES.equipmentName,"");
+      if(tag&& !allowed.some(e=>pdsSameValue(e.tag,tag)))return false;
+      if(!tag&&name&& !allowed.some(e=>pdsSameValue(e.name,name)))return false;
+    }
+  }
+  return true;
+}
+async function resolvePdsSource(type){
+  if(Object.prototype.hasOwnProperty.call(S.pds.resolved,type))return S.pds.resolved[type];
+  const candidates=PDS_REPORTS[type]||[];
+  const errors=[];
+  for(const report of candidates){
+    try{
+      const rows=await fetchRecords(report,"",20);
+      S.pds.resolved[type]=report;
+      log("pds-report-resolved",{type,report,rows:rows.length});
+      return report;
+    }catch(e){errors.push(`${report}: ${errorText(e)}`)}
+  }
+  S.pds.resolved[type]=null;
+  S.pds.errors[type]=errors.join(" | ")||"No report candidate configured.";
+  return null;
+}
+async function ensurePdsData(type="all",force=false){
+  const dataKey=type==="all"?"summary":"detail";
+  if(type==="all"&&!force&&Array.isArray(S.pds.summary))return;
+  if(type!=="all"&&!force&&Array.isArray(S.pds.detail[type]))return;
+  if(S.pds.loading[type])return;
+  S.pds.loading[type]=true;
+  try{
+    if(force){delete S.pds.resolved[type];delete S.pds.errors[type]}
+    const report=await resolvePdsSource(type);
+    if(!report){
+      if(type==="all")S.pds.summary=[];else S.pds.detail[type]=[];
+      return;
+    }
+    const rows=await fetchRecords(report,"",20);
+    if(type==="all")S.pds.summary=rows;else S.pds.detail[type]=rows;
+  }finally{
+    S.pds.loading[type]=false;
+  }
+}
+function pdsRowsForType(type){return type==="all"?(S.pds.summary||[]):(S.pds.detail[type]||[])}
+function pdsRowsInScope(type){return pdsRowsForType(type).filter(r=>pdsRowMatchesAssignment(r,S.current))}
+function pdsSearchMatch(row,q){
+  if(!q)return true;
+  const fields=[...PDS_SCOPE_ALIASES.tag,...PDS_SCOPE_ALIASES.equipmentName,...PDS_SCOPE_ALIASES.plantSection,...PDS_SCOPE_ALIASES.plantSectionType,...PDS_SCOPE_ALIASES.category,...PDS_SCOPE_ALIASES.equipmentType,...PDS_SCOPE_ALIASES.sectionRef];
+  const values=fields.map(k=>scalar(row?.[k])).filter(Boolean).join(" ").toLowerCase();
+  return values.includes(q.toLowerCase());
+}
+function pdsRowPassesStatus(row,type,status){
+  if(!status||status==="All")return true;
+  if(type==="all")return Object.keys(PDS_STATUS_ALIASES).some(k=>nk(pdsStatusValue(row,k))===nk(status));
+  return nk(pdsStatusValue(row,type))===nk(status);
+}
+function pdsFilteredRows(type){
+  const q=S.pds.search.trim();
+  return pdsRowsInScope(type).filter(r=>pdsSearchMatch(r,q)&&pdsRowPassesStatus(r,type,S.pds.status));
+}
+function pdsSummaryStats(type){
+  if(type==="all")return {total:pdsRowsInScope("all").length,pending:0,under:0,approved:0};
+  const rows=pdsRowsInScope("all");
+  const statuses=rows.map(r=>pdsStatusValue(r,type)).filter(Boolean);
+  return {
+    total:statuses.length,
+    pending:statuses.filter(s=>nk(s).includes("pending")).length,
+    under:statuses.filter(s=>nk(s).includes("underapproval")).length,
+    approved:statuses.filter(s=>nk(s).includes("approved")&&!nk(s).includes("under")).length
+  };
+}
+function pdsTypeCardsHtml(){
+  return `<div class="pds-type-grid">${PDS_TYPES.map(t=>{
+    const active=S.pds.activeType===t.key,loaded=t.key==="all"?Array.isArray(S.pds.summary):Array.isArray(S.pds.detail[t.key]);
+    const st=pdsSummaryStats(t.key),detailCount=t.key!=="all"&&loaded?pdsRowsInScope(t.key).length:null;
+    const count=t.key==="all"?st.total:(st.total||detailCount||0);
+    const meta=t.key==="all"?"Project / responsibility summary":`${st.pending} pending • ${st.under} under approval • ${st.approved} approved`;
+    return `<button class="pds-type-card ${active?"active":""}" data-pds-type="${h(t.key)}"><div class="pds-type-top"><div class="pds-type-icon">${h(t.icon)}</div>${loaded?'<span class="pill green">Loaded</span>':''}</div><div class="pds-type-name">${h(t.label)}</div><div class="pds-type-count">${count}</div><div class="pds-type-meta">${h(meta)}</div></button>`;
+  }).join("")}</div>`;
+}
+function pdsAvailableStatuses(type){
+  const base=["All","Pending","Under Approval","Approved"];
+  const rows=pdsRowsInScope(type);
+  const found=new Set();
+  if(type==="all")rows.forEach(r=>Object.keys(PDS_STATUS_ALIASES).forEach(k=>{const s=pdsStatusValue(r,k);if(s)found.add(s)}));
+  else rows.forEach(r=>{const s=pdsStatusValue(r,type);if(s)found.add(s)});
+  return [...base,...[...found].filter(x=>!base.some(b=>nk(b)===nk(x)))];
+}
+function pdsToolbarHtml(type){
+  return `<div class="pds-toolbar"><div class="search"><input id="pdsSearch" class="input" value="${h(S.pds.search)}" placeholder="Search equipment, tag, section, type…"></div><div class="pds-status-row">${pdsAvailableStatuses(type).map(s=>`<button class="pds-status-btn ${nk(s)} ${nk(S.pds.status)===nk(s)?"active":""}" data-pds-status="${h(s)}">${h(s)}</button>`).join("")}</div><button class="btn sm" data-pds-refresh="${h(type)}">↻ Refresh</button></div>`;
+}
+function pdsSummaryTableHtml(rows){
+  const types=PDS_TYPES.filter(t=>!["all","boughtout","consumable","ei"].includes(t.key));
+  return `<div class="table-wrap"><table><thead><tr><th>Equipment</th><th>Category</th><th>Type</th><th>Subtype</th><th>Section Ref</th><th>Actual Cost</th>${types.map(t=>`<th>${h(t.label)}</th>`).join("")}<th></th></tr></thead><tbody>${rows.slice(0,500).map((r,i)=>`<tr><td><div class="pds-summary-name">${h(pick(r,PDS_SCOPE_ALIASES.equipmentName)||"—")}</div><div class="tiny muted">${h(pick(r,PDS_SCOPE_ALIASES.tag)||"")}</div></td><td>${h(pick(r,PDS_SCOPE_ALIASES.category)||"—")}</td><td>${h(pick(r,PDS_SCOPE_ALIASES.equipmentType)||"—")}</td><td>${h(pick(r,PDS_SCOPE_ALIASES.subtype)||"—")}</td><td>${h(pick(r,PDS_SCOPE_ALIASES.sectionRef)||"—")}</td><td>${h(pick(r,PDS_SCOPE_ALIASES.actualCost)||"—")}</td>${types.map(t=>`<td>${pdsStatusPill(pdsStatusValue(r,t.key))}</td>`).join("")}<td><button class="btn sm" data-pds-row="all:${i}">View</button></td></tr>`).join("")}</tbody></table></div>${rows.length>500?`<div class="tiny muted" style="margin-top:7px">Showing first 500 of ${rows.length} matching records.</div>`:""}`;
+}
+function pdsColumnsFor(type,rows){
+  const defs=PDS_DETAIL_COLUMNS[type]||[];
+  return defs.filter(([,aliases])=>rows.some(r=>Boolean(pick(r,aliases,"")))).slice(0,7);
+}
+function pdsDetailTableHtml(type,rows){
+  const cols=pdsColumnsFor(type,rows);
+  return `<div class="table-wrap"><table><thead><tr>${cols.map(([label])=>`<th>${h(label)}</th>`).join("")}<th>Status</th><th></th></tr></thead><tbody>${rows.slice(0,500).map((r,i)=>`<tr>${cols.map(([,aliases])=>`<td>${h(pick(r,aliases)||"—")}</td>`).join("")}<td>${pdsStatusPill(pdsStatusValue(r,type))}</td><td><button class="btn sm" data-pds-row="${h(type)}:${i}">View</button></td></tr>`).join("")}</tbody></table></div>${rows.length>500?`<div class="tiny muted" style="margin-top:7px">Showing first 500 of ${rows.length} matching records.</div>`:""}`;
+}
+function renderPdsWorkspaceBody(){
+  const type=S.pds.activeType,report=S.pds.resolved[type],loading=S.pds.loading[type];
+  if(loading)return `<div class="empty compact"><strong>Loading ${h(pdsTypeConfig(type).label)}…</strong>Reading the existing Creator report.</div>`;
+  if(type==="all"&&!Array.isArray(S.pds.summary))return `<div class="empty compact"><strong>Preparing PDS Workspace…</strong>Loading All PD Sheet for this responsibility.</div>`;
+  if(type!=="all"&&!Array.isArray(S.pds.detail[type]))return `<div class="empty compact"><strong>Loading ${h(pdsTypeConfig(type).label)}…</strong>This source is loaded only when you open it.</div>`;
+  if(!report){return `<div class="pds-empty-source"><strong>${h(pdsTypeConfig(type).label)} source could not be resolved.</strong><br>${h(S.pds.errors[type]||"Check the existing Creator report link name / View permission.")}</div>`}
+  const rows=pdsFilteredRows(type);
+  return `${pdsToolbarHtml(type)}<div class="section-row"><div><h2>${h(pdsTypeConfig(type).label)}</h2><p>${rows.length} matching record${rows.length===1?"":"s"} inside ${h(scopeSummary(S.current))}.</p></div><span class="pds-source">Source: ${h(report)}</span></div>${rows.length?(type==="all"?pdsSummaryTableHtml(rows):pdsDetailTableHtml(type,rows)):`<div class="empty compact"><strong>No matching ${h(pdsTypeConfig(type).label)} records</strong>Try All Status or remove the search text. The current assignment responsibility is automatically applied.</div>`}`;
+}
+function renderPdsWorkspaceTab(){
+  const a=S.current;
+  if(!isPdsDrawing(a))return `<div class="tab-card"><div class="empty"><strong>PDS Workspace is available for PDS drawings</strong>Select / open Process Data Sheet (PDS) to use the existing Equipment, Nozzle, Structure, Piping, Bought Out, Consumable and E&I PDS reports.</div></div>`;
+  if(!Array.isArray(S.pds.summary)&&!S.pds.loading.all)setTimeout(()=>guarded(async()=>{await ensurePdsData("all");renderView()}),0);
+  const type=S.pds.activeType;
+  if(type!=="all"&&!Array.isArray(S.pds.detail[type])&&!S.pds.loading[type])setTimeout(()=>guarded(async()=>{await ensurePdsData(type);renderView()}),0);
+  return `<div class="tab-card"><div class="pds-shell"><div class="pds-context"><div><h3>PDS Workspace</h3><p>Read-only engineering data for Project ${h(scalar(a[AF.projectCode]))} • ${h(scopeSummary(a))}. Assignment scope is applied automatically.</p></div><span class="pill brand">Existing PD Sheet reports</span></div>${pdsTypeCardsHtml()}<div id="pdsWorkspaceBody">${renderPdsWorkspaceBody()}</div></div></div>`;
+}
+function pdsRecordForModal(type,index){const rows=pdsFilteredRows(type);return rows[Number(index)]||null}
+function pdsHumanLabel(k){return String(k||"").replace(/_/g," ").replace(/\b\w/g,c=>c.toUpperCase())}
+function openPdsRecordModal(type,index){
+  const row=pdsRecordForModal(type,index);if(!row)return;
+  const preferred=[...PDS_SCOPE_ALIASES.project,...PDS_SCOPE_ALIASES.plantSection,...PDS_SCOPE_ALIASES.plantSectionType,...PDS_SCOPE_ALIASES.tag,...PDS_SCOPE_ALIASES.equipmentName,...PDS_SCOPE_ALIASES.category,...PDS_SCOPE_ALIASES.equipmentType,...PDS_SCOPE_ALIASES.subtype,...PDS_SCOPE_ALIASES.sectionRef];
+  const used=new Set(),items=[];
+  for(const alias of preferred){if(used.has(alias)||!Object.prototype.hasOwnProperty.call(row,alias))continue;const v=scalar(row[alias]);if(v){items.push([pdsHumanLabel(alias),v]);used.add(alias)}}
+  for(const [k,v0] of Object.entries(row)){if(items.length>=16)break;if(used.has(k)||["ID","id"].includes(k))continue;const v=scalar(v0);if(!v)continue;items.push([pdsHumanLabel(k),v]);used.add(k)}
+  openModal(`${pdsTypeConfig(type).label} Details`,`Read-only source record from ${S.pds.resolved[type]||"existing PDS report"}.`,`<div class="summary">${items.map(([k,v])=>`<div class="summary-item"><div class="k">${h(k)}</div><div class="v">${h(v)}</div></div>`).join("")}</div>`,`<button class="btn primary" data-modal="close">Close</button>`);
+}
+
 /* ================== SECTION 09: STARTUP / DATA LOADING =================
    Initializes Creator SDK and loads Project, Drawing, Employee, Equipment and
    Design_Tracking data using the existing old report link names.
@@ -610,7 +927,12 @@ function renderNewAssignment(){const p=S.projects.find(x=>x.id===S.newProjectId)
 function renderPrimaryForm(p,d,existing){if(existing)return `<div class="notice good" style="margin-top:14px"><strong>Primary assignment already exists.</strong><br>${h(d.name)} for Project ${h(p.code)} is assigned to ${h(assignmentDisplayUser(existing))}. No duplicate primary record will be created.<div style="margin-top:10px"><button class="btn primary" data-open-assignment="${h(idOf(existing))}">Open existing structure</button></div></div>`;return `<div class="notice good" style="margin-top:14px"><strong>Primary responsibility = Entire Project ${h(p.code)}</strong>. Further division is optional and starts from the user who receives it.</div><div class="grid3" style="margin-top:14px"><div class="field"><label>Assigned To *</label><select id="primaryUser">${employeeOptions()}</select></div><div class="field"><label>Priority</label><select id="primaryPriority">${PRIORITIES.map(p=>`<option ${p==="Medium"?"selected":""}>${h(p)}</option>`).join("")}</select></div><div class="field"><label>Status</label><select id="primaryStatus">${ASSIGNMENT_STATUSES.map(s=>`<option>${h(s)}</option>`).join("")}</select></div></div><div class="grid3" style="margin-top:12px"><div class="field"><label>Start Date *</label><input id="primaryStart" type="date" value="${todayIso()}"></div><div class="field"><label>Target Date *</label><input id="primaryTarget" type="date"></div><div class="field"><label>End Date</label><input id="primaryEnd" type="date"></div></div><div class="field" style="margin-top:12px"><label>Remark</label><textarea id="primaryRemark" placeholder="Optional assignment instruction"></textarea></div><div style="display:flex;justify-content:flex-end;margin-top:14px"><button class="btn primary lg" data-act="create-primary">Create Primary Assignment</button></div>`}
 
 function openGroup(key){const g=groupAssignments().find(x=>x.key===key);if(!g||!g.root){toast("Primary assignment is not available for this drawing.","error");return}openAssignment(idOf(g.root))}
-function openAssignment(id){const a=assignmentById(id);if(!a)return;S.previousView=S.view==="detail"?S.previousView:S.view;S.current=a;S.project=projectForCode(scalar(a[AF.projectCode]));S.drawing=drawingForAssignment(a);S.detailTab="overview";S.expanded.add(idOf(primaryForRows(groupForAssignment(a)?.rows||[])));S.selectedCriteria.clear();S.selectedTargets.clear();S.targetRows=[];S.targetSearch="";S.bulk={};S.view="detail";renderView()}
+function openAssignment(id){const a=assignmentById(id);if(!a)return;S.previousView=S.view==="detail"?S.previousView:S.view;S.current=a;S.project=projectForCode(scalar(a[AF.projectCode]));S.drawing=drawingForAssignment(a);
+  // PDS-specific UX: when the selected Drawing / Document is PDS, open the
+  // PDS Workspace first. Normal drawings still open the Overview tab.
+  S.detailTab=isPdsDrawing(a)?"pds":"overview";
+  S.pds.activeType="all";S.pds.status="All";S.pds.search="";
+  S.expanded.add(idOf(primaryForRows(groupForAssignment(a)?.rows||[])));S.selectedCriteria.clear();S.selectedTargets.clear();S.targetRows=[];S.targetSearch="";S.bulk={};S.view="detail";renderView()}
 function currentGroupRows(){return S.current?(groupForAssignment(S.current)?.rows||[]):[]}
 function familyPath(a){const rows=currentGroupRows(),map=new Map(rows.map(x=>[idOf(x),x])),path=[];let cur=a;while(cur){path.unshift(cur);const pid=scalar(cur[AF.assignedFrom]);cur=pid?map.get(pid):null}return path}
 /* ================= SECTION 11: FAMILY TREE / DETAIL ====================
@@ -619,8 +941,8 @@ function familyPath(a){const rows=currentGroupRows(),map=new Map(rows.map(x=>[id
    ======================================================================= */
 // renderTree(): recursively renders the assignment family tree.
 function renderTree(){const rows=currentGroupRows(),root=primaryForRows(rows);if(!root)return`<div class="tree-empty">No primary assignment.</div>`;const q=(S.treeSearch||"").toLowerCase();const allowed=new Set();if(q){for(const r of rows){const hay=[assignmentDisplayUser(r),scopeSummary(r),assignmentCriteria(r)].join(" ").toLowerCase();if(hay.includes(q)){let cur=r;while(cur){allowed.add(idOf(cur));cur=assignmentById(scalar(cur[AF.assignedFrom]))}}}}else rows.forEach(r=>allowed.add(idOf(r)));const renderNode=r=>{const id=idOf(r),kids=assignmentChildren(id,rows).filter(k=>allowed.has(idOf(k))),open=S.expanded.has(id),active=idOf(S.current)===id,rev=currentRevision(r);return `<div class="tree-node"><div class="node-row ${active?"active":""}" data-node="${h(id)}"><button class="expander ${kids.length?"":"blank"}" data-expand="${h(id)}">${open?"−":"+"}</button><div class="avatar">${h(initials(assignmentDisplayUser(r)))}</div><div class="node-main"><div class="node-user">${h(assignmentDisplayUser(r))}</div><div class="node-scope">${h(scopeSummary(r))}</div></div><div class="node-side">${rev?`<span class="pill purple">${h(scalar(rev[AF.revision])||"R0")}</span>`:statusPill(scalar(r[AF.status]))}<div class="node-level">Level ${num(r[AF.assignmentLevel])}</div></div></div>${open&&kids.length?`<div class="tree-children">${kids.map(renderNode).join("")}</div>`:""}</div>`};return renderNode(root)}
-function renderDetailPage(){if(!S.current){S.view="home";return renderHome()}const a=S.current,d=S.drawing||drawingForAssignment(a),path=familyPath(a);$("page").innerHTML=`<div class="detail-shell"><aside class="panel tree-panel"><div class="tree-head"><div class="strong">Assignment Structure</div><div class="tiny muted" style="margin:2px 0 9px">Expand people and responsibilities.</div><div class="tree-search"><input id="treeSearch" class="input" placeholder="Search person / scope…" value="${h(S.treeSearch||"")}"></div></div><div id="treeArea" class="tree-scroll">${renderTree()}</div></aside><section class="detail-main"><div class="detail-hero"><div class="crumbs"><button data-back>← Back</button><span>›</span><span>Project ${h(scalar(a[AF.projectCode]))}</span><span>›</span><span>${h(d.short||d.name)}</span>${path.length>1?`<span>›</span><span>${h(assignmentDisplayUser(a))}</span>`:""}</div><div class="detail-top"><div class="detail-title"><div class="doc-badge">${h(d.short||"DOC")}</div><div><h2>${h(d.name)}</h2><p>Project ${h(scalar(a[AF.projectCode]))} • ${h(assignmentDisplayUser(a))}'s responsibility</p></div></div><div class="detail-actions">${statusPill(scalar(a[AF.status]))}${currentRevision(a)?`<span class="pill purple">Current ${h(scalar(currentRevision(a)[AF.revision])||"R0")}</span>`:""}</div></div><div class="detail-meta"><span class="pill">Assigned by ${h(assignmentByDisplay(a))}</span><span class="pill">Level ${num(a[AF.assignmentLevel])}</span><span class="pill">Target ${h(displayDate(a[AF.targetDate]))}</span></div></div><div class="subtabs"><button class="subtab ${S.detailTab==="overview"?"active":""}" data-detail-tab="overview">Overview</button><button class="subtab ${S.detailTab==="files"?"active":""}" data-detail-tab="files">Design Files</button><button class="subtab ${S.detailTab==="revisions"?"active":""}" data-detail-tab="revisions">Revision History</button><button class="subtab ${S.detailTab==="delegate"?"active":""}" data-detail-tab="delegate">Assign Further</button></div><div id="detailTabBody">${renderDetailTab()}</div></section></div>`}
-function renderDetailTab(){if(S.detailTab==="files")return renderFilesTab();if(S.detailTab==="revisions")return renderRevisionTab();if(S.detailTab==="delegate")return renderDelegateTab();return renderOverviewTab()}
+function renderDetailPage(){if(!S.current){S.view="home";return renderHome()}const a=S.current,d=S.drawing||drawingForAssignment(a),path=familyPath(a);$("page").innerHTML=`<div class="detail-shell"><aside class="panel tree-panel"><div class="tree-head"><div class="strong">Assignment Structure</div><div class="tiny muted" style="margin:2px 0 9px">Expand people and responsibilities.</div><div class="tree-search"><input id="treeSearch" class="input" placeholder="Search person / scope…" value="${h(S.treeSearch||"")}"></div></div><div id="treeArea" class="tree-scroll">${renderTree()}</div></aside><section class="detail-main"><div class="detail-hero"><div class="crumbs"><button data-back>← Back</button><span>›</span><span>Project ${h(scalar(a[AF.projectCode]))}</span><span>›</span><span>${h(d.short||d.name)}</span>${path.length>1?`<span>›</span><span>${h(assignmentDisplayUser(a))}</span>`:""}</div><div class="detail-top"><div class="detail-title"><div class="doc-badge">${h(d.short||"DOC")}</div><div><h2>${h(d.name)}</h2><p>Project ${h(scalar(a[AF.projectCode]))} • ${h(assignmentDisplayUser(a))}'s responsibility</p></div></div><div class="detail-actions">${statusPill(scalar(a[AF.status]))}${currentRevision(a)?`<span class="pill purple">Current ${h(scalar(currentRevision(a)[AF.revision])||"R0")}</span>`:""}</div></div><div class="detail-meta"><span class="pill">Assigned by ${h(assignmentByDisplay(a))}</span><span class="pill">Level ${num(a[AF.assignmentLevel])}</span><span class="pill">Target ${h(displayDate(a[AF.targetDate]))}</span></div></div><div class="subtabs"><button class="subtab ${S.detailTab==="overview"?"active":""}" data-detail-tab="overview">Overview</button>${isPdsDrawing(a)?`<button class="subtab ${S.detailTab==="pds"?"active":""}" data-detail-tab="pds">PDS Workspace</button>`:""}<button class="subtab ${S.detailTab==="files"?"active":""}" data-detail-tab="files">Design Files</button><button class="subtab ${S.detailTab==="revisions"?"active":""}" data-detail-tab="revisions">Revision History</button><button class="subtab ${S.detailTab==="delegate"?"active":""}" data-detail-tab="delegate">Assign Further</button></div><div id="detailTabBody">${renderDetailTab()}</div></section></div>`}
+function renderDetailTab(){if(S.detailTab==="pds")return renderPdsWorkspaceTab();if(S.detailTab==="files")return renderFilesTab();if(S.detailTab==="revisions")return renderRevisionTab();if(S.detailTab==="delegate")return renderDelegateTab();return renderOverviewTab()}
 function renderOverviewTab(){const a=S.current,k=childStats(a),r=currentRevision(a),canEdit=true; /* POC OPEN ACCESS: show update/delegate controls to any permitted Creator user. */ return `<div class="tab-card"><div class="scope-box"><div class="k">RESPONSIBILITY</div><div class="v">${h(scopeSummary(a))}</div></div><div class="summary"><div class="summary-item"><div class="k">ASSIGNED TO</div><div class="v">${h(assignmentDisplayUser(a))}</div></div><div class="summary-item"><div class="k">ASSIGNED BY</div><div class="v">${h(assignmentByDisplay(a))}</div></div><div class="summary-item"><div class="k">START DATE</div><div class="v">${h(displayDate(a[AF.startDate]))}</div></div><div class="summary-item"><div class="k">TARGET DATE</div><div class="v">${h(displayDate(a[AF.targetDate]))}</div></div><div class="summary-item"><div class="k">STATUS</div><div class="v">${statusPill(scalar(a[AF.status]))}</div></div><div class="summary-item"><div class="k">PROGRESS</div><div class="v">${num(a[AF.progress])}%</div></div><div class="summary-item"><div class="k">CRITERIA</div><div class="v">${h(assignmentCriteria(a))}</div></div><div class="summary-item"><div class="k">END DATE</div><div class="v">${h(displayDate(a[AF.endDate]))}</div></div></div><div class="two-col"><div><div class="section-row" style="margin-top:0"><div><h2>Design execution</h2><p>Files, workflow and current revision for this responsibility.</p></div></div>${r?`<div class="exec-hero"><div class="exec-rev"><div class="rev-circle">${h(scalar(r[AF.revision])||"R0")}</div><div><h3>${h(scalar(r[AF.status])||"Not Started")}</h3><p>${h(scalar(r[AF.revisionDescription])||"No revision description")}</p></div></div><button class="btn sm primary" data-detail-tab="files">Open design</button></div>`:`<div class="empty compact"><strong>No design revision started</strong>${canEdit?`<div style="margin-top:9px"><button class="btn sm primary" data-detail-tab="files">Start R0</button></div>`:"The assignee can start R0 from Design Files."}</div>`}</div><div><div class="section-row" style="margin-top:0"><div><h2>Further assignments</h2><p>${k.total} responsibility${k.total===1?"":"ies"} below this node.</p></div>${canEdit?'<button class="btn sm soft" data-detail-tab="delegate">Assign Further</button>':""}</div>${k.total?`<div class="child-list">${assignmentChildren(idOf(a)).slice(0,5).map(c=>`<div class="child-row"><div class="avatar">${h(initials(assignmentDisplayUser(c)))}</div><div class="main"><div class="name">${h(assignmentDisplayUser(c))}</div><div class="sc">${h(scopeSummary(c))}</div></div>${statusPill(scalar(c[AF.status]))}</div>`).join("")}</div>`:`<div class="empty compact"><strong>No further assignment</strong>This responsibility has not been divided further.</div>`}</div></div><div class="actions" style="margin-top:14px">${canEdit?'<button class="btn" data-act="edit-assignment">Update status / progress</button>':""}<button class="btn" data-detail-tab="revisions">Revision history (${revisionsForAssignment(a).length})</button></div></div>`}
 
 /* =============== SECTION 12: DESIGN FILES / WORKFLOW ===================
@@ -1045,7 +1367,7 @@ async function saveAssignmentStatus(){const a=S.current,s=$("assignmentStatusEdi
 // openModal(): opens the reusable dialog shell.
 function openModal(title,sub,body,foot){$("modalTitle").textContent=title;$("modalSub").textContent=sub||"";$("modalBody").innerHTML=body||"";$("modalFoot").innerHTML=foot||"";$("modalBackdrop").classList.remove("hidden")}
 function closeModal(){$("modalBackdrop").classList.add("hidden")}
-function setupModal(){openModal("V17 One-Form Architecture","Assignment + Design Files + Revision History use your existing Design_Tracking form.",`<div class="notice good"><b>No new transaction form is used.</b> Assignment rows and Revision rows are both stored in Design_Tracking and separated by their backend identity fields.</div><div class="section-row"><div><h2>Assignment hierarchy</h2><p>Already added to your form.</p></div></div><div class="table-wrap"><table><thead><tr><th>Field</th><th>Link Name</th><th>Purpose</th></tr></thead><tbody><tr><td>Primary Assignment ID</td><td>Primary_Assignment_ID</td><td>First project-level assignment</td></tr><tr><td>Assigned From ID</td><td>Assigned_From_ID</td><td>Immediate previous responsibility</td></tr><tr><td>Assignment Level</td><td>Assignment_Level</td><td>0, 1, 2, 3… N</td></tr><tr><td>Assignment Criteria</td><td>Assignment_Criteria</td><td>Single Line</td></tr><tr><td>Responsibility</td><td>Responsibility</td><td>Readable scope</td></tr></tbody></table></div><div class="section-row"><div><h2>Design / revision identity</h2><p>Uses fields already visible in your Design_Tracking screenshots.</p></div></div><div class="table-wrap"><table><thead><tr><th>Field</th><th>Link Name</th><th>Use</th></tr></thead><tbody><tr><td>Logical Task Key</td><td>Logical_Task_Key</td><td>EXEC::AssignmentID::R0 / R1 / R2</td></tr><tr><td>Revision Key</td><td>Revision_Key</td><td>Unique revision identity</td></tr><tr><td>Parent Design ID</td><td>Parent_Design_ID</td><td>R0 → R1 → R2 chain</td></tr><tr><td>Revision</td><td>Revision</td><td>R0 / R1 / R2</td></tr><tr><td>Files</td><td>Drawing_File / Native_File / Supporting_File</td><td>Controlled document files</td></tr></tbody></table></div><div class="notice warn" style="margin-top:12px"><b>Do not use Parent_Design_ID for assignment hierarchy.</b> It is reserved only for revision history. Further_Assigned and Active are not written by the widget because this Creator app rejected Decision Box API values; children are derived from Assigned_From_ID.</div>`,`<button class="btn primary" data-modal="close">Close</button>`)}
+function setupModal(){openModal("V17 One-Form Architecture","Assignment + Design Files + Revision History use your existing Design_Tracking form.",`<div class="notice good"><b>No new transaction form is used.</b> Assignment rows and Revision rows are both stored in Design_Tracking and separated by their backend identity fields.</div><div class="section-row"><div><h2>Assignment hierarchy</h2><p>Already added to your form.</p></div></div><div class="table-wrap"><table><thead><tr><th>Field</th><th>Link Name</th><th>Purpose</th></tr></thead><tbody><tr><td>Primary Assignment ID</td><td>Primary_Assignment_ID</td><td>First project-level assignment</td></tr><tr><td>Assigned From ID</td><td>Assigned_From_ID</td><td>Immediate previous responsibility</td></tr><tr><td>Assignment Level</td><td>Assignment_Level</td><td>0, 1, 2, 3… N</td></tr><tr><td>Assignment Criteria</td><td>Assignment_Criteria</td><td>Single Line</td></tr><tr><td>Responsibility</td><td>Responsibility</td><td>Readable scope</td></tr></tbody></table></div><div class="section-row"><div><h2>Design / revision identity</h2><p>Uses fields already visible in your Design_Tracking screenshots.</p></div></div><div class="table-wrap"><table><thead><tr><th>Field</th><th>Link Name</th><th>Use</th></tr></thead><tbody><tr><td>Logical Task Key</td><td>Logical_Task_Key</td><td>EXEC::AssignmentID::R0 / R1 / R2</td></tr><tr><td>Revision Key</td><td>Revision_Key</td><td>Unique revision identity</td></tr><tr><td>Parent Design ID</td><td>Parent_Design_ID</td><td>R0 → R1 → R2 chain</td></tr><tr><td>Revision</td><td>Revision</td><td>R0 / R1 / R2</td></tr><tr><td>Files</td><td>Drawing_File / Native_File / Supporting_File</td><td>Controlled document files</td></tr></tbody></table></div><div class="notice warn" style="margin-top:12px"><b>Do not use Parent_Design_ID for assignment hierarchy.</b> It is reserved only for revision history. Further_Assigned and Active are not written by the widget because this Creator app rejected Decision Box API values; children are derived from Assigned_From_ID.</div><div class="notice good" style="margin-top:10px"><b>PDS Workspace:</b> When the selected Drawing is PDS, the widget reads existing All_PD_Sheet plus Equipment / Nozzle / Structure / Piping / Bought Out / Consumable / E&amp;I PDS reports as read-only reference data. No PDS row is copied into Design_Tracking.</div>`,`<button class="btn primary" data-modal="close">Close</button>`)}
 
 async function handleAction(act){if(act==="create-primary")return createPrimary();if(act==="edit-assignment")return editAssignmentModal();if(act==="start-r0")return startR0();if(act==="save-revision")return saveRevision();if(act==="new-revision")return openNewRevisionModal();if(act==="select-next-10"){const rows=S.targetRows.filter(r=>!existingChildForTarget(S.current,r)&&!S.selectedTargets.has(targetKey(r))).slice(0,10);rows.forEach(r=>S.selectedTargets.add(targetKey(r)));return renderView()}if(act==="select-all-targets"){S.targetRows.filter(r=>!existingChildForTarget(S.current,r)).forEach(r=>S.selectedTargets.add(targetKey(r)));return renderView()}if(act==="clear-targets"){S.selectedTargets.clear();return renderView()}if(act==="review-bulk")return reviewBulk()}
 async function handleModal(act,el){if(act==="close")return closeModal();if(act==="confirm-bulk")return confirmBulk();if(act==="save-assignment-status")return saveAssignmentStatus();if(act==="confirm-return")return confirmReturn();if(act==="confirm-new-revision")return confirmNewRevision(el.dataset.nextRev)}
@@ -1061,8 +1383,12 @@ function wire(){
     const og=e.target.closest("[data-open-group]");if(og)return openGroup(og.dataset.openGroup);
     if(e.target.closest("[data-back]")){S.view=S.previousView||"home";return renderView()}
     const ex=e.target.closest("[data-expand]");if(ex){e.stopPropagation();return toggleExpand(ex.dataset.expand)}
-    const node=e.target.closest("[data-node]");if(node){S.current=assignmentById(node.dataset.node);S.detailTab="overview";S.selectedCriteria.clear();S.selectedTargets.clear();return renderView()}
+    const node=e.target.closest("[data-node]");if(node){S.current=assignmentById(node.dataset.node);S.drawing=drawingForAssignment(S.current);S.detailTab=isPdsDrawing(S.current)?"pds":"overview";S.pds.activeType="all";S.pds.status="All";S.pds.search="";S.selectedCriteria.clear();S.selectedTargets.clear();return renderView()}
     const dt=e.target.closest("[data-detail-tab]");if(dt){S.detailTab=dt.dataset.detailTab;S.selectedCriteria.clear();S.selectedTargets.clear();return renderView()}
+    const pt=e.target.closest("[data-pds-type]");if(pt){S.pds.activeType=pt.dataset.pdsType;S.pds.status="All";S.pds.search="";return renderView()}
+    const ps=e.target.closest("[data-pds-status]");if(ps){S.pds.status=ps.dataset.pdsStatus;return renderView()}
+    const pr=e.target.closest("[data-pds-refresh]");if(pr)return guarded(async()=>{await ensurePdsData(pr.dataset.pdsRefresh,true);renderView();toast(`${pdsTypeConfig(pr.dataset.pdsRefresh).label} refreshed.`,"good")});
+    const prow=e.target.closest("[data-pds-row]");if(prow){const [type,index]=String(prow.dataset.pdsRow).split(":");return openPdsRecordModal(type,index)}
     const cr=e.target.closest("[data-criterion]");if(cr){const k=cr.dataset.criterion;S.selectedCriteria.has(k)?S.selectedCriteria.delete(k):S.selectedCriteria.add(k);S.selectedTargets.clear();return renderView()}
     const ac=e.target.closest("[data-act]");if(ac)return guarded(()=>handleAction(ac.dataset.act));
     const wf=e.target.closest("[data-workflow-to]");if(wf)return guarded(()=>moveWorkflow(wf.dataset.workflowTo));
@@ -1078,6 +1404,7 @@ function wire(){
   document.addEventListener("input",e=>{
     if(e.target.id==="treeSearch"){S.treeSearch=e.target.value;const area=$("treeArea");if(area)area.innerHTML=renderTree()}
     if(e.target.id==="targetSearch"){S.targetSearch=e.target.value;const area=$("targetArea");if(area)area.innerHTML=renderTargetArea(S.current)}
+    if(e.target.id==="pdsSearch"){S.pds.search=e.target.value;const area=$("pdsWorkspaceBody");if(area)area.innerHTML=renderPdsWorkspaceBody()}
   });
   document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("modalBackdrop").classList.contains("hidden"))closeModal()});
 }
@@ -1095,12 +1422,28 @@ const DEMO={
     {ID:"E4",Project_Code:"25005",Plant_Section_Name:"Fermentation",Plant_Section_Type:"4 Fermenter",Tag_Number:"CV-201",Equipment_Name:"Control Valve 201",Group_Code:"Shop",Department_Code:"Instrumentation",Equipment_Category:"Control Valves",Equipment_Type:"Control Valve"},
     {ID:"E5",Project_Code:"25005",Plant_Section_Name:"Evaporation",Plant_Section_Type:"Standalone Evaporation",Tag_Number:"P-301",Equipment_Name:"Evaporation Pump",Group_Code:"Direct Supply",Department_Code:"Equipment - Rotating",Equipment_Category:"Pumps",Equipment_Type:"Centrifugal Pump"}
   ],
+  pdsSummary:[
+    {ID:"PD1",Project_Code:"25005",Plant_Section_Name:"Fermentation",Plant_Section_Type:"3 Fermenter",Tag_Number:"CV-101",Equipment_Name:"Control Valve 101",Equipment_Category:"Control Valves",Equipment_Type:"Control Valve",Equipment_Subtype:"Globe",Section_Ref:"SL/1001",Actual_Cost:"125000",Equipment_PDS_Status:"Approved",Nozzle_PDS_Status:"Under Approval",Structure_PDS_Status:"Pending",Piping_PDS_Status:"Pending"},
+    {ID:"PD2",Project_Code:"25005",Plant_Section_Name:"Fermentation",Plant_Section_Type:"3 Fermenter",Tag_Number:"P-101",Equipment_Name:"Mash Pump",Equipment_Category:"Pumps",Equipment_Type:"Centrifugal Pump",Equipment_Subtype:"End Suction",Section_Ref:"SL/1002",Actual_Cost:"250000",Equipment_PDS_Status:"Under Approval",Nozzle_PDS_Status:"Pending",Structure_PDS_Status:"Pending",Piping_PDS_Status:"Approved"},
+    {ID:"PD3",Project_Code:"25005",Plant_Section_Name:"Evaporation",Plant_Section_Type:"Standalone Evaporation",Tag_Number:"P-301",Equipment_Name:"Evaporation Pump",Equipment_Category:"Pumps",Equipment_Type:"Centrifugal Pump",Section_Ref:"SL/1003",Equipment_PDS_Status:"Pending",Nozzle_PDS_Status:"Approved",Structure_PDS_Status:"Pending",Piping_PDS_Status:"Pending"}
+  ],
+  pdsEquipment:[
+    {ID:"EP1",Project_Code:"25005",Plant_Section_Name:"Fermentation",Plant_Section_Type:"3 Fermenter",Tag_Number:"CV-101",Equipment_Name:"Control Valve 101",Equipment_Category:"Control Valves",Equipment_Type:"Control Valve",PDS_Name:"PDS - Control Valve",Section_Ref:"SL/1001",Equipment_PDS_Status:"Approved"},
+    {ID:"EP2",Project_Code:"25005",Plant_Section_Name:"Fermentation",Plant_Section_Type:"3 Fermenter",Tag_Number:"P-101",Equipment_Name:"Mash Pump",Equipment_Category:"Pumps",Equipment_Type:"Centrifugal Pump",PDS_Name:"PDS - Pump",Section_Ref:"SL/1002",Equipment_PDS_Status:"Under Approval"}
+  ],
+  pdsNozzle:[{ID:"NZ1",Project_Code:"25005",Plant_Section_Name:"Fermentation",Plant_Section_Type:"3 Fermenter",Tag_Number:"CV-101",Equipment_Name:"Control Valve 101",Nozzle_No:"N1",Nozzle_Size:"50 NB",Service:"Inlet",Nozzle_PDS_Status:"Under Approval"}],
+  pdsStructure:[{ID:"ST1",Project_Code:"25005",Plant_Section_Name:"Fermentation",Plant_Section_Type:"3 Fermenter",Tag_Number:"P-101",Equipment_Name:"Mash Pump",Structure_No:"ST-01",Structure_Member:"Channel",Structure_Type:"Support",Structure_PDS_Status:"Pending"}],
+  pdsPiping:[{ID:"PI1",Project_Code:"25005",Plant_Section_Name:"Fermentation",Plant_Section_Type:"3 Fermenter",Tag_Number:"P-101",Equipment_Name:"Mash Pump",Line_No:"L-101",From:"TK-101",To:"P-101",Pipe_Size:"100 NB",Piping_Class:"150#",Piping_PDS_Status:"Approved"}],
+  pdsBoughtOut:[{ID:"BO1",Project_Code:"25005",Plant_Section_Name:"Fermentation",Plant_Section_Type:"3 Fermenter",Tag_Number:"P-101",Equipment_Name:"Mash Pump",PDS_Name:"Bought Out Sheet",Bought_Out_PDS_Status:"Pending"}],
+  pdsConsumable:[{ID:"CO1",Project_Code:"25005",Plant_Section_Name:"Fermentation",Plant_Section_Type:"3 Fermenter",Item_Name:"Gasket",Consumable_PDS_Status:"Approved"}],
+  pdsEI:[{ID:"EI1",Project_Code:"25005",Plant_Section_Name:"Fermentation",Plant_Section_Type:"3 Fermenter",Instrument_Tag:"PT-101",Instrument_Name:"Pressure Transmitter",E_I_PDS_Status:"Under Approval"}],
   tracking:[
     {ID:"A001",Project_Code:"25005",Drawing_Document_Name:"Site Location Plan",Drawing_Master_ID:"D1",Short_Name:"SLP",Primary_Assignment_ID:"A001",Assigned_From_ID:"",Assignment_Level:0,Assigned_By:"Project Manager",Assigned_To:"rohan@mega.tc",Assigned_Employee_Name:"Rohan",Assignment_Criteria:"Project",Responsibility:"Entire Project 25005",Planned_Start_Date:"01-Sep-2026",Forecast_End_Date:"12-Sep-2026",Planned_End_Date:"14-Sep-2026",Status:"In Progress",Progress:35,Remarks:"Coordinate complete SLP."},
     {ID:"A002",Project_Code:"25005",Drawing_Document_Name:"Site Location Plan",Drawing_Master_ID:"D1",Short_Name:"SLP",Primary_Assignment_ID:"A001",Assigned_From_ID:"A001",Assignment_Level:1,Assigned_By:"rohan@mega.tc",Assigned_To:"kunal@mega.tc",Assigned_Employee_Name:"Kunal",Assignment_Criteria:"Plant Section, Plant Section Type",Responsibility:"Project 25005 › Fermentation › 3 Fermenter",Plant_Section_Name:"Fermentation",Plant_Section_Type:"3 Fermenter",Planned_Start_Date:"03-Sep-2026",Forecast_End_Date:"10-Sep-2026",Planned_End_Date:"11-Sep-2026",Status:"In Progress",Progress:50},
     {ID:"A003",Project_Code:"25005",Drawing_Document_Name:"Site Location Plan",Drawing_Master_ID:"D1",Short_Name:"SLP",Primary_Assignment_ID:"A001",Assigned_From_ID:"A001",Assignment_Level:1,Assigned_By:"rohan@mega.tc",Assigned_To:"vasu@mega.tc",Assigned_Employee_Name:"Vasu",Assignment_Criteria:"Plant Section, Plant Section Type",Responsibility:"Project 25005 › Fermentation › 4 Fermenter",Plant_Section_Name:"Fermentation",Plant_Section_Type:"4 Fermenter",Planned_Start_Date:"04-Sep-2026",Forecast_End_Date:"11-Sep-2026",Status:"Not Started",Progress:0},
     {ID:"A004",Project_Code:"25005",Drawing_Document_Name:"Site Location Plan",Drawing_Master_ID:"D1",Short_Name:"SLP",Primary_Assignment_ID:"A001",Assigned_From_ID:"A002",Assignment_Level:2,Assigned_By:"kunal@mega.tc",Assigned_To:"tejas@mega.tc",Assigned_Employee_Name:"Tejas",Assignment_Criteria:"Equipment Category",Responsibility:"Project 25005 › Fermentation › 3 Fermenter › Category: Control Valves",Plant_Section_Name:"Fermentation",Plant_Section_Type:"3 Fermenter",Equipment_Category:"Control Valves",Forecast_End_Date:"09-Sep-2026",Status:"In Progress",Progress:70},
     {ID:"A005",Project_Code:"25005",Drawing_Document_Name:"Site Location Plan",Drawing_Master_ID:"D1",Short_Name:"SLP",Primary_Assignment_ID:"A001",Assigned_From_ID:"A002",Assignment_Level:2,Assigned_By:"kunal@mega.tc",Assigned_To:"rahul@mega.tc",Assigned_Employee_Name:"Rahul",Assignment_Criteria:"Equipment Category",Responsibility:"Project 25005 › Fermentation › 3 Fermenter › Category: Electric Motors",Plant_Section_Name:"Fermentation",Plant_Section_Type:"3 Fermenter",Equipment_Category:"Electric Motors",Forecast_End_Date:"10-Sep-2026",Status:"In Progress",Progress:40},
+    {ID:"A010",Project_Code:"25005",Drawing_Document_Name:"Process Data Sheet",Drawing_Master_ID:"D3",Short_Name:"PDS",Primary_Assignment_ID:"A010",Assigned_From_ID:"",Assignment_Level:0,Assigned_By:"Project Manager",Assigned_To:"rohan@mega.tc",Assigned_Employee_Name:"Rohan",Assignment_Criteria:"Project",Responsibility:"Entire Project 25005",Planned_Start_Date:"01-Sep-2026",Forecast_End_Date:"15-Sep-2026",Planned_End_Date:"16-Sep-2026",Status:"In Progress",Progress:25,Remarks:"PDS coordination for complete project."},
     {ID:"R001",Project_Code:"25005",Drawing_Document_Name:"Site Location Plan",Drawing_Master_ID:"D1",Short_Name:"SLP",Design_Type:"Site Location Plan",Design_Title:"Site Location Plan — Project 25005 › Fermentation › 3 Fermenter › Category: Control Valves",Assigned_To:"tejas@mega.tc",Assigned_Employee_Name:"Tejas",Plant_Section_Name:"Fermentation",Plant_Section_Type:"3 Fermenter",Equipment_Category:"Control Valves",Drawing_Number:"25005-SLP-CV-001",Checker:"kunal@mega.tc",Reviewer:"rahul@mega.tc",Approver:"rohan@mega.tc",Status:"Issued",Progress:100,Revision:"R0",Revision_Description:"Initial issue",Logical_Task_Key:"EXEC::A004::R0",Revision_Key:"EXEC::A004::R0",Parent_Design_ID:"",Added_Time:"06-Sep-2026 10:00:00",Added_User:"tejas@mega.tc",Drawing_File:"SLP_R0.pdf"},
     {ID:"R002",Project_Code:"25005",Drawing_Document_Name:"Site Location Plan",Drawing_Master_ID:"D1",Short_Name:"SLP",Design_Type:"Site Location Plan",Design_Title:"Site Location Plan — Project 25005 › Fermentation › 3 Fermenter › Category: Control Valves",Assigned_To:"tejas@mega.tc",Assigned_Employee_Name:"Tejas",Plant_Section_Name:"Fermentation",Plant_Section_Type:"3 Fermenter",Equipment_Category:"Control Valves",Drawing_Number:"25005-SLP-CV-001",Checker:"kunal@mega.tc",Reviewer:"rahul@mega.tc",Approver:"rohan@mega.tc",Status:"In Progress",Progress:10,Revision:"R1",Revision_Description:"Valve locations revised",Logical_Task_Key:"EXEC::A004::R1",Revision_Key:"EXEC::A004::R1",Parent_Design_ID:"R001",Added_Time:"08-Sep-2026 09:30:00",Added_User:"tejas@mega.tc"}
   ]
@@ -1109,7 +1452,7 @@ const DEMO={
    Used only when the widget URL contains ?demo=1.
    ======================================================================= */
 // demoFetch(): returns local sample rows instead of Creator data.
-function demoFetch(report){if(report===CONFIG.REPORTS.projects)return DEMO.projects.map(x=>({...x}));if(report===CONFIG.REPORTS.drawings)return DEMO.drawings.map(x=>({...x}));if(report===CONFIG.REPORTS.employees)return DEMO.employees.map(x=>({...x}));if(report===CONFIG.REPORTS.equipment)return DEMO.equipment.map(x=>({...x}));if(report===CONFIG.REPORTS.tracking)return DEMO.tracking.map(x=>({...x}));return[]}
+function demoFetch(report){if(report===CONFIG.REPORTS.projects)return DEMO.projects.map(x=>({...x}));if(report===CONFIG.REPORTS.drawings)return DEMO.drawings.map(x=>({...x}));if(report===CONFIG.REPORTS.employees)return DEMO.employees.map(x=>({...x}));if(report===CONFIG.REPORTS.equipment)return DEMO.equipment.map(x=>({...x}));if(report===CONFIG.REPORTS.tracking)return DEMO.tracking.map(x=>({...x}));if((PDS_REPORTS.all||[]).includes(report))return DEMO.pdsSummary.map(x=>({...x}));if((PDS_REPORTS.equipment||[]).includes(report))return DEMO.pdsEquipment.map(x=>({...x}));if((PDS_REPORTS.nozzle||[]).includes(report))return DEMO.pdsNozzle.map(x=>({...x}));if((PDS_REPORTS.structure||[]).includes(report))return DEMO.pdsStructure.map(x=>({...x}));if((PDS_REPORTS.piping||[]).includes(report))return DEMO.pdsPiping.map(x=>({...x}));if((PDS_REPORTS.boughtout||[]).includes(report))return DEMO.pdsBoughtOut.map(x=>({...x}));if((PDS_REPORTS.consumable||[]).includes(report))return DEMO.pdsConsumable.map(x=>({...x}));if((PDS_REPORTS.ei||[]).includes(report))return DEMO.pdsEI.map(x=>({...x}));return[]}
 let demoSeq=500;function demoAdd(data){const id=(isAssignmentRecord(data)?"A":"R")+(++demoSeq);const rec={ID:id,...data};DEMO.tracking.push(rec);return id}function demoUpdate(id,data){const r=DEMO.tracking.find(x=>String(x.ID)===String(id));if(r)Object.assign(r,data);return id}
 
 wire();bootstrap();
