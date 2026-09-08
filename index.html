@@ -4,641 +4,405 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="color-scheme" content="light">
-<title>MEGA Engineering | Drawing Assignment V16.5</title>
+<title>MEGA Engineering | Drawing & Document Control V17</title>
 <script src="https://static.zohocdn.com/creator/widgets/version/2.0/widgetsdk-min.js"></script>
 <style>
 :root{
-  --brand:#c42770;--brand-dark:#982054;--brand-soft:#fff0f7;--ink:#1f2937;--muted:#667085;
-  --line:#e5e7eb;--surface:#f6f7fb;--panel:#fff;--green:#18794e;--green-soft:#ebf8f1;
-  --amber:#8a5b08;--amber-soft:#fff7e5;--red:#b42335;--red-soft:#fff1f3;--blue:#245ea8;--blue-soft:#edf5ff;
-  --shadow:0 12px 36px rgba(31,41,55,.07);--radius:16px
+  --brand:#c42770;--brand2:#8f1d52;--brand3:#5f153a;--brand-soft:#fff1f7;
+  --ink:#172033;--muted:#667085;--muted2:#98a2b3;--line:#e4e7ec;--line2:#eef1f5;
+  --bg:#f5f7fb;--card:#fff;--blue:#2563eb;--blue-soft:#eff6ff;--green:#16835b;--green-soft:#ecfdf3;
+  --amber:#b76e00;--amber-soft:#fff8e7;--red:#c4324a;--red-soft:#fff1f3;--purple:#7552cc;--purple-soft:#f5f0ff;
+  --shadow:0 10px 35px rgba(16,24,40,.08);--shadow-sm:0 2px 10px rgba(16,24,40,.05);
+  --r:16px;--rsm:11px;
 }
-*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--surface);color:var(--ink)}
-body{font:14px/1.48 Inter,"Segoe UI",Arial,sans-serif}button,input,select,textarea{font:inherit}button{cursor:pointer}button:disabled{cursor:not-allowed;opacity:.5}
-h1,h2,h3,p{margin:0}.hidden{display:none!important}.muted{color:var(--muted)}.nowrap{white-space:nowrap}.small{font-size:12px}.tiny{font-size:11px}.strong{font-weight:800}
-.topbar{position:sticky;top:0;z-index:30;background:linear-gradient(135deg,var(--brand),var(--brand-dark));color:#fff;padding:14px 22px;box-shadow:0 4px 16px rgba(100,20,60,.2)}
-.topbar-row{max-width:1700px;margin:auto;display:flex;align-items:center;gap:14px}.logo{width:42px;height:42px;border-radius:11px;background:#fff;color:var(--brand-dark);display:grid;place-items:center;font-weight:900;font-size:18px}.brand{flex:1}.brand small{opacity:.8;letter-spacing:.13em;font-weight:800}.brand h1{font-size:20px;margin-top:1px}.session{max-width:330px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:7px 11px;border-radius:999px;background:#ffffff18;border:1px solid #ffffff35;font-size:12px}
-.demo-banner{padding:7px 16px;text-align:center;background:#fff1c9;color:#6a4b00;font-size:12px;border-bottom:1px solid #ead28c}
-.app{max-width:1700px;margin:auto;padding:18px 22px 44px}.nav{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px}.tabs{display:flex;gap:4px;padding:4px;background:#fff;border:1px solid var(--line);border-radius:12px}.tab{border:0;background:transparent;color:var(--muted);font-weight:750;padding:9px 14px;border-radius:9px}.tab.active{background:var(--brand);color:#fff}.btn{min-height:38px;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:9px;padding:8px 13px;font-weight:750;display:inline-flex;align-items:center;justify-content:center;gap:7px}.btn:hover{background:#f8f9fb}.btn.primary{background:var(--brand);border-color:var(--brand);color:#fff}.btn.primary:hover{background:var(--brand-dark)}.btn.soft{background:var(--brand-soft);border-color:#efc4d8;color:var(--brand-dark)}.btn.success{background:var(--green);border-color:var(--green);color:#fff}.btn.danger{background:var(--red-soft);border-color:#f2c5cb;color:var(--red)}.btn.sm{min-height:31px;padding:5px 9px;font-size:12px}.btn.link{border:0;background:transparent;color:var(--brand);padding:4px 6px;min-height:0}.actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}.panel-head{padding:16px 18px;border-bottom:1px solid var(--line);display:flex;align-items:flex-start;justify-content:space-between;gap:12px}.panel-head h2{font-size:16px}.panel-head p{font-size:12px;color:var(--muted);margin-top:3px}.panel-body{padding:18px}.selector{display:grid;grid-template-columns:minmax(220px,1fr) minmax(260px,1.35fr) auto;gap:12px;align-items:end;margin-bottom:14px}.field{display:flex;flex-direction:column;gap:6px}.field label{font-size:12px;font-weight:800;color:#344054}.field input:not([type=checkbox]),.field select,.field textarea{width:100%;min-height:40px;border:1px solid #cfd5de;border-radius:9px;background:#fff;padding:9px 10px;outline:none}.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(196,39,112,.1)}.field textarea{min-height:78px;resize:vertical}.field .hint{font-size:10px;color:var(--muted)}
-.context-card{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;padding:13px 15px;border:1px solid #e4d3dc;border-radius:12px;background:linear-gradient(120deg,#fff5f9,#fff)}.context-main{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.context-icon{width:38px;height:38px;border-radius:10px;background:var(--brand-soft);color:var(--brand-dark);display:grid;place-items:center;font-weight:900}.context-title{font-weight:850}.context-sub{font-size:11px;color:var(--muted);margin-top:2px}.pill{display:inline-flex;align-items:center;gap:5px;padding:4px 8px;border-radius:999px;background:#f1f3f6;color:#475467;font-size:10px;font-weight:800}.pill.brand{background:var(--brand-soft);color:var(--brand-dark)}.pill.green{background:var(--green-soft);color:var(--green)}.pill.amber{background:var(--amber-soft);color:var(--amber)}.pill.blue{background:var(--blue-soft);color:var(--blue)}.pill.red{background:var(--red-soft);color:var(--red)}
-.workspace{display:grid;grid-template-columns:390px minmax(0,1fr);gap:14px;margin-top:14px}.tree-panel{min-width:0;overflow:hidden}.tree-scroll{max-height:710px;overflow:auto;padding:10px}.tree-empty{padding:36px 18px;text-align:center;color:var(--muted)}.tree-empty strong{display:block;color:var(--ink);font-size:15px;margin-bottom:4px}.tree-node{margin:3px 0}.node-row{display:grid;grid-template-columns:28px 34px minmax(0,1fr) auto;gap:7px;align-items:center;padding:8px 8px;border:1px solid transparent;border-radius:10px;cursor:pointer}.node-row:hover{background:#faf4f7}.node-row.active{background:var(--brand-soft);border-color:#efc3d7}.expander{width:26px;height:26px;border:0;background:#f1f3f6;border-radius:7px;color:#667085}.expander.blank{visibility:hidden}.avatar{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;background:#eef2f6;color:#334155;font-size:11px;font-weight:900}.node-main{min-width:0}.node-user{font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.node-scope{font-size:10px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.node-side{text-align:right}.node-level{font-size:9px;color:var(--muted);margin-top:2px}.tree-children{margin-left:24px;padding-left:10px;border-left:1px dashed #d7dce3}.tree-filter{padding:12px;border-bottom:1px solid var(--line);display:grid;grid-template-columns:1fr 1fr;gap:8px}.tree-filter input,.tree-filter select{border:1px solid #d4dae3;border-radius:8px;padding:8px 9px;min-width:0}.tree-filter input{grid-column:1/-1}
-.detail-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px}.detail-title{font-size:19px;font-weight:850}.detail-path{color:var(--muted);font-size:12px;margin-top:4px}.summary-grid{display:grid;grid-template-columns:repeat(4,minmax(125px,1fr));gap:9px;margin-bottom:14px}.summary-card{border:1px solid var(--line);border-radius:10px;padding:11px;background:#fafbfd}.summary-card .label{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}.summary-card .value{font-weight:800;margin-top:3px;word-break:break-word}.notice{padding:11px 13px;border:1px solid #dce3ec;border-radius:10px;background:#f7f9fc;color:#475467;font-size:12px}.notice.good{background:var(--green-soft);border-color:#c8e6d6;color:#166340}.notice.warn{background:var(--amber-soft);border-color:#f1ddb1;color:#77510a}.notice.error{background:var(--red-soft);border-color:#f0c5cb;color:#9f2432}.notice + .notice{margin-top:8px}
-.primary-box{border:1px solid #efc7da;background:linear-gradient(135deg,#fff4f9,#fff);border-radius:13px;padding:16px}.section-title{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:18px 0 9px}.section-title:first-child{margin-top:0}.section-title h3{font-size:14px}.criteria-grid{display:flex;gap:8px;flex-wrap:wrap}.criteria-chip{border:1px solid #d8dde5;background:#fff;border-radius:999px;padding:8px 11px;font-size:12px;font-weight:750;color:#475467}.criteria-chip.active{background:var(--brand);border-color:var(--brand);color:#fff}.criteria-chip.locked{opacity:.55}.scope-lock{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px}.lock-chip{padding:5px 8px;border-radius:7px;background:#f0f2f5;color:#475467;font-size:10px;font-weight:750}.lock-chip::before{content:"🔒 ";font-size:9px}.target-toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:10px 0}.search{min-width:220px;flex:1;border:1px solid #d4dae3;border-radius:9px;padding:9px 10px}.selection-note{font-size:12px;color:var(--muted)}.selection-note strong{color:var(--brand-dark)}
-.table-wrap{width:100%;overflow:auto;border:1px solid var(--line);border-radius:10px}table{width:100%;border-collapse:collapse;min-width:760px}th,td{padding:9px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}th{position:sticky;top:0;background:#f6f8fb;color:#667085;font-size:9px;text-transform:uppercase;letter-spacing:.04em;z-index:1}td{font-size:11px}tbody tr:hover{background:#fff9fc}tbody tr.selected{background:#fff2f7}.check{width:16px;height:16px;accent-color:var(--brand)}.empty-row{text-align:center;padding:26px;color:var(--muted)}
-.bulk-bar{margin-top:12px;border:1px solid #e2e6ec;border-radius:12px;background:#fafbfd;padding:13px}.bulk-grid{display:grid;grid-template-columns:1.2fr repeat(3,minmax(130px,.8fr)) minmax(180px,1.2fr) auto;gap:9px;align-items:end}.bulk-grid .field label{font-size:10px}.bulk-grid .field input,.bulk-grid .field select{min-height:36px;padding:7px 8px}.bulk-summary{margin-top:8px;font-size:11px;color:var(--muted)}
-.register-toolbar{display:grid;grid-template-columns:repeat(5,minmax(130px,1fr));gap:8px;margin-bottom:12px}.register-toolbar input,.register-toolbar select{border:1px solid #d4dae3;border-radius:8px;padding:8px 9px}.status-select{border:1px solid #d4dae3;border-radius:7px;padding:6px 8px;background:#fff}.progress{height:5px;background:#edf0f4;border-radius:999px;overflow:hidden;margin-top:4px}.progress span{display:block;height:100%;background:var(--brand)}
-/* V16.5 - SIMPLE GROUPED ASSIGNMENT OVERVIEW */
-.register-toolbar.simple{grid-template-columns:minmax(220px,1.5fr) repeat(3,minmax(150px,.8fr));padding:2px 0 4px}
-.assignment-groups{display:flex;flex-direction:column;gap:12px}
-.assignment-group{border:1px solid var(--line);border-radius:14px;background:#fff;overflow:hidden;box-shadow:0 4px 18px rgba(31,41,55,.045)}
-.assignment-group:hover{border-color:#e5bfd1}
-.assignment-group-head{display:grid;grid-template-columns:48px minmax(220px,1.5fr) minmax(145px,.7fr) minmax(110px,.55fr) auto;gap:12px;align-items:center;padding:14px 16px}
-.group-icon{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;background:var(--brand-soft);color:var(--brand-dark);font-weight:900;font-size:13px}
-.group-project{font-size:11px;color:var(--brand-dark);font-weight:850;text-transform:uppercase;letter-spacing:.04em}
-.group-drawing{font-size:15px;font-weight:850;margin-top:1px}.group-sub{font-size:10px;color:var(--muted);margin-top:3px}
-.group-owner .label,.group-stat .label{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}.group-owner .value,.group-stat .value{font-size:12px;font-weight:800;margin-top:3px}
-.group-buttons{display:flex;align-items:center;justify-content:flex-end;gap:7px;flex-wrap:wrap}
-.group-family{border-top:1px solid var(--line);padding:16px;background:linear-gradient(180deg,#fbfcfe,#fff)}
-.group-family-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px}.group-family-title{font-weight:850;font-size:13px}.group-family-sub{font-size:10px;color:var(--muted);margin-top:2px}
-.family-tree{padding:3px 2px 5px;max-height:620px;overflow:auto}
-.family-item{position:relative}.family-children{margin-left:28px;padding-left:22px;border-left:2px solid #ead2de}.family-children>.family-item:before{content:"";position:absolute;left:-22px;top:26px;width:21px;border-top:2px solid #ead2de}
-.family-node{display:grid;grid-template-columns:38px minmax(0,1fr) auto;gap:10px;align-items:center;margin:6px 0;padding:10px 11px;border:1px solid #e6e8ed;border-radius:11px;background:#fff;box-shadow:0 2px 8px rgba(31,41,55,.035)}
-.family-node.primary{border-color:#e7afca;background:#fff8fb}.family-node.mine{box-shadow:0 0 0 2px rgba(196,39,112,.12)}
-.family-avatar{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:#f0f2f6;color:#334155;font-size:11px;font-weight:900}.family-node.primary .family-avatar{background:var(--brand);color:#fff}
-.family-name{display:flex;align-items:center;gap:7px;flex-wrap:wrap;font-weight:850}.level-badge{font-size:9px;font-weight:800;color:#667085;background:#f1f3f6;border-radius:999px;padding:3px 6px}.family-scope{font-size:11px;color:#475467;margin-top:2px}.family-meta{font-size:9px;color:var(--muted);margin-top:3px}.family-side{display:flex;align-items:center;gap:7px;flex-wrap:wrap;justify-content:flex-end}
-.group-empty{padding:42px 18px;text-align:center;color:var(--muted);border:1px dashed #d9dee6;border-radius:12px}.group-empty strong{display:block;color:var(--ink);font-size:15px;margin-bottom:4px}
-@media(max-width:1000px){.assignment-group-head{grid-template-columns:44px minmax(180px,1fr) 1fr auto}.group-stat{display:none}.register-toolbar.simple{grid-template-columns:1fr 1fr}.register-toolbar.simple input{grid-column:1/-1}}
-@media(max-width:680px){.assignment-group-head{grid-template-columns:42px minmax(0,1fr);padding:12px}.group-owner,.group-stat,.group-buttons{grid-column:1/-1}.group-buttons{justify-content:flex-start}.register-toolbar.simple{grid-template-columns:1fr}.register-toolbar.simple input{grid-column:auto}.group-family{padding:12px}.family-children{margin-left:14px;padding-left:16px}.family-children>.family-item:before{left:-16px;width:15px}.family-node{grid-template-columns:34px minmax(0,1fr)}.family-side{grid-column:2;justify-content:flex-start}}
-
-.modal-backdrop{position:fixed;inset:0;background:#11182788;z-index:90;display:flex;align-items:center;justify-content:center;padding:18px}.modal{width:min(1180px,97vw);max-height:94vh;background:#fff;border-radius:16px;box-shadow:0 30px 90px #0004;display:flex;flex-direction:column;overflow:hidden}.modal-head{padding:16px 18px;border-bottom:1px solid var(--line);display:flex;align-items:flex-start;justify-content:space-between;gap:12px}.modal-title{font-size:17px;font-weight:850}.modal-sub{font-size:11px;color:var(--muted);margin-top:3px}.modal-body{padding:16px 18px;overflow:auto}.modal-foot{padding:12px 18px;border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}.icon-btn{width:34px;height:34px;border:0;border-radius:8px;background:#f0f2f5;font-size:19px}.review-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:12px}.review-metric{border:1px solid var(--line);border-radius:10px;padding:12px}.review-metric .n{font-size:24px;font-weight:850}.review-metric .l{font-size:10px;color:var(--muted)}
-.loading{position:fixed;inset:0;background:#ffffffd9;backdrop-filter:blur(2px);z-index:120;display:flex;align-items:center;justify-content:center}.loading-box{background:#fff;border:1px solid var(--line);border-radius:13px;padding:18px 21px;box-shadow:var(--shadow);min-width:280px}.spinner{width:22px;height:22px;border-radius:50%;border:3px solid #efd2df;border-top-color:var(--brand);animation:spin .8s linear infinite;margin-bottom:8px}@keyframes spin{to{transform:rotate(360deg)}}.toasts{position:fixed;right:18px;bottom:18px;z-index:150;max-width:440px}.toast{margin-top:7px;padding:10px 12px;border-radius:9px;background:#263447;color:#fff;font-size:12px;box-shadow:var(--shadow)}.toast.error{background:#a22d3b}.toast.good{background:#16663e}
-@media(max-width:1200px){.workspace{grid-template-columns:330px minmax(0,1fr)}.bulk-grid{grid-template-columns:1fr 1fr 1fr}.bulk-grid .field:last-of-type{grid-column:1/-1}.summary-grid{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:850px){.app{padding:12px}.workspace{grid-template-columns:1fr}.tree-scroll{max-height:360px}.selector{grid-template-columns:1fr}.summary-grid{grid-template-columns:1fr 1fr}.bulk-grid,.register-toolbar,.review-grid{grid-template-columns:1fr}.session{display:none}.topbar{padding:11px 13px}.panel-body{padding:13px}}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--ink)}
+body{font:14px/1.48 Inter,"Segoe UI",Arial,sans-serif}button,input,select,textarea{font:inherit}button{cursor:pointer}button:disabled{cursor:not-allowed;opacity:.52}
+.hidden{display:none!important}.muted{color:var(--muted)}.tiny{font-size:11px}.small{font-size:12px}.strong{font-weight:800}.nowrap{white-space:nowrap}
+.topbar{position:sticky;top:0;z-index:50;background:linear-gradient(120deg,var(--brand3),var(--brand2) 48%,var(--brand));color:#fff;box-shadow:0 4px 18px rgba(74,15,43,.22)}
+.topbar-inner{max-width:1720px;margin:auto;padding:13px 22px;display:flex;align-items:center;gap:14px}.logo{width:44px;height:44px;border-radius:12px;background:#fff;color:var(--brand2);display:grid;place-items:center;font-weight:900;font-size:18px;box-shadow:inset 0 0 0 1px #ffffff80}.brand{min-width:250px}.brand small{opacity:.78;font-weight:800;letter-spacing:.13em}.brand h1{font-size:19px;margin:1px 0 0}.top-search{flex:1;max-width:660px;position:relative}.top-search input{width:100%;height:40px;border:1px solid #ffffff35;background:#ffffff15;color:#fff;border-radius:12px;padding:0 42px 0 14px;outline:0}.top-search input::placeholder{color:#ffffffb8}.top-search input:focus{background:#ffffff20;border-color:#ffffff70}.search-mark{position:absolute;right:14px;top:9px;font-size:17px;opacity:.8}.session{max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:8px 12px;border-radius:999px;background:#ffffff15;border:1px solid #ffffff2f;font-size:12px}
+.demo-banner{padding:7px 16px;text-align:center;background:#fff0bf;color:#694800;font-size:12px;border-bottom:1px solid #ead28c}.app{max-width:1720px;margin:auto;padding:17px 22px 50px}
+.navbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:15px;flex-wrap:wrap}.navtabs{display:flex;gap:5px;padding:4px;background:#fff;border:1px solid var(--line);border-radius:13px;box-shadow:var(--shadow-sm)}.navtab{border:0;background:transparent;color:var(--muted);font-weight:800;padding:9px 14px;border-radius:9px;display:flex;align-items:center;gap:7px}.navtab:hover{background:#f8fafc;color:var(--ink)}.navtab.active{background:var(--brand);color:#fff}.navtab.create{color:var(--brand2)}.navtab.create.active{color:#fff}.nav-actions{display:flex;gap:8px;align-items:center}
+.btn{min-height:38px;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:10px;padding:8px 13px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;gap:7px;box-shadow:0 1px 2px rgba(16,24,40,.02)}.btn:hover{background:#f9fafb}.btn.primary{background:var(--brand);border-color:var(--brand);color:#fff}.btn.primary:hover{background:var(--brand2)}.btn.success{background:var(--green);border-color:var(--green);color:#fff}.btn.soft{background:var(--brand-soft);border-color:#f0bfd5;color:var(--brand2)}.btn.blue{background:var(--blue);border-color:var(--blue);color:#fff}.btn.danger{background:var(--red-soft);border-color:#f4c5cd;color:var(--red)}.btn.ghost{border-color:transparent;background:transparent;box-shadow:none}.btn.sm{min-height:31px;padding:5px 9px;font-size:12px}.btn.lg{min-height:46px;padding:11px 18px;border-radius:12px}.btn.icon{width:38px;padding:0}.btn.link{border:0;background:transparent;box-shadow:none;color:var(--brand);padding:4px 6px;min-height:0}.actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.panel{background:#fff;border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow-sm)}.panel-head{padding:16px 18px;border-bottom:1px solid var(--line2);display:flex;align-items:flex-start;justify-content:space-between;gap:12px}.panel-head h2{font-size:16px;margin:0}.panel-head p{font-size:12px;color:var(--muted);margin:3px 0 0}.panel-body{padding:18px}
+.hero{border-radius:19px;padding:22px;background:linear-gradient(135deg,#fff 10%,#fff7fb 72%,#f7efff);border:1px solid #eadde5;box-shadow:var(--shadow-sm);margin-bottom:14px;display:flex;justify-content:space-between;gap:20px;align-items:center}.hero h2{margin:0 0 4px;font-size:24px}.hero p{margin:0;color:var(--muted);max-width:760px}.hero-badge{min-width:170px;border:1px solid #ecd4df;border-radius:14px;padding:12px 14px;background:#fff}.hero-badge .n{font-size:26px;font-weight:900;color:var(--brand2)}.hero-badge .l{font-size:11px;color:var(--muted);font-weight:800}
+.metrics{display:grid;grid-template-columns:repeat(4,minmax(150px,1fr));gap:12px;margin-bottom:14px}.metric{background:#fff;border:1px solid var(--line);border-radius:14px;padding:15px;display:flex;align-items:center;gap:12px;box-shadow:var(--shadow-sm)}.metric-icon{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;font-size:19px;font-weight:900}.metric-icon.brand{background:var(--brand-soft);color:var(--brand2)}.metric-icon.blue{background:var(--blue-soft);color:var(--blue)}.metric-icon.amber{background:var(--amber-soft);color:var(--amber)}.metric-icon.green{background:var(--green-soft);color:var(--green)}.metric .num{font-size:24px;font-weight:900;line-height:1.05}.metric .label{font-size:11px;color:var(--muted);margin-top:3px;font-weight:700}
+.section-row{display:flex;align-items:end;justify-content:space-between;gap:12px;margin:18px 2px 9px}.section-row h2{margin:0;font-size:17px}.section-row p{margin:2px 0 0;color:var(--muted);font-size:12px}.cards{display:grid;grid-template-columns:repeat(3,minmax(260px,1fr));gap:12px}.work-card{background:#fff;border:1px solid var(--line);border-radius:15px;padding:15px;box-shadow:var(--shadow-sm);transition:.15s ease;position:relative;overflow:hidden}.work-card:hover{transform:translateY(-1px);box-shadow:var(--shadow)}.work-card.overdue{border-color:#f1b6c0}.work-card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:#e5e7eb}.work-card.inprogress::before{background:var(--blue)}.work-card.completed::before{background:var(--green)}.work-card.overdue::before{background:var(--red)}.work-top{display:flex;gap:11px;align-items:flex-start}.doc-badge{width:42px;height:42px;border-radius:11px;background:var(--brand-soft);color:var(--brand2);display:grid;place-items:center;font-weight:900;font-size:11px;flex:0 0 auto}.work-main{min-width:0;flex:1}.work-title{font-size:15px;font-weight:900;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.work-project{font-size:11px;color:var(--muted);margin-top:2px}.scope{margin:12px 0;padding:10px 11px;border:1px solid var(--line2);background:#fafbfc;border-radius:10px;font-size:12px}.work-meta{display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:11px;color:var(--muted);margin-bottom:11px}.work-meta strong{display:block;color:#344054;font-size:12px}.work-foot{display:flex;align-items:center;justify-content:space-between;gap:8px}.rev-chip{display:inline-flex;align-items:center;gap:5px;padding:5px 8px;border-radius:8px;background:var(--purple-soft);color:var(--purple);font-size:10px;font-weight:850}
+.pill{display:inline-flex;align-items:center;gap:5px;padding:4px 8px;border-radius:999px;background:#f1f3f6;color:#475467;font-size:10px;font-weight:850}.pill.brand{background:var(--brand-soft);color:var(--brand2)}.pill.green{background:var(--green-soft);color:var(--green)}.pill.amber{background:var(--amber-soft);color:var(--amber)}.pill.blue{background:var(--blue-soft);color:var(--blue)}.pill.red{background:var(--red-soft);color:var(--red)}.pill.purple{background:var(--purple-soft);color:var(--purple)}
+.toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}.toolbar .search{flex:1;min-width:240px}.input,.select,.textarea,.field input:not([type=checkbox]):not([type=file]),.field select,.field textarea{width:100%;min-height:40px;border:1px solid #cfd5de;border-radius:10px;background:#fff;padding:9px 10px;outline:none}.input:focus,.select:focus,.textarea:focus,.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(196,39,112,.09)}.field{display:flex;flex-direction:column;gap:6px}.field label{font-size:11px;font-weight:850;color:#344054}.field .hint{font-size:10px;color:var(--muted)}.field textarea{min-height:80px;resize:vertical}
+.empty{padding:48px 20px;text-align:center;color:var(--muted);border:1px dashed #d7dce4;border-radius:14px;background:#fcfcfd}.empty .ico{font-size:30px;margin-bottom:8px}.empty strong{display:block;color:var(--ink);font-size:16px;margin-bottom:3px}.empty.compact{padding:26px 15px}
+.group-grid{display:grid;grid-template-columns:repeat(3,minmax(280px,1fr));gap:12px}.group-card{background:#fff;border:1px solid var(--line);border-radius:15px;padding:15px;box-shadow:var(--shadow-sm)}.group-card:hover{box-shadow:var(--shadow)}.group-head{display:flex;gap:11px;align-items:flex-start}.group-main{flex:1;min-width:0}.group-title{font-weight:900;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.group-sub{font-size:11px;color:var(--muted);margin-top:2px}.group-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:13px 0}.mini-stat{padding:9px;border-radius:9px;background:#f8fafc;border:1px solid var(--line2)}.mini-stat .n{font-size:17px;font-weight:900}.mini-stat .l{font-size:9px;color:var(--muted);font-weight:800}.progress{height:6px;border-radius:999px;background:#edf0f3;overflow:hidden}.progress>span{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,var(--brand),#e7569a)}
+.new-wrap{max-width:1100px;margin:auto}.stepper{display:flex;gap:8px;align-items:center;margin-bottom:14px;flex-wrap:wrap}.step{display:flex;align-items:center;gap:7px;padding:7px 10px;border-radius:999px;background:#fff;border:1px solid var(--line);font-size:11px;font-weight:800;color:var(--muted)}.step.active{background:var(--brand-soft);border-color:#efc3d7;color:var(--brand2)}.step .n{width:19px;height:19px;border-radius:50%;background:#eef1f5;display:grid;place-items:center}.step.active .n{background:var(--brand);color:#fff}.new-card{background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow-sm);overflow:hidden}.new-head{padding:20px;border-bottom:1px solid var(--line2);background:linear-gradient(135deg,#fff,#fff8fb)}.new-head h2{margin:0;font-size:19px}.new-head p{margin:4px 0 0;color:var(--muted);font-size:12px}.new-body{padding:20px}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.notice{padding:11px 12px;border-radius:10px;border:1px solid var(--line);background:#f8fafc;color:#475467;font-size:12px}.notice.good{background:var(--green-soft);border-color:#bee7d3;color:#146c4a}.notice.warn{background:var(--amber-soft);border-color:#edd69f;color:#805800}.notice.danger{background:var(--red-soft);border-color:#f2c7cf;color:#9d273a}
+.detail-shell{display:grid;grid-template-columns:330px minmax(0,1fr);gap:14px}.tree-panel{overflow:hidden}.tree-head{padding:14px;border-bottom:1px solid var(--line2)}.tree-search{display:flex;gap:7px}.tree-scroll{max-height:760px;overflow:auto;padding:9px}.tree-node{margin:2px 0}.node-row{display:grid;grid-template-columns:25px 34px minmax(0,1fr) auto;gap:7px;align-items:center;padding:8px;border-radius:10px;border:1px solid transparent;cursor:pointer}.node-row:hover{background:#faf5f8}.node-row.active{background:var(--brand-soft);border-color:#edc6d8}.expander{width:24px;height:24px;border:0;border-radius:7px;background:#f0f2f5;color:#667085;font-weight:900}.expander.blank{visibility:hidden}.avatar{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;background:#eef2f7;color:#334155;font-size:10px;font-weight:900}.node-main{min-width:0}.node-user{font-weight:900;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.node-scope{font-size:10px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.node-side{text-align:right}.node-level{font-size:9px;color:var(--muted);margin-top:2px}.tree-children{margin-left:22px;padding-left:9px;border-left:1px dashed #d7dce3}.tree-empty{padding:35px 16px;text-align:center;color:var(--muted)}
+.detail-main{min-width:0}.detail-hero{background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow-sm);padding:17px;margin-bottom:12px}.crumbs{display:flex;gap:6px;align-items:center;flex-wrap:wrap;color:var(--muted);font-size:11px;margin-bottom:10px}.crumbs button{border:0;background:transparent;padding:0;color:var(--brand2);font-weight:800}.detail-top{display:flex;align-items:flex-start;justify-content:space-between;gap:14px}.detail-title{display:flex;align-items:flex-start;gap:11px}.detail-title h2{margin:0;font-size:20px}.detail-title p{margin:3px 0 0;color:var(--muted);font-size:12px}.detail-actions{display:flex;gap:7px;flex-wrap:wrap}.detail-meta{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}.subtabs{display:flex;gap:5px;padding:4px;background:#fff;border:1px solid var(--line);border-radius:12px;margin-bottom:12px;overflow:auto}.subtab{border:0;background:transparent;padding:8px 12px;border-radius:8px;font-weight:800;color:var(--muted);white-space:nowrap}.subtab.active{background:var(--brand-soft);color:var(--brand2)}.tab-card{background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow-sm);padding:17px}
+.summary{display:grid;grid-template-columns:repeat(4,minmax(120px,1fr));gap:9px;margin-bottom:14px}.summary-item{padding:11px;border:1px solid var(--line2);border-radius:10px;background:#fafbfc}.summary-item .k{font-size:9px;color:var(--muted);font-weight:850;letter-spacing:.03em}.summary-item .v{font-size:13px;font-weight:850;margin-top:4px;overflow-wrap:anywhere}.scope-box{padding:13px;border:1px solid #ead9e1;border-radius:11px;background:linear-gradient(135deg,#fff9fb,#fff);margin-bottom:13px}.scope-box .k{font-size:10px;color:var(--brand2);font-weight:900;margin-bottom:4px}.scope-box .v{font-size:14px;font-weight:850}.two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px}.child-list{display:grid;gap:8px}.child-row{padding:10px;border:1px solid var(--line2);border-radius:10px;display:flex;align-items:center;gap:10px}.child-row .main{flex:1;min-width:0}.child-row .name{font-weight:850}.child-row .sc{font-size:10px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.exec-hero{padding:15px;border:1px solid #e5d7ef;border-radius:13px;background:linear-gradient(135deg,#fbf8ff,#fff);display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:13px}.exec-rev{display:flex;align-items:center;gap:10px}.rev-circle{width:46px;height:46px;border-radius:50%;background:var(--purple);color:#fff;display:grid;place-items:center;font-weight:900}.exec-rev h3{margin:0;font-size:17px}.exec-rev p{margin:2px 0 0;color:var(--muted);font-size:11px}.file-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:13px 0}.file-box{border:1px dashed #ccd3dc;border-radius:12px;padding:13px;background:#fbfcfd}.file-box .label{font-size:11px;font-weight:850;margin-bottom:6px}.file-box .current{font-size:10px;color:var(--muted);min-height:17px;word-break:break-word}.file-box input[type=file]{width:100%;margin-top:8px;font-size:11px}.role-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.workflow{margin-top:14px;padding-top:13px;border-top:1px solid var(--line2)}.workflow h4{margin:0 0 8px;font-size:12px}.workflow-actions{display:flex;gap:8px;flex-wrap:wrap}
+.timeline{display:grid;gap:10px}.revision-card{border:1px solid var(--line);border-radius:12px;padding:13px;display:grid;grid-template-columns:64px minmax(0,1fr) auto;gap:12px;align-items:start}.revision-card.current{border-color:#d7c1e8;background:#fcfaff}.rev-tag{width:50px;height:50px;border-radius:12px;background:var(--purple-soft);color:var(--purple);display:grid;place-items:center;font-weight:900}.revision-card.current .rev-tag{background:var(--purple);color:#fff}.rev-info h4{margin:0 0 3px;font-size:14px}.rev-info p{margin:0;color:var(--muted);font-size:11px}.rev-files{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.rev-side{text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.criteria-grid{display:grid;grid-template-columns:repeat(4,minmax(130px,1fr));gap:9px;margin:12px 0}.criterion{border:1px solid var(--line);border-radius:11px;padding:11px;background:#fff;cursor:pointer;transition:.12s}.criterion:hover{border-color:#dcb5c8;background:#fffafd}.criterion.selected{border-color:var(--brand);background:var(--brand-soft);box-shadow:0 0 0 2px rgba(196,39,112,.08)}.criterion .t{font-weight:900}.criterion .s{font-size:10px;color:var(--muted);margin-top:2px}.target-toolbar{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin:12px 0 7px}.target-toolbar .search{flex:1;min-width:220px}.selection-note{font-size:11px;color:var(--muted)}.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:11px}.table-wrap table{width:100%;border-collapse:collapse;min-width:650px}.table-wrap th{background:#f8fafc;text-align:left;font-size:9px;color:#667085;text-transform:uppercase;letter-spacing:.04em;padding:8px;border-bottom:1px solid var(--line)}.table-wrap td{padding:8px;border-bottom:1px solid var(--line2);font-size:11px;vertical-align:middle}.table-wrap tr:last-child td{border-bottom:0}.table-wrap tr.selected{background:#fff7fb}.check{width:16px;height:16px;accent-color:var(--brand)}.bulk-bar{margin-top:12px;padding:13px;border:1px solid #eccbd9;background:#fff8fb;border-radius:12px}.bulk-grid{display:grid;grid-template-columns:1.25fr .8fr 1fr 1fr 1fr 1.2fr auto;gap:9px;align-items:end}.bulk-summary{font-size:10px;color:var(--muted);margin-top:8px}
+.modal-backdrop{position:fixed;inset:0;background:#10182885;backdrop-filter:blur(2px);display:flex;align-items:center;justify-content:center;padding:18px;z-index:120}.modal{width:min(920px,100%);max-height:92vh;background:#fff;border-radius:16px;box-shadow:0 24px 80px rgba(16,24,40,.25);overflow:hidden;display:flex;flex-direction:column}.modal-head{padding:15px 18px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:12px}.modal-title{font-size:17px;font-weight:900}.modal-sub{font-size:11px;color:var(--muted);margin-top:2px}.modal-body{padding:17px;overflow:auto}.modal-foot{padding:12px 17px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap}.icon-btn{width:34px;height:34px;border:0;border-radius:9px;background:#f0f2f5;font-size:19px}.review-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:12px}.review-metric{border:1px solid var(--line);border-radius:10px;padding:12px}.review-metric .n{font-size:22px;font-weight:900}.review-metric .l{font-size:9px;color:var(--muted);font-weight:800}
+.loading{position:fixed;inset:0;background:#ffffffd9;backdrop-filter:blur(2px);z-index:150;display:flex;align-items:center;justify-content:center}.loading-box{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px 21px;box-shadow:var(--shadow);min-width:280px}.spinner{width:23px;height:23px;border-radius:50%;border:3px solid #efd2df;border-top-color:var(--brand);animation:spin .8s linear infinite;margin-bottom:8px}@keyframes spin{to{transform:rotate(360deg)}}.toasts{position:fixed;right:18px;bottom:18px;z-index:170;max-width:450px}.toast{margin-top:7px;padding:11px 13px;border-radius:10px;background:#253348;color:#fff;font-size:12px;box-shadow:var(--shadow)}.toast.error{background:#a82b3d}.toast.good{background:#176541}.toast.warn{background:#8a5c0a}
+@media(max-width:1250px){.cards,.group-grid{grid-template-columns:repeat(2,1fr)}.detail-shell{grid-template-columns:300px minmax(0,1fr)}.bulk-grid{grid-template-columns:1fr 1fr 1fr}.bulk-grid .field:nth-child(5){grid-column:1/3}.summary{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:900px){.top-search{display:none}.app{padding:12px}.metrics{grid-template-columns:repeat(2,1fr)}.cards,.group-grid{grid-template-columns:1fr}.detail-shell{grid-template-columns:1fr}.tree-scroll{max-height:340px}.grid2,.grid3,.two-col,.role-grid,.file-grid{grid-template-columns:1fr}.criteria-grid{grid-template-columns:repeat(2,1fr)}.bulk-grid{grid-template-columns:1fr}.bulk-grid .field:nth-child(5){grid-column:auto}.summary{grid-template-columns:1fr 1fr}.session{display:none}.brand{min-width:0}.topbar-inner{padding:11px 13px}.hero{align-items:flex-start;flex-direction:column}.hero-badge{width:100%}}
+@media(max-width:560px){.metrics{grid-template-columns:1fr 1fr}.metric{padding:11px}.navtabs{width:100%;overflow:auto}.navtab{white-space:nowrap}.summary{grid-template-columns:1fr}.criteria-grid{grid-template-columns:1fr}.detail-top{flex-direction:column}.revision-card{grid-template-columns:52px minmax(0,1fr)}.rev-side{grid-column:2;text-align:left;align-items:flex-start}}
 </style>
 </head>
 <body>
-<div id="demoBanner" class="demo-banner hidden">DEMO MODE — sample Creator data is loaded. Add <strong>?demo=1</strong> to preview this widget outside Zoho Creator.</div>
-<header class="topbar"><div class="topbar-row"><div class="logo">ME</div><div class="brand"><small>MEGA ENGINEERING</small><h1>Drawing & Document Assignment</h1></div><div id="sessionPill" class="session">Connecting to Zoho Creator…</div></div></header>
-<main class="app">
-  <div class="nav">
-    <div class="tabs">
-      <button class="tab active" data-view="planner">Assignment Planner</button>
-      <button class="tab" data-view="mine">My Assignments</button>
-      <button class="tab" data-view="all">All Assignments</button>
-    </div>
-    <div class="actions"><button id="refreshBtn" class="btn">↻ Refresh</button><button id="setupBtn" class="btn">⚙ Setup</button></div>
+<div id="demoBanner" class="demo-banner hidden">DEMO MODE — sample project, assignment, delegation and revision data are loaded.</div>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="logo">ME</div>
+    <div class="brand"><small>MEGA ENGINEERING</small><h1>Drawing & Document Control</h1></div>
+    <div class="top-search"><input id="globalSearch" placeholder="Search project, drawing, tag, responsibility or person…"><span class="search-mark">⌕</span></div>
+    <div id="sessionPill" class="session">Connecting to Zoho Creator…</div>
   </div>
-
-  <section id="plannerView">
-    <div class="panel">
-      <div class="panel-body">
-        <div class="selector">
-          <div class="field"><label>Project Code</label><select id="projectSelect"><option value="">Select project…</option></select></div>
-          <div class="field"><label>Drawing / Document</label><select id="drawingSelect"><option value="">Select drawing / document…</option></select><div class="hint">Select once. Primary project responsibility is mandatory; further delegation is optional.</div></div>
-          <button id="loadContextBtn" class="btn primary">Open Assignment</button>
-        </div>
-        <div id="contextCard" class="context-card hidden"></div>
-      </div>
+</header>
+<main class="app">
+  <div class="navbar">
+    <div class="navtabs">
+      <button class="navtab active" data-view="home">⌂ Home</button>
+      <button class="navtab" data-view="mine">✓ My Work</button>
+      <button class="navtab" data-view="team">♧ My Team</button>
+      <button class="navtab" data-view="projects">▦ Projects</button>
+      <button class="navtab create" data-view="new">＋ New Assignment</button>
     </div>
-
-    <div id="workspace" class="workspace hidden">
-      <aside class="panel tree-panel">
-        <div class="panel-head"><div><h2>Assignment Structure</h2><p>Expand any responsibility and assign further.</p></div><span id="treeCount" class="pill">0</span></div>
-        <div class="tree-filter"><input id="treeSearch" placeholder="Search user / scope…"><select id="treeStatus"><option value="">All statuses</option><option>Not Started</option><option>In Progress</option><option>On Hold</option><option>Completed</option><option>Cancelled</option></select></div>
-        <div id="tree" class="tree-scroll"></div>
-      </aside>
-      <section class="panel">
-        <div class="panel-head"><div><h2 id="detailHeading">Responsibility</h2><p id="detailSubtitle">Select an assignment from the structure.</p></div><div id="detailActions" class="actions"></div></div>
-        <div id="detailBody" class="panel-body"></div>
-      </section>
-    </div>
-  </section>
-
-  <section id="registerView" class="panel hidden">
-    <div class="panel-head">
-      <div><h2 id="registerTitle">Drawing Assignments</h2><p>Each Project + Drawing appears once. Open it to see the complete assignment family tree.</p></div>
-      <span id="registerCount" class="pill">0 drawings</span>
-    </div>
-    <div class="panel-body">
-      <div class="register-toolbar simple">
-        <input id="regSearch" placeholder="Search project, drawing or person…">
-        <select id="regProject"><option value="">All projects</option></select>
-        <select id="regDrawing"><option value="">All drawings</option></select>
-        <select id="regStatus"><option value="">All statuses</option><option>Not Started</option><option>In Progress</option><option>On Hold</option><option>Completed</option><option>Cancelled</option></select>
-      </div>
-      <div id="registerCards" class="assignment-groups"></div>
-    </div>
-  </section>
+    <div class="nav-actions"><button id="refreshBtn" class="btn">↻ Refresh</button><button id="setupBtn" class="btn icon" title="Setup / field mapping">⚙</button></div>
+  </div>
+  <div id="page"></div>
 </main>
-
 <div id="modalBackdrop" class="modal-backdrop hidden"><div class="modal"><div class="modal-head"><div><div id="modalTitle" class="modal-title"></div><div id="modalSub" class="modal-sub"></div></div><button id="modalClose" class="icon-btn">×</button></div><div id="modalBody" class="modal-body"></div><div id="modalFoot" class="modal-foot"></div></div></div>
 <div id="loading" class="loading hidden"><div class="loading-box"><div class="spinner"></div><div id="loadingText" class="strong">Loading…</div></div></div>
 <div id="toasts" class="toasts"></div>
-
 <script>
 "use strict";
 
 /* ======================================================================
-   V16.5 ONE-FORM ARCHITECTURE
+   V17 COMPLETE ONE-FORM ENGINEERING DESIGN CONTROL
    ----------------------------------------------------------------------
-   Existing Creator sources (READ):
-     - Project master/report
-     - All_Drawing_Types
-     - Master_Equipment_List_Subform_Report
-     - Employee report
+   READS existing masters:
+     - Project master
+     - Drawing master
+     - Equipment master
+     - Employee master
 
-   Permanent transaction storage (WRITE + READ):
-     - Design_Tracking ONLY
+   WRITES only one existing transaction form:
+     - Design_Tracking
 
-   Assignment hierarchy inside Design_Tracking:
-     Primary_Assignment_ID -> first assignment record ID
-     Assigned_From_ID      -> immediate previous assignment record ID
-     Assignment_Level      -> 0, 1, 2, 3 ... N
+   Assignment hierarchy:
+     Primary_Assignment_ID + Assigned_From_ID + Assignment_Level
 
-   Parent_Design_ID remains reserved for drawing REVISION history and is NOT
-   used for assignment hierarchy.
+   Revision hierarchy:
+     Logical_Task_Key = EXEC::<AssignmentRecordID>::R<n>
+     Revision_Key     = EXEC::<AssignmentRecordID>::R<n>
+     Parent_Design_ID = previous revision record ID
+
+   Therefore no new transaction form and no extra Revision form are needed.
    ====================================================================== */
-const CONFIG = {
-  APP_NAME: "mega-engineering-sales",
-  DEMO: new URLSearchParams(location.search).get("demo") === "1",
-  LIVE_WRITES: true,
-  REPORTS: {
-    projects: "All_Associated_Projects",
-    drawings: "All_Drawing_Types",
-    equipment: "Master_Equipment_List_Subform_Report",
-    employees: "Employ_to_Create_ticket_Report",
-    assignments: "Design_Tracking_Report" // fixed report link: no META.getReports needed for normal users
+const CONFIG={
+  APP_NAME:"mega-engineering-sales",
+  DEMO:new URLSearchParams(location.search).get("demo")==="1",
+  LIVE_WRITES:true,
+  MAX_FILE_BYTES:50*1024*1024,
+  REPORTS:{
+    projects:"All_Associated_Projects",
+    drawings:"All_Drawing_Types",
+    equipment:"Master_Equipment_List_Subform_Report",
+    employees:"Employ_to_Create_ticket_Report",
+    tracking:"Design_Tracking_Report"
   },
-  FORMS: {
-    assignment: "Design_Tracking"
-  },
-  ASSIGNMENT_REPORT_CANDIDATES: [
-    "Design_Tracking_Report",
-    "All_Design_Tracking",
-    "Design_Tracking"
-  ],
-  PAGE_SIZE: 100,
-  MAX_BATCH: 250
+  FORMS:{tracking:"Design_Tracking"},
+  SYNC_ASSIGNMENT_START:true,
+  PAGE_SIZE:100,
+  MAX_BATCH:250
 };
 
-/* Existing Design_Tracking fields + the eight assignment fields added by you. */
-const AF = {
-  projectCode: "Project_Code",
-  projectRecordId: "Project_Record_ID",
-  drawingDocument: "Drawing_Document_Name",
-  drawingMasterId: "Drawing_Master_ID",
-  shortName: "Short_Name",
-
-  primaryAssignment: "Primary_Assignment_ID",
-  assignedFrom: "Assigned_From_ID",
-  assignmentLevel: "Assignment_Level",
-  assignedBy: "Assigned_By",
-  assignedTo: "Assigned_To",
-  assignedEmployeeName: "Assigned_Employee_Name",
-  criteria: "Assignment_Criteria",
-  responsibility: "Responsibility",
-  furtherAssigned: "Further_Assigned",
-
-  plantSection: "Plant_Section_Name",
-  plantSectionType: "Plant_Section_Type",
-  groupCode: "Group_Code",
-  department: "Equipment_Department",
-  tagNo: "Tag_Number",
-  equipmentName: "Equipment_Name",
-  equipmentRecordId: "Equipment_Record_ID",
-  equipmentCategory: "Equipment_Category",
-  equipmentType: "Equipment_Type",
-
-  startDate: "Planned_Start_Date",
-  targetDate: "Forecast_End_Date",
-  endDate: "Planned_End_Date",
-  priority: "Priority",
-  status: "Status",
-  progress: "Progress",
-  remark: "Remarks",
-  active: "Active",
-
-  // Existing fields retained for design/revision execution. Do not use
-  // Parent_Design_ID for the assignment tree.
-  parentDesignId: "Parent_Design_ID",
-  logicalTaskKey: "Logical_Task_Key"
+const AF={
+  projectCode:"Project_Code",projectRecordId:"Project_Record_ID",
+  sourceEquipmentRecordId:"Source_Equipment_Record_ID",
+  plantSection:"Plant_Section_Name",plantSectionType:"Plant_Section_Type",
+  tagNo:"Tag_Number",equipmentName:"Equipment_Name",equipmentCategory:"Equipment_Category",
+  equipmentType:"Equipment_Type",department:"Equipment_Department",groupCode:"Group_Code",
+  designDepartment:"Design_Department",designType:"Design_Type",designTitle:"Design_Title",
+  drawingNumber:"Drawing_Number",priority:"Priority",
+  startDate:"Planned_Start_Date",targetDate:"Forecast_End_Date",endDate:"Planned_End_Date",
+  actualStart:"Actual_Start_Date",actualEnd:"Actual_End_Date",
+  assignedTo:"Assigned_To",assignedEmployeeName:"Assigned_Employee_Name",
+  checker:"Checker",reviewer:"Reviewer",approver:"Approver",
+  status:"Status",progress:"Progress",revision:"Revision",revisionDescription:"Revision_Description",
+  drawingFile:"Drawing_File",nativeFile:"Native_File",supportingFile:"Supporting_File",
+  remark:"Remarks",returnReason:"Return_Reason",parentDesignId:"Parent_Design_ID",
+  startedBy:"Started_By",completedBy:"Completed_By",
+  drawingMasterId:"Drawing_Master_ID",scopeLevel:"Scope_Level",logicalTaskKey:"Logical_Task_Key",
+  revisionKey:"Revision_Key",equipmentRecordId:"Equipment_Record_ID",
+  drawingDocument:"Drawing_Document_Name",shortName:"Short_Name",active:"Active",
+  primaryAssignment:"Primary_Assignment_ID",assignedFrom:"Assigned_From_ID",assignmentLevel:"Assignment_Level",
+  assignedBy:"Assigned_By",criteria:"Assignment_Criteria",responsibility:"Responsibility",furtherAssigned:"Further_Assigned"
 };
 
-const CRITERIA = [
-  {key:"plantSection", label:"Plant Section", field:AF.plantSection, equipment:["Plant_Section_Name","Plant_Section"]},
-  {key:"plantSectionType", label:"Plant Section Type", field:AF.plantSectionType, equipment:["Plant_Section_Type","Section_Type"]},
-  {key:"equipmentCategory", label:"Equipment Category", field:AF.equipmentCategory, equipment:["Equipment_Category","Category"]},
-  {key:"tag", label:"Tag No / Equipment", field:AF.tagNo, equipment:["Tag_Number","Tag_No"], extra:true},
-  {key:"groupCode", label:"Group Code", field:AF.groupCode, equipment:["Group_Code","Group"]},
-  {key:"department", label:"Department Code", field:AF.department, equipment:["Department_Code","Department"]},
-  {key:"equipmentType", label:"Equipment Type", field:AF.equipmentType, equipment:["Equipment_Type","Type"]}
+const CRITERIA=[
+  {key:"plantSection",label:"Plant Section",field:AF.plantSection,icon:"§",equipment:["Plant_Section_Name","Plant_Section"]},
+  {key:"plantSectionType",label:"Plant Section Type",field:AF.plantSectionType,icon:"◇",equipment:["Plant_Section_Type","Section_Type"]},
+  {key:"tag",label:"Tag / Equipment",field:AF.tagNo,icon:"#",equipment:["Tag_Number","Tag_No"],extra:true},
+  {key:"groupCode",label:"Group Code",field:AF.groupCode,icon:"G",equipment:["Group_Code","Group"]},
+  {key:"department",label:"Department",field:AF.department,icon:"D",equipment:["Department_Code","Department"]},
+  {key:"equipmentCategory",label:"Equipment Category",field:AF.equipmentCategory,icon:"C",equipment:["Equipment_Category","Category"]},
+  {key:"equipmentType",label:"Equipment Type",field:AF.equipmentType,icon:"T",equipment:["Equipment_Type","Type"]}
 ];
-const STATUSES=["Not Started","In Progress","On Hold","Completed","Cancelled"];
+const ASSIGNMENT_STATUSES=["Not Started","In Progress","On Hold","Completed","Cancelled"];
+const PRIORITIES=["Low","Medium","High","Critical"];
+const DESIGN_STATUSES=["Not Started","In Progress","Submitted for Check","Checking","Checked","Submitted for Review","Reviewing","Reviewed","Submitted for Approval","Approving","Approved","Issued","Completed","Returned","On Hold","Cancelled"];
+const DESIGN_PROGRESS={"Not Started":0,"In Progress":10,"Submitted for Check":50,"Checking":55,"Checked":60,"Submitted for Review":65,"Reviewing":70,"Reviewed":80,"Submitted for Approval":85,"Approving":90,"Approved":95,"Issued":100,"Completed":100,"Returned":40,"On Hold":10,"Cancelled":0};
+const MONTHS=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 
 const PROJECT_ALIASES={id:["ID"],code:["Project_Code","Project_Code1","Project"],name:["Project_Name","Project_Description","Description","Customer_Name"]};
 const DRAWING_ALIASES={id:["ID"],name:["Drawing_Name","Drawing_Document_Name","Drawing_Document","Name"],short:["Drawing_Abbreviation","Short_Name","Abbreviation"],type:["Drawing_Type","Type"],active:["Active"]};
 const EMP_ALIASES={id:["ID"],name:["Employee_Name","Name","Employee"],email:["Email","Employee_Email"],dept:["Department","Department_Name"]};
-const EQ_ALIASES={
-  id:["ID"],project:["Project_Code","Project_Code1","Project"],section:["Plant_Section_Name","Plant_Section"],sectionType:["Plant_Section_Type","Section_Type"],
-  tag:["Tag_Number","Tag_No"],name:["Equipment_Name","Equipment"],group:["Group_Code","Group"],department:["Department_Code","Department"],category:["Equipment_Category","Category"],type:["Equipment_Type","Type"]
-};
+const EQ_ALIASES={id:["ID"],project:["Project_Code","Project_Code1","Project"],section:["Plant_Section_Name","Plant_Section"],sectionType:["Plant_Section_Type","Section_Type"],tag:["Tag_Number","Tag_No"],name:["Equipment_Name","Equipment"],group:["Group_Code","Group"],department:["Department_Code","Department"],category:["Equipment_Category","Category"],type:["Equipment_Type","Type"]};
+const SYSTEM_ALIASES={addedTime:["Added_Time","Created_Time","Created_Time1"],addedUser:["Added_User","Created_By","Created_User"],modifiedTime:["Modified_Time","Updated_Time","Modified_Time1"],modifiedUser:["Modified_User","Updated_By","Modified_By"]};
 
 const S={
-  demo:CONFIG.DEMO,user:"",app:CONFIG.APP_NAME,view:"planner",projects:[],drawings:[],employees:[],equipment:[],assignments:[],trackingFieldMeta:new Map(),
-  project:null,drawing:null,current:null,selectedCriteria:new Set(),targetRows:[],selectedTargets:new Set(),rowDrafts:new Map(),expanded:new Set(),
-  registerExpanded:new Set(),regMode:"all",logs:[]
+  demo:CONFIG.DEMO,user:"",app:CONFIG.APP_NAME,view:"home",previousView:"home",globalSearch:"",
+  projects:[],drawings:[],employees:[],equipment:[],records:[],assignments:[],revisions:[],
+  project:null,drawing:null,current:null,detailTab:"overview",expanded:new Set(),
+  selectedCriteria:new Set(),selectedTargets:new Set(),targetRows:[],targetSearch:"",bulk:{},
+  newProjectId:"",newDrawingId:"",logs:[]
 };
 const $=id=>document.getElementById(id);
 const h=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
 const nk=v=>String(v??"").toLowerCase().replace(/[^a-z0-9]/g,"");
 function scalar(v){if(v==null)return"";if(typeof v!=="object")return String(v);if(v.display_value!=null)return scalar(v.display_value);if(v.zc_display_value!=null)return scalar(v.zc_display_value);if(v.email)return String(v.email);if(v.ID!=null)return String(v.ID);const vals=Object.values(v).filter(x=>x!=null&&typeof x!=="object");return vals.join(" ");}
 function pick(r,aliases,f=""){if(!r)return f;for(const a of aliases||[])if(Object.prototype.hasOwnProperty.call(r,a))return scalar(r[a]);const keys=Object.fromEntries(Object.keys(r).map(k=>[nk(k),k]));for(const a of aliases||[]){const k=keys[nk(a)];if(k)return scalar(r[k]);}return f;}
-function idOf(r){return scalar(r?.ID||r?.id);}
-function num(v,f=0){const n=Number(String(v??"").replace(/,/g,""));return Number.isFinite(n)?n:f;}
-function initials(name){return String(name||"?").split(/\s+/).filter(Boolean).slice(0,2).map(x=>x[0]).join("").toUpperCase()||"?";}
-function criteriaText(v){return String(v??"").replace(/\\/g,"\\\\").replace(/"/g,'\\"');}
-function todayIso(){const d=new Date();return [d.getFullYear(),String(d.getMonth()+1).padStart(2,"0"),String(d.getDate()).padStart(2,"0")].join("-");}
-const MONTHS=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-function toCreatorDate(v){if(!v)return"";const p=String(v).split("-");if(p.length!==3)return v;return `${p[2]}-${MONTHS[Number(p[1])-1]}-${p[0]}`;}
-function toInputDate(v){const s=scalar(v).trim();if(!s)return"";if(/^\d{4}-\d{2}-\d{2}$/.test(s))return s;const m=s.match(/^(\d{1,2})-([A-Za-z]{3})-(\d{4})/);if(m){const mi=MONTHS.findIndex(x=>x.toLowerCase()===m[2].toLowerCase())+1;return `${m[3]}-${String(mi).padStart(2,"0")}-${String(m[1]).padStart(2,"0")}`;}const d=new Date(s);return Number.isNaN(d.getTime())?"":`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;}
-function displayDate(v){const iso=toInputDate(v);return iso?iso.split("-").reverse().join("-"):"—";}
-function toast(msg,type=""){const e=document.createElement("div");e.className=`toast ${type}`;e.textContent=msg;$("toasts").appendChild(e);setTimeout(()=>e.remove(),4500);}
-let loadDepth=0;function busy(msg="Loading…"){loadDepth++;$("loadingText").textContent=msg;$("loading").classList.remove("hidden");}function idle(){loadDepth=Math.max(0,loadDepth-1);if(!loadDepth)$("loading").classList.add("hidden");}
-function log(action,data={}){S.logs.push({at:new Date().toISOString(),action,data});if(S.logs.length>200)S.logs.shift();}
+function idOf(r){return scalar(r?.ID||r?.id)}
+function num(v,f=0){const n=Number(String(v??"").replace(/,/g,""));return Number.isFinite(n)?n:f}
+function initials(name){return String(name||"?").split(/\s+/).filter(Boolean).slice(0,2).map(x=>x[0]).join("").toUpperCase()||"?"}
+function todayIso(){const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`}
+function toCreatorDate(v){if(!v)return"";const p=String(v).split("-");if(p.length!==3)return v;return `${p[2]}-${MONTHS[Number(p[1])-1]}-${p[0]}`}
+function toCreatorDateTime(d=new Date()){return `${String(d.getDate()).padStart(2,"0")}-${MONTHS[d.getMonth()]}-${d.getFullYear()} ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}:${String(d.getSeconds()).padStart(2,"0")}`}
+function toInputDate(v){const s=scalar(v).trim();if(!s)return"";if(/^\d{4}-\d{2}-\d{2}$/.test(s))return s;const m=s.match(/^(\d{1,2})-([A-Za-z]{3})-(\d{4})/);if(m){const mi=MONTHS.findIndex(x=>x.toLowerCase()===m[2].toLowerCase())+1;return `${m[3]}-${String(mi).padStart(2,"0")}-${String(m[1]).padStart(2,"0")}`;}const d=new Date(s);return Number.isNaN(d.getTime())?"":`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`}
+function displayDate(v){const iso=toInputDate(v);return iso?iso.split("-").reverse().join("-"):"—"}
+function displayDateTime(v){const s=scalar(v);if(!s)return"—";return s.replace(/-/g," ")}
+function toast(msg,type=""){const e=document.createElement("div");e.className=`toast ${type}`;e.textContent=msg;$("toasts").appendChild(e);setTimeout(()=>e.remove(),4800)}
+let loadDepth=0;function busy(msg="Loading…"){loadDepth++;$("loadingText").textContent=msg;$("loading").classList.remove("hidden")}function idle(){loadDepth=Math.max(0,loadDepth-1);if(!loadDepth)$("loading").classList.add("hidden")}
+function log(action,data={}){S.logs.push({at:new Date().toISOString(),action,data});if(S.logs.length>250)S.logs.shift()}
+function dateDiffDays(iso){if(!iso)return null;const a=new Date(todayIso()+"T00:00:00"),b=new Date(iso+"T00:00:00");return Math.round((b-a)/86400000)}
+function isClosedAssignment(a){return ["Completed","Cancelled"].includes(scalar(a?.[AF.status]))}
+function isClosedRevision(r){return ["Approved","Issued","Completed","Cancelled"].includes(scalar(r?.[AF.status]))}
+function statusClass(s){if(["Completed","Issued","Approved","Checked","Reviewed"].includes(s))return"green";if(["In Progress","Checking","Reviewing","Approving","Submitted for Check","Submitted for Review","Submitted for Approval"].includes(s))return"blue";if(["On Hold","Returned"].includes(s))return"amber";if(["Cancelled"].includes(s))return"red";return""}
+function statusPill(s){return `<span class="pill ${statusClass(s)}">${h(s||"Not Started")}</span>`}
+function progressBar(p){const n=Math.max(0,Math.min(100,num(p)));return `<div class="progress"><span style="width:${n}%"></span></div>`}
 
 function adaptProject(r){return{raw:r,id:pick(r,PROJECT_ALIASES.id),code:pick(r,PROJECT_ALIASES.code),name:pick(r,PROJECT_ALIASES.name)}}
 function adaptDrawing(r){return{raw:r,id:pick(r,DRAWING_ALIASES.id),name:pick(r,DRAWING_ALIASES.name),short:pick(r,DRAWING_ALIASES.short),type:pick(r,DRAWING_ALIASES.type),active:pick(r,DRAWING_ALIASES.active)}}
 function adaptEmployee(r){return{raw:r,id:pick(r,EMP_ALIASES.id),name:pick(r,EMP_ALIASES.name),email:pick(r,EMP_ALIASES.email),department:pick(r,EMP_ALIASES.dept)}}
 function adaptEquipment(r){return{raw:r,id:pick(r,EQ_ALIASES.id),project:pick(r,EQ_ALIASES.project),plantSection:pick(r,EQ_ALIASES.section),plantSectionType:pick(r,EQ_ALIASES.sectionType),tag:pick(r,EQ_ALIASES.tag),name:pick(r,EQ_ALIASES.name),groupCode:pick(r,EQ_ALIASES.group),department:pick(r,EQ_ALIASES.department),equipmentCategory:pick(r,EQ_ALIASES.category),equipmentType:pick(r,EQ_ALIASES.type)}}
-function adaptAssignment(r){return{...r,ID:idOf(r)}}
+function adaptRecord(r){return{...r,ID:idOf(r)}}
+function withApp(c){return{app_name:S.app||CONFIG.APP_NAME,...c}}
+function assertResp(r,label){if(!r)throw new Error(`${label}: empty response.`);if(r.code!=null&&Number(r.code)!==3000)throw new Error(`${label}: ${r.message||r.description||JSON.stringify(r)}`);return r}
+function prepareCreatorPayload(data){const out={...data};delete out[AF.furtherAssigned];delete out[AF.active];return out}
+async function fetchRecords(report,criteria="",max=20){if(S.demo)return demoFetch(report,criteria);const out=[];let cursor="";for(let i=0;i<max;i++){const c=withApp({report_name:report,field_config:"all",max_records:1000});if(criteria)c.criteria=criteria;if(cursor)c.record_cursor=cursor;let r;try{r=assertResp(await ZOHO.CREATOR.DATA.getRecords(c),`Read ${report}`)}catch(e){if(/9280|No records found/i.test(String(e.message||e)))return out;throw e}const rows=Array.isArray(r.data)?r.data:[];out.push(...rows);cursor=r.record_cursor||r.cursor||"";if(!cursor||!rows.length)break}return out}
+async function addRecord(data){if(S.demo)return demoAdd(data);if(!CONFIG.LIVE_WRITES)throw new Error("Live writes are disabled in CONFIG.");const r=assertResp(await ZOHO.CREATOR.DATA.addRecords(withApp({form_name:CONFIG.FORMS.tracking,payload:{data:prepareCreatorPayload(data)}})),"Create Design_Tracking");return String(r?.data?.ID||r?.data?.id||"")}
+async function updateRecord(id,data){if(S.demo)return demoUpdate(id,data);if(!CONFIG.LIVE_WRITES)throw new Error("Live writes are disabled in CONFIG.");assertResp(await ZOHO.CREATOR.DATA.updateRecordById(withApp({report_name:CONFIG.REPORTS.tracking,id:String(id),payload:{data:prepareCreatorPayload(data)}})),"Update Design_Tracking");return id}
+async function uploadFile(id,field,file){if(!file)return;if(file.size>CONFIG.MAX_FILE_BYTES)throw new Error(`${file.name} is larger than 50 MB.`);if(S.demo){const r=S.records.find(x=>idOf(x)===String(id));if(r)r[field]=file.name;return}assertResp(await ZOHO.CREATOR.FILE.uploadFile(withApp({report_name:CONFIG.REPORTS.tracking,id:String(id),field_name:field,file})),`Upload ${field}`)}
+async function readFile(id,field){if(S.demo)throw new Error("File download is unavailable in demo mode.");return await ZOHO.CREATOR.FILE.readFile(withApp({report_name:CONFIG.REPORTS.tracking,id:String(id),field_name:field}))}
+async function safeSource(report,label,{required=false}={}){try{return await fetchRecords(report)}catch(e){const msg=`${label} access failed (${report}). Check this user's Creator permissions.`;console.error(msg,e);if(required)throw new Error(`${msg} ${e.message||e}`);toast(msg,"error");return[]}}
 
-function withApp(c){return{app_name:S.app||CONFIG.APP_NAME,...c};}
-function assertResp(r,label){if(!r)throw new Error(`${label}: empty response.`);if(r.code!=null&&Number(r.code)!==3000)throw new Error(`${label}: ${r.message||r.description||JSON.stringify(r)}`);return r;}
-async function resolveAssignmentReport(){
-  if(S.demo){CONFIG.REPORTS.assignments="Design_Tracking_Report";return CONFIG.REPORTS.assignments;}
-  if(CONFIG.REPORTS.assignments)return CONFIG.REPORTS.assignments;
-  const r=assertResp(await ZOHO.CREATOR.META.getReports(withApp({})),"Get Reports");
-  const reports=Array.isArray(r.reports)?r.reports:[];
-  const wanted=CONFIG.ASSIGNMENT_REPORT_CANDIDATES.map(nk);
-  let hit=reports.find(x=>wanted.includes(nk(x.link_name)));
-  if(!hit)hit=reports.find(x=>nk(x.link_name).includes("designtracking")||nk(x.display_name).includes("designtracking"));
-  CONFIG.REPORTS.assignments=hit?.link_name||"";
-  if(!CONFIG.REPORTS.assignments)throw new Error("Design_Tracking report could not be auto-discovered. Put its exact report link name in CONFIG.REPORTS.assignments.");
-  return CONFIG.REPORTS.assignments;
-}
-async function loadTrackingMeta(){
-  if(S.demo)return;
-  try{
-    const r=assertResp(await ZOHO.CREATOR.META.getFields(withApp({form_name:CONFIG.FORMS.assignment})),"Get Design_Tracking fields");
-    S.trackingFieldMeta=new Map((r.fields||[]).map(f=>[String(f.link_name||""),f]));
-  }catch(e){console.warn("Design_Tracking metadata unavailable",e);}
-}
-function assignmentCriteriaPayload(labels){
-  // Assignment_Criteria is intentionally a SINGLE LINE field in Design_Tracking.
-  // The widget controls the allowed criteria and stores the selected criteria
-  // as readable comma-separated text, e.g.
-  //   "Project"
-  //   "Plant Section, Plant Section Type"
-  //   "Equipment Category"
-  const arr=(Array.isArray(labels)?labels:String(labels||"").split(","))
-    .map(x=>String(x||"").trim())
-    .filter(Boolean);
-  return arr.join(", ");
-}
-function employeeNameFor(value){
-  const v=String(value||"");
-  return S.employees.find(e=>String(e.email||e.id)===v)?.name||v;
-}
-function isAssignmentRecord(r){
-  // Existing design/revision records in Design_Tracking are ignored unless
-  // they carry the new assignment hierarchy fields.
-  return scalar(r?.[AF.assignmentLevel])!=="" || Boolean(scalar(r?.[AF.primaryAssignment])) || Boolean(scalar(r?.[AF.assignedFrom]));
-}
-function responsibilityFromData(data){
-  const bits=[`Project ${S.project?.code||scalar(data?.[AF.projectCode])||""}`];
-  const s=scalar(data?.[AF.plantSection]); if(s)bits.push(s);
-  const st=scalar(data?.[AF.plantSectionType]); if(st)bits.push(st);
-  const g=scalar(data?.[AF.groupCode]); if(g)bits.push(`Group: ${g}`);
-  const d=scalar(data?.[AF.department]); if(d)bits.push(`Department: ${d}`);
-  const c=scalar(data?.[AF.equipmentCategory]); if(c)bits.push(`Category: ${c}`);
-  const t=scalar(data?.[AF.equipmentType]); if(t)bits.push(`Type: ${t}`);
-  const tag=scalar(data?.[AF.tagNo]),name=scalar(data?.[AF.equipmentName]);
-  if(tag||name)bits.push(`Tag: ${[tag,name].filter(Boolean).join(" — ")}`);
-  return bits.filter(Boolean).join(" › ");
-}
-async function fetchRecords(report,criteria="",max=20){if(S.demo)return demoFetch(report,criteria);const out=[];let cursor="";for(let i=0;i<max;i++){const c=withApp({report_name:report,field_config:"all",max_records:1000});if(criteria)c.criteria=criteria;if(cursor)c.record_cursor=cursor;let r;try{r=assertResp(await ZOHO.CREATOR.DATA.getRecords(c),`Read ${report}`);}catch(e){if(/9280|No records found/i.test(String(e.message||e)))return out;throw e;}const rows=Array.isArray(r.data)?r.data:[];out.push(...rows);cursor=r.record_cursor||r.cursor||"";if(!cursor||!rows.length)break;}return out;}
-// IMPORTANT FOR THIS APP:
-// Do not send Design_Tracking Decision Box fields through the Widget API.
-// Creator is rejecting Further_Assigned with error 3001 in this application.
-// Further_Assigned is derived from whether child assignment records exist, so
-// it does not need to be written at all. Active should use the Creator form's
-// default value (checked / true). This removes the invalid-column issue safely.
-function prepareCreatorPayload(data){
-  const out={...data};
-  delete out[AF.furtherAssigned];
-  delete out[AF.active];
-  return out;
-}
+function isAssignmentRecord(r){return scalar(r?.[AF.assignmentLevel])!==""||Boolean(scalar(r?.[AF.primaryAssignment]))||Boolean(scalar(r?.[AF.assignedFrom]))}
+function isRevisionRecord(r){if(isAssignmentRecord(r))return false;const key=scalar(r?.[AF.logicalTaskKey]);return Boolean(scalar(r?.[AF.revision])||scalar(r?.[AF.parentDesignId])||key.startsWith("EXEC::"))}
+function executionPrefix(assignmentId){return `EXEC::${assignmentId}::`}
+function revisionNumber(v){const m=String(v||"").match(/(\d+)/);return m?Number(m[1]):0}
+function revisionsForAssignment(a){if(!a)return[];const prefix=executionPrefix(idOf(a));return S.revisions.filter(r=>scalar(r[AF.logicalTaskKey]).startsWith(prefix)).sort((x,y)=>revisionNumber(x[AF.revision])-revisionNumber(y[AF.revision]))}
+function currentRevision(a){const rows=revisionsForAssignment(a);return rows.length?rows[rows.length-1]:null}
+function isHistoricalRevision(r,a){const cur=currentRevision(a);return r&&cur&&idOf(r)!==idOf(cur)}
+function employeeNameFor(value){const v=String(value||"");const e=S.employees.find(x=>String(x.email||"").toLowerCase()===v.toLowerCase()||String(x.id||"")===v);return e?.name||v}
+function personDisplay(value){const raw=scalar(value).trim();if(!raw)return"";const e=S.employees.find(x=>String(x.email||"").toLowerCase()===raw.toLowerCase()||String(x.id||"")===raw);return e?.name||raw}
+function currentUserMatches(value){const raw=scalar(value).trim().toLowerCase(),me=String(S.user||"").trim().toLowerCase();if(!raw||!me)return false;if(raw===me||raw.includes(me))return true;const emp=S.employees.find(e=>String(e.email||"").toLowerCase()===me);return emp?raw===String(emp.id||"").toLowerCase()||raw===String(emp.name||"").toLowerCase():false}
+function assignmentUser(a){return scalar(a?.[AF.assignedTo])||"Unassigned"}
+function assignmentDisplayUser(a){return scalar(a?.[AF.assignedEmployeeName])||personDisplay(a?.[AF.assignedTo])||"Unassigned"}
+function assignmentByDisplay(a){return personDisplay(a?.[AF.assignedBy])||scalar(a?.[AF.assignedBy])||"—"}
+function scopeSummary(a){if(!a)return"Entire Project";const stored=scalar(a[AF.responsibility]);if(stored)return stored;const bits=[];for(const c of CRITERIA){if(c.key==="tag"){const t=scalar(a[AF.tagNo]),n=scalar(a[AF.equipmentName]);if(t||n)bits.push(`Tag: ${[t,n].filter(Boolean).join(" — ")}`)}else{const v=scalar(a[c.field]);if(v)bits.push(`${c.label}: ${v}`)}}return bits.length?bits.join(" • "):"Entire Project"}
+function assignmentCriteria(a){return scalar(a?.[AF.criteria])||"Project"}
+function assignmentChildren(id,rows=S.assignments){return rows.filter(a=>scalar(a[AF.assignedFrom])===String(id))}
+function assignmentById(id){return S.assignments.find(a=>idOf(a)===String(id))||null}
+function primaryForRows(rows){return rows.find(a=>num(a[AF.assignmentLevel],-1)===0&&!scalar(a[AF.assignedFrom]))||null}
+function groupKey(a){return `${scalar(a[AF.projectCode])}||${scalar(a[AF.drawingMasterId])||scalar(a[AF.drawingDocument])}`}
+function groupAssignments(){const map=new Map();for(const a of S.assignments){const k=groupKey(a);if(!map.has(k))map.set(k,{key:k,projectCode:scalar(a[AF.projectCode]),drawingId:scalar(a[AF.drawingMasterId]),drawingName:scalar(a[AF.drawingDocument]),short:scalar(a[AF.shortName]),rows:[]});map.get(k).rows.push(a)}return [...map.values()].map(g=>({...g,root:primaryForRows(g.rows)}))}
+function groupForAssignment(a){return groupAssignments().find(g=>g.key===groupKey(a))||null}
+function projectForCode(code){return S.projects.find(p=>p.code===String(code))||{id:"",code:String(code),name:""}}
+function drawingForAssignment(a){return S.drawings.find(d=>d.id===scalar(a?.[AF.drawingMasterId])||d.name===scalar(a?.[AF.drawingDocument]))||{id:scalar(a?.[AF.drawingMasterId]),name:scalar(a?.[AF.drawingDocument])||"Drawing / Document",short:scalar(a?.[AF.shortName]),type:""}}
+function groupAverageProgress(rows){if(!rows.length)return 0;return Math.round(rows.reduce((s,a)=>s+num(a[AF.progress]),0)/rows.length)}
+function childStats(a){const kids=assignmentChildren(idOf(a));return{total:kids.length,completed:kids.filter(x=>scalar(x[AF.status])==="Completed").length,inProgress:kids.filter(x=>scalar(x[AF.status])==="In Progress").length}}
+function currentExecutionLabel(a){const r=currentRevision(a);return r?`${scalar(r[AF.revision])||"R0"} • ${scalar(r[AF.status])||"Not Started"}`:"No revision"}
+function searchMatchAssignment(a,q){if(!q)return true;const d=drawingForAssignment(a);const hay=[scalar(a[AF.projectCode]),d.name,d.short,assignmentDisplayUser(a),assignmentByDisplay(a),scopeSummary(a),assignmentCriteria(a),scalar(a[AF.tagNo]),scalar(a[AF.equipmentName])].join(" ").toLowerCase();return hay.includes(q.toLowerCase())}
+function assignmentDueClass(a){if(isClosedAssignment(a))return"completed";const diff=dateDiffDays(toInputDate(a[AF.targetDate]));if(diff!=null&&diff<0)return"overdue";if(scalar(a[AF.status])==="In Progress")return"inprogress";return""}
+function assignmentDueText(a){const iso=toInputDate(a[AF.targetDate]);const diff=dateDiffDays(iso);if(!iso)return"No target";if(isClosedAssignment(a))return displayDate(iso);if(diff<0)return `${Math.abs(diff)} day${Math.abs(diff)===1?"":"s"} overdue`;if(diff===0)return"Due today";if(diff<=7)return`Due in ${diff} day${diff===1?"":"s"}`;return displayDate(iso)}
+function primaryAssignmentFor(project,drawing){return S.assignments.find(a=>scalar(a[AF.projectCode])===project.code&&(scalar(a[AF.drawingMasterId])===drawing.id||scalar(a[AF.drawingDocument])===drawing.name)&&num(a[AF.assignmentLevel],-1)===0&&!scalar(a[AF.assignedFrom]))||null}
 
-async function addRecord(form,data){
-  if(S.demo)return demoAdd(form,data);
-  if(!CONFIG.LIVE_WRITES)throw new Error("Live writes are disabled in CONFIG.");
-  const creatorData=prepareCreatorPayload(data);
-  const r=assertResp(await ZOHO.CREATOR.DATA.addRecords(withApp({form_name:form,payload:{data:creatorData}})),`Create ${form}`);
-  return String(r?.data?.ID||r?.data?.id||"");
-}
-async function updateRecord(report,id,data){
-  if(S.demo)return demoUpdate(report,id,data);
-  if(!CONFIG.LIVE_WRITES)throw new Error("Live writes are disabled in CONFIG.");
-  const creatorData=prepareCreatorPayload(data);
-  assertResp(await ZOHO.CREATOR.DATA.updateRecordById(withApp({report_name:report,id:String(id),payload:{data:creatorData}})),`Update ${report}`);
-  return id;
-}
-
-async function safeSource(report,label,{required=false}={}){
-  try{
-    return await fetchRecords(report);
-  }catch(e){
-    const msg=`${label} access failed (${report}). Check this user's Creator permission set.`;
-    console.error(msg,e);
-    if(required)throw new Error(`${msg} ${e.message||e}`);
-    toast(msg,"error");
-    return [];
-  }
-}
-
-async function bootstrap(){busy("Loading drawing assignment workspace…");try{
-  if(S.demo){
-    S.user="rohan@mega.tc";
-    $("demoBanner").classList.remove("hidden");
-  }else{
+async function bootstrap(){busy("Loading your drawing workspace…");try{
+  if(S.demo){S.user="rohan@mega.tc";$("demoBanner").classList.remove("hidden")}else{
     if(!window.ZOHO||!ZOHO.CREATOR)throw new Error("Zoho Creator Widget SDK is not available in this page.");
-    const init=await Promise.race([
-      ZOHO.CREATOR.UTIL.getInitParams(),
-      new Promise((_,rej)=>setTimeout(()=>rej(new Error("Creator session timed out.")),8000))
-    ]);
-    S.user=init?.loginUser||"";
-    S.app=init?.appLinkName||CONFIG.APP_NAME;
-    // IMPORTANT: Do not call META.getReports / META.getFields during normal-user startup.
-    // Normal users can be denied metadata access even though they can use the page and reports.
-    // CONFIG.REPORTS.assignments is fixed to Design_Tracking_Report above.
+    const init=await Promise.race([ZOHO.CREATOR.UTIL.getInitParams(),new Promise((_,rej)=>setTimeout(()=>rej(new Error("Creator session timed out.")),9000))]);
+    S.user=init?.loginUser||"";S.app=init?.appLinkName||CONFIG.APP_NAME;
   }
-
-  // Assignment report is the minimum required source. If this is inaccessible,
-  // the user cannot see received assignments, so show the exact permission error.
-  const ar=await safeSource(CONFIG.REPORTS.assignments,"Design Tracking assignments",{required:true});
-
-  // Master reports are loaded independently. Missing access no longer makes the
-  // whole widget look disconnected; it only disables the related planner feature.
+  const tr=await safeSource(CONFIG.REPORTS.tracking,"Design Tracking",{required:true});
   const [pr,dr,er,eq]=await Promise.all([
-    safeSource(CONFIG.REPORTS.projects,"Project master"),
-    safeSource(CONFIG.REPORTS.drawings,"Drawing master"),
-    safeSource(CONFIG.REPORTS.employees,"Employee master"),
-    safeSource(CONFIG.REPORTS.equipment,"Equipment master")
+    safeSource(CONFIG.REPORTS.projects,"Project master"),safeSource(CONFIG.REPORTS.drawings,"Drawing master"),safeSource(CONFIG.REPORTS.employees,"Employee master"),safeSource(CONFIG.REPORTS.equipment,"Equipment master")
   ]);
-
-  S.projects=pr.map(adaptProject).filter(x=>x.code);
-  S.drawings=dr.map(adaptDrawing).filter(x=>x.name);
-  S.employees=er.map(adaptEmployee).filter(x=>x.email||x.name);
+  S.projects=pr.map(adaptProject).filter(x=>x.code).sort((a,b)=>String(b.code).localeCompare(String(a.code),undefined,{numeric:true}));
+  S.drawings=dr.map(adaptDrawing).filter(x=>x.name).sort((a,b)=>a.name.localeCompare(b.name));
+  S.employees=er.map(adaptEmployee).filter(x=>x.email||x.name).sort((a,b)=>a.name.localeCompare(b.name));
   S.equipment=eq.map(adaptEquipment);
-  S.assignments=ar.map(adaptAssignment).filter(isAssignmentRecord);
+  S.records=tr.map(adaptRecord);S.assignments=S.records.filter(isAssignmentRecord);S.revisions=S.records.filter(isRevisionRecord);
+  $("sessionPill").textContent=S.user?`Signed in: ${personDisplay(S.user)||S.user}`:"Creator session connected";
+  renderView();
+  if(!S.projects.length||!S.drawings.length||!S.employees.length||!S.equipment.length)toast("Some master reports are not accessible. Existing assignments still work, but new assignment/delegation options may be limited.","warn");
+}catch(e){console.error(e);$("sessionPill").textContent="Creator data access error";$("page").innerHTML=`<div class="panel"><div class="panel-body"><div class="empty"><div class="ico">⚠</div><strong>Creator data could not be loaded</strong><div>${h(e.message||e)}</div><div class="small" style="margin-top:8px">Grant this user View access to Design_Tracking_Report and the required master reports.</div></div></div></div>`;toast(e.message||String(e),"error")}finally{idle()}}
+async function refreshData(){busy("Refreshing assignments and design revisions…");try{const tr=await safeSource(CONFIG.REPORTS.tracking,"Design Tracking",{required:true});S.records=tr.map(adaptRecord);S.assignments=S.records.filter(isAssignmentRecord);S.revisions=S.records.filter(isRevisionRecord);renderView();toast("Workspace refreshed.","good")}finally{idle()}}
 
-  S.projects.sort((a,b)=>String(b.code).localeCompare(String(a.code),undefined,{numeric:true}));
-  S.drawings.sort((a,b)=>a.name.localeCompare(b.name));
-  S.employees.sort((a,b)=>a.name.localeCompare(b.name));
+function employeeOptions(value="",blank="Select team member…"){const v=String(value||"");return `<option value="">${h(blank)}</option>`+S.employees.map(e=>{const val=e.email||e.id;return `<option value="${h(val)}" ${String(val)===v?"selected":""}>${h(e.name||e.email)}${e.department?` — ${h(e.department)}`:""}</option>`}).join("")}
+function projectOptions(value=""){return `<option value="">Select project…</option>`+S.projects.map(p=>`<option value="${h(p.id)}" ${p.id===value?"selected":""}>${h(p.code)}${p.name?` — ${h(p.name)}`:""}</option>`).join("")}
+function drawingOptions(value=""){return `<option value="">Select drawing / document…</option>`+S.drawings.map(d=>`<option value="${h(d.id)}" ${d.id===value?"selected":""}>${h(d.name)}${d.short?` (${h(d.short)})`:""}</option>`).join("")}
+function setView(v){if(S.view!=="detail")S.previousView=S.view;S.view=v;document.querySelectorAll(".navtab").forEach(b=>b.classList.toggle("active",b.dataset.view===v));renderView()}
+function renderView(){document.querySelectorAll(".navtab").forEach(b=>b.classList.toggle("active",b.dataset.view===S.view));if(S.view==="home")return renderHome();if(S.view==="mine")return renderMyWork();if(S.view==="team")return renderMyTeam();if(S.view==="projects")return renderProjects();if(S.view==="new")return renderNewAssignment();if(S.view==="detail")return renderDetailPage();}
 
-  $("sessionPill").textContent=S.user?`Signed in: ${S.user}`:"Creator session connected";
-  populateSelectors();
-  renderRegisterFilters();
+function myAssignments(){return S.assignments.filter(a=>currentUserMatches(a[AF.assignedTo]))}
+function myDirectDelegations(){return S.assignments.filter(a=>{const parent=assignmentById(scalar(a[AF.assignedFrom]));return currentUserMatches(a[AF.assignedBy])||(parent&&currentUserMatches(parent[AF.assignedTo]))})}
+function renderWorkCard(a){const d=drawingForAssignment(a),r=currentRevision(a),cls=assignmentDueClass(a);return `<div class="work-card ${cls}"><div class="work-top"><div class="doc-badge">${h(d.short||"DOC")}</div><div class="work-main"><div class="work-title">${h(d.name)}</div><div class="work-project">Project ${h(scalar(a[AF.projectCode]))} • ${h(assignmentCriteria(a))}</div></div>${statusPill(scalar(a[AF.status]))}</div><div class="scope">${h(scopeSummary(a))}</div><div class="work-meta"><div><span>Assigned by</span><strong>${h(assignmentByDisplay(a))}</strong></div><div><span>Target</span><strong>${h(assignmentDueText(a))}</strong></div></div><div class="work-foot">${r?`<span class="rev-chip">${h(scalar(r[AF.revision])||"R0")} · ${h(scalar(r[AF.status])||"Not Started")}</span>`:'<span class="rev-chip">No design started</span>'}<button class="btn sm primary" data-open-assignment="${h(idOf(a))}">Open</button></div></div>`}
+function renderHome(){const mine=myAssignments(),active=mine.filter(a=>!isClosedAssignment(a)),inProg=mine.filter(a=>scalar(a[AF.status])==="In Progress"),overdue=mine.filter(a=>{const d=dateDiffDays(toInputDate(a[AF.targetDate]));return d!=null&&d<0&&!isClosedAssignment(a)}),completed=mine.filter(a=>scalar(a[AF.status])==="Completed"),q=S.globalSearch.trim().toLowerCase();const attention=mine.filter(a=>searchMatchAssignment(a,q)).sort((a,b)=>{const ad=dateDiffDays(toInputDate(a[AF.targetDate]));const bd=dateDiffDays(toInputDate(b[AF.targetDate]));return (ad??9999)-(bd??9999)}).slice(0,6);$("page").innerHTML=`<section class="hero"><div><h2>${h(greeting())}, ${h(personDisplay(S.user)||"Team Member")}</h2><p>See what needs your attention, continue design work, upload drawings, track revisions and delegate responsibility without opening the large Creator form.</p></div><div class="hero-badge"><div class="n">${active.length}</div><div class="l">ACTIVE RESPONSIBILITIES</div></div></section><section class="metrics"><div class="metric"><div class="metric-icon brand">✓</div><div><div class="num">${mine.length}</div><div class="label">Assigned to me</div></div></div><div class="metric"><div class="metric-icon blue">↻</div><div><div class="num">${inProg.length}</div><div class="label">In progress</div></div></div><div class="metric"><div class="metric-icon amber">!</div><div><div class="num">${overdue.length}</div><div class="label">Overdue</div></div></div><div class="metric"><div class="metric-icon green">✓</div><div><div class="num">${completed.length}</div><div class="label">Completed</div></div></div></section><div class="section-row"><div><h2>My priority work</h2><p>Nearest target dates are shown first.</p></div><button class="btn sm" data-view-jump="mine">View all my work</button></div>${attention.length?`<div class="cards">${attention.map(renderWorkCard).join("")}</div>`:`<div class="empty"><div class="ico">✓</div><strong>No work needs attention</strong>Your assigned drawing responsibilities will appear here.</div>`}<div class="section-row"><div><h2>My team activity</h2><p>Responsibilities you assigned further.</p></div><button class="btn sm" data-view-jump="team">View my team</button></div>${renderTeamPreview()}`}
+function greeting(){const h=new Date().getHours();return h<12?"Good morning":h<17?"Good afternoon":"Good evening"}
+function renderTeamPreview(){const rows=myDirectDelegations().slice(0,5);if(!rows.length)return`<div class="empty compact"><strong>No delegated work yet</strong>Open one of your assignments and use <b>Assign Further</b>.</div>`;return `<div class="panel"><div class="panel-body"><div class="child-list">${rows.map(a=>`<div class="child-row"><div class="avatar">${h(initials(assignmentDisplayUser(a)))}</div><div class="main"><div class="name">${h(assignmentDisplayUser(a))}</div><div class="sc">${h(scalar(a[AF.projectCode]))} • ${h(drawingForAssignment(a).short||drawingForAssignment(a).name)} • ${h(scopeSummary(a))}</div></div>${statusPill(scalar(a[AF.status]))}<button class="btn sm" data-open-assignment="${h(idOf(a))}">Open</button></div>`).join("")}</div></div></div>`}
 
-  if(!S.projects.length||!S.drawings.length||!S.employees.length||!S.equipment.length){
-    toast("Some planner masters are not accessible to this user. Grant View access to Project, Drawing, Employee and Equipment reports.","error");
-  }
+function renderMyWork(){const q=S.globalSearch.trim().toLowerCase(),rows=myAssignments().filter(a=>searchMatchAssignment(a,q)).sort((a,b)=>{const ad=dateDiffDays(toInputDate(a[AF.targetDate]));const bd=dateDiffDays(toInputDate(b[AF.targetDate]));return (ad??9999)-(bd??9999)});$("page").innerHTML=`<div class="section-row"><div><h2>My Work</h2><p>Every responsibility assigned directly to you. Open a card to update status, work on files, revisions or assign further.</p></div><span class="pill brand">${rows.length} assignments</span></div>${rows.length?`<div class="cards">${rows.map(renderWorkCard).join("")}</div>`:`<div class="empty"><div class="ico">⌁</div><strong>No assignments found</strong>${S.globalSearch?"Try another search.":"Work assigned to you will appear here."}</div>`}`}
 
-  if(S.demo){
-    S.project=S.projects.find(x=>x.code==="25005")||S.projects[0];
-    S.drawing=S.drawings.find(x=>x.short==="SLP")||S.drawings[0];
-    $("projectSelect").value=S.project?.id||"";
-    $("drawingSelect").value=S.drawing?.id||"";
-    openContext();
-  }
-}catch(e){
-  console.error(e);
-  $("sessionPill").textContent="Creator data access error";
-  toast(e.message||String(e),"error");
-}finally{idle();}}
+function renderMyTeam(){const q=S.globalSearch.trim().toLowerCase(),rows=myDirectDelegations().filter(a=>searchMatchAssignment(a,q));const grouped=new Map();for(const a of rows){const g=groupKey(a);if(!grouped.has(g))grouped.set(g,[]);grouped.get(g).push(a)}$("page").innerHTML=`<div class="section-row"><div><h2>My Team</h2><p>Work you delegated from your own responsibilities. Each person can assign further again.</p></div><span class="pill brand">${rows.length} delegated</span></div>${rows.length?`<div class="group-grid">${[...grouped.values()].map(list=>{const a=list[0],d=drawingForAssignment(a),done=list.filter(x=>scalar(x[AF.status])==="Completed").length;return `<div class="group-card"><div class="group-head"><div class="doc-badge">${h(d.short||"DOC")}</div><div class="group-main"><div class="group-title">${h(d.name)}</div><div class="group-sub">Project ${h(scalar(a[AF.projectCode]))}</div></div><span class="pill">${list.length} people</span></div><div class="group-stats"><div class="mini-stat"><div class="n">${list.length}</div><div class="l">DELEGATED</div></div><div class="mini-stat"><div class="n">${done}</div><div class="l">COMPLETED</div></div><div class="mini-stat"><div class="n">${Math.round(list.reduce((s,x)=>s+num(x[AF.progress]),0)/list.length)}%</div><div class="l">AVG PROGRESS</div></div></div><div class="child-list">${list.slice(0,4).map(x=>`<div class="child-row"><div class="avatar">${h(initials(assignmentDisplayUser(x)))}</div><div class="main"><div class="name">${h(assignmentDisplayUser(x))}</div><div class="sc">${h(scopeSummary(x))}</div></div>${statusPill(scalar(x[AF.status]))}</div>`).join("")}</div><div style="margin-top:11px"><button class="btn sm primary" data-open-assignment="${h(idOf(a))}">Open structure</button></div></div>`}).join("")}</div>`:`<div class="empty"><div class="ico">♧</div><strong>No delegated responsibilities found</strong>Use <b>Assign Further</b> from one of your assignments to build your team structure.</div>`}`}
 
-function populateSelectors(){
-  $("projectSelect").innerHTML='<option value="">Select project…</option>'+S.projects.map(p=>`<option value="${h(p.id)}">${h(p.code)}${p.name?` — ${h(p.name)}`:""}</option>`).join("");
-  $("drawingSelect").innerHTML='<option value="">Select drawing / document…</option>'+S.drawings.map(d=>`<option value="${h(d.id)}">${h(d.name)}${d.short?` (${h(d.short)})`:""}</option>`).join("");
-}
-function renderRegisterFilters(){const po='<option value="">All projects</option>'+S.projects.map(p=>`<option>${h(p.code)}</option>`).join("");$("regProject").innerHTML=po;$("regDrawing").innerHTML='<option value="">All drawings</option>'+S.drawings.map(d=>`<option>${h(d.name)}</option>`).join("");}
-function selectedPairAssignments(){if(!S.project||!S.drawing)return[];return S.assignments.filter(a=>scalar(a[AF.projectCode])===S.project.code&&(scalar(a[AF.drawingMasterId])===S.drawing.id||scalar(a[AF.drawingDocument])===S.drawing.name));}
-function primaryAssignment(){return selectedPairAssignments().find(a=>num(a[AF.assignmentLevel],-1)===0 && !scalar(a[AF.assignedFrom]))||null;}
-function childrenOf(id){return selectedPairAssignments().filter(a=>scalar(a[AF.assignedFrom])===String(id));}
-function assignmentUser(a){return scalar(a?.[AF.assignedTo])||"Unassigned";}
-function personDisplay(value){const raw=scalar(value).trim();if(!raw)return"";const emp=S.employees.find(e=>String(e.email||"").toLowerCase()===raw.toLowerCase()||String(e.id||"")===raw);return emp?.name||raw;}
-function assignmentDisplayUser(a){return scalar(a?.[AF.assignedEmployeeName])||personDisplay(a?.[AF.assignedTo])||"Unassigned";}
-function assignmentBy(a){return scalar(a?.[AF.assignedBy])||"—";}
-function assignmentByDisplay(a){return personDisplay(a?.[AF.assignedBy])||assignmentBy(a);}
-function assignmentCriteria(a){return scalar(a?.[AF.criteria])||"Project";}
-function assignmentPath(a){if(!a)return"";const parts=[S.project?.code,S.drawing?.short||S.drawing?.name];for(const c of CRITERIA){const v=scalar(a[c.field]);if(v)parts.push(`${c.label}: ${v}`);}return parts.filter(Boolean).join(" › ");}
-function scopeSummary(a){if(!a)return"Entire Project";const stored=scalar(a[AF.responsibility]);if(stored)return stored;const bits=[];for(const c of CRITERIA){if(c.key==="tag"){const t=scalar(a[AF.tagNo]),n=scalar(a[AF.equipmentName]);if(t||n)bits.push(`Tag: ${[t,n].filter(Boolean).join(" — ")}`);}else{const v=scalar(a[c.field]);if(v)bits.push(`${c.label}: ${v}`);}}return bits.length?bits.join(" • "):"Entire Project";}
-function statusPill(s){const cls=s==="Completed"?"green":s==="On Hold"?"amber":s==="Cancelled"?"red":s==="In Progress"?"blue":"";return `<span class="pill ${cls}">${h(s||"Not Started")}</span>`;}
+function renderProjects(){const q=S.globalSearch.trim().toLowerCase();const groups=groupAssignments().filter(g=>{const hay=[g.projectCode,g.drawingName,g.short,g.root?assignmentDisplayUser(g.root):"",...g.rows.map(scopeSummary)].join(" ").toLowerCase();return !q||hay.includes(q)}).sort((a,b)=>String(b.projectCode).localeCompare(String(a.projectCode),undefined,{numeric:true}));$("page").innerHTML=`<div class="section-row"><div><h2>Projects & Drawings</h2><p>Each Project + Drawing appears only once. Open it to see the complete family tree and design activity.</p></div><span class="pill brand">${groups.length} drawings</span></div>${groups.length?`<div class="group-grid">${groups.map(renderGroupCard).join("")}</div>`:`<div class="empty"><div class="ico">▦</div><strong>No project drawings found</strong>${S.globalSearch?"Try another search.":"Create a primary assignment to start a project drawing structure."}</div>`}`}
+function renderGroupCard(g){const p=projectForCode(g.projectCode),d=g.root?drawingForAssignment(g.root):{name:g.drawingName,short:g.short},avg=groupAverageProgress(g.rows),done=g.rows.filter(x=>scalar(x[AF.status])==="Completed").length,revCount=g.rows.reduce((s,a)=>s+revisionsForAssignment(a).length,0);return `<div class="group-card"><div class="group-head"><div class="doc-badge">${h(d.short||"DOC")}</div><div class="group-main"><div class="group-title">${h(d.name||g.drawingName)}</div><div class="group-sub">Project ${h(g.projectCode)}${p.name?` • ${h(p.name)}`:""}</div></div>${g.root?statusPill(scalar(g.root[AF.status])):'<span class="pill amber">No primary</span>'}</div><div class="scope" style="margin-bottom:9px">Primary owner: <strong>${h(g.root?assignmentDisplayUser(g.root):"Not assigned")}</strong></div><div class="group-stats"><div class="mini-stat"><div class="n">${g.rows.length}</div><div class="l">ASSIGNMENTS</div></div><div class="mini-stat"><div class="n">${revCount}</div><div class="l">REVISIONS</div></div><div class="mini-stat"><div class="n">${done}</div><div class="l">COMPLETED</div></div></div><div class="small strong" style="margin-bottom:5px">Overall assignment progress ${avg}%</div>${progressBar(avg)}<div style="margin-top:12px"><button class="btn primary sm" data-open-group="${h(g.key)}">View structure</button></div></div>`}
 
-function openContext(){const pid=$("projectSelect").value,did=$("drawingSelect").value;S.project=S.projects.find(x=>x.id===pid)||null;S.drawing=S.drawings.find(x=>x.id===did)||null;if(!S.project||!S.drawing){toast("Select Project Code and Drawing / Document first.","error");return;}S.current=primaryAssignment();S.selectedCriteria.clear();S.selectedTargets.clear();S.rowDrafts.clear();S.expanded.clear();const p=primaryAssignment();if(p)S.expanded.add(idOf(p));renderContextCard();$("workspace").classList.remove("hidden");renderTree();renderDetail();}
-function renderContextCard(){const p=primaryAssignment(),all=selectedPairAssignments();$("contextCard").innerHTML=`<div class="context-main"><div class="context-icon">${h(S.drawing?.short||"DR")}</div><div><div class="context-title">${h(S.project.code)} — ${h(S.drawing.name)}${S.drawing.short?` (${h(S.drawing.short)})`:""}</div><div class="context-sub">${p?`Primary Assignment: ${h(assignmentDisplayUser(p))}`:"Primary Assignment is not created yet."}</div></div></div><div class="actions"><span class="pill brand">${all.length} assignment${all.length===1?"":"s"}</span>${p?statusPill(scalar(p[AF.status])):'<span class="pill amber">Yet to Assign</span>'}</div>`;$("contextCard").classList.remove("hidden");}
+function renderNewAssignment(){const p=S.projects.find(x=>x.id===S.newProjectId)||null,d=S.drawings.find(x=>x.id===S.newDrawingId)||null,existing=p&&d?primaryAssignmentFor(p,d):null;$("page").innerHTML=`<div class="new-wrap"><div class="stepper"><div class="step active"><span class="n">1</span>Project & Drawing</div><div class="step ${p&&d?"active":""}"><span class="n">2</span>Primary Owner</div><div class="step"><span class="n">3</span>Further delegation later</div></div><div class="new-card"><div class="new-head"><h2>Create Primary Drawing Assignment</h2><p>Create this once for the entire Project + Drawing. The assigned user can then divide the work to any number of levels.</p></div><div class="new-body"><div class="grid2"><div class="field"><label>Project Code *</label><select id="newProject">${projectOptions(S.newProjectId)}</select></div><div class="field"><label>Drawing / Document *</label><select id="newDrawing">${drawingOptions(S.newDrawingId)}</select></div></div>${p&&d?renderPrimaryForm(p,d,existing):'<div class="notice" style="margin-top:14px">Select a Project and Drawing / Document to continue.</div>'}</div></div></div>`}
+function renderPrimaryForm(p,d,existing){if(existing)return `<div class="notice good" style="margin-top:14px"><strong>Primary assignment already exists.</strong><br>${h(d.name)} for Project ${h(p.code)} is assigned to ${h(assignmentDisplayUser(existing))}. No duplicate primary record will be created.<div style="margin-top:10px"><button class="btn primary" data-open-assignment="${h(idOf(existing))}">Open existing structure</button></div></div>`;return `<div class="notice good" style="margin-top:14px"><strong>Primary responsibility = Entire Project ${h(p.code)}</strong>. Further division is optional and starts from the user who receives it.</div><div class="grid3" style="margin-top:14px"><div class="field"><label>Assigned To *</label><select id="primaryUser">${employeeOptions()}</select></div><div class="field"><label>Priority</label><select id="primaryPriority">${PRIORITIES.map(p=>`<option ${p==="Medium"?"selected":""}>${h(p)}</option>`).join("")}</select></div><div class="field"><label>Status</label><select id="primaryStatus">${ASSIGNMENT_STATUSES.map(s=>`<option>${h(s)}</option>`).join("")}</select></div></div><div class="grid3" style="margin-top:12px"><div class="field"><label>Start Date *</label><input id="primaryStart" type="date" value="${todayIso()}"></div><div class="field"><label>Target Date *</label><input id="primaryTarget" type="date"></div><div class="field"><label>End Date</label><input id="primaryEnd" type="date"></div></div><div class="field" style="margin-top:12px"><label>Remark</label><textarea id="primaryRemark" placeholder="Optional assignment instruction"></textarea></div><div style="display:flex;justify-content:flex-end;margin-top:14px"><button class="btn primary lg" data-act="create-primary">Create Primary Assignment</button></div>`}
 
-function buildTreeFiltered(){const rows=selectedPairAssignments();const q=$("treeSearch")?.value.toLowerCase().trim()||"",st=$("treeStatus")?.value||"";if(!q&&!st)return rows;const keep=new Set();const map=new Map(rows.map(r=>[idOf(r),r]));for(const r of rows){const hay=[assignmentUser(r),assignmentBy(r),scopeSummary(r),assignmentCriteria(r)].join(" ").toLowerCase();if((!q||hay.includes(q))&&(!st||scalar(r[AF.status])===st)){let cur=r;while(cur){keep.add(idOf(cur));const pid=scalar(cur[AF.assignedFrom]);cur=pid?map.get(pid):null;}}}return rows.filter(r=>keep.has(idOf(r)));}
-function renderTree(){const rows=buildTreeFiltered(),p=rows.find(r=>num(r[AF.assignmentLevel],-1)===0&&!scalar(r[AF.assignedFrom]));$("treeCount").textContent=String(rows.length);if(!p){$("tree").innerHTML='<div class="tree-empty"><strong>No Primary Assignment</strong>Create the mandatory project-level assignment to start the structure.</div>';return;}const allowed=new Set(rows.map(idOf));const renderNode=(r)=>{const id=idOf(r),kids=childrenOf(id).filter(k=>allowed.has(idOf(k))),open=S.expanded.has(id),active=idOf(S.current)===id;return `<div class="tree-node"><div class="node-row ${active?"active":""}" data-node="${h(id)}"><button class="expander ${kids.length?"":"blank"}" data-expand="${h(id)}">${open?"−":"+"}</button><div class="avatar">${h(initials(assignmentDisplayUser(r)))}</div><div class="node-main"><div class="node-user">${h(assignmentDisplayUser(r))}</div><div class="node-scope">${h(scopeSummary(r))}</div></div><div class="node-side">${statusPill(scalar(r[AF.status]))}<div class="node-level">Level ${num(r[AF.assignmentLevel])}</div></div></div>${open&&kids.length?`<div class="tree-children">${kids.map(renderNode).join("")}</div>`:""}</div>`;};$("tree").innerHTML=renderNode(p);}
+function openGroup(key){const g=groupAssignments().find(x=>x.key===key);if(!g||!g.root){toast("Primary assignment is not available for this drawing.","error");return}openAssignment(idOf(g.root))}
+function openAssignment(id){const a=assignmentById(id);if(!a)return;S.previousView=S.view==="detail"?S.previousView:S.view;S.current=a;S.project=projectForCode(scalar(a[AF.projectCode]));S.drawing=drawingForAssignment(a);S.detailTab="overview";S.expanded.add(idOf(primaryForRows(groupForAssignment(a)?.rows||[])));S.selectedCriteria.clear();S.selectedTargets.clear();S.targetRows=[];S.targetSearch="";S.bulk={};S.view="detail";renderView()}
+function currentGroupRows(){return S.current?(groupForAssignment(S.current)?.rows||[]):[]}
+function familyPath(a){const rows=currentGroupRows(),map=new Map(rows.map(x=>[idOf(x),x])),path=[];let cur=a;while(cur){path.unshift(cur);const pid=scalar(cur[AF.assignedFrom]);cur=pid?map.get(pid):null}return path}
+function renderTree(){const rows=currentGroupRows(),root=primaryForRows(rows);if(!root)return`<div class="tree-empty">No primary assignment.</div>`;const q=(S.treeSearch||"").toLowerCase();const allowed=new Set();if(q){for(const r of rows){const hay=[assignmentDisplayUser(r),scopeSummary(r),assignmentCriteria(r)].join(" ").toLowerCase();if(hay.includes(q)){let cur=r;while(cur){allowed.add(idOf(cur));cur=assignmentById(scalar(cur[AF.assignedFrom]))}}}}else rows.forEach(r=>allowed.add(idOf(r)));const renderNode=r=>{const id=idOf(r),kids=assignmentChildren(id,rows).filter(k=>allowed.has(idOf(k))),open=S.expanded.has(id),active=idOf(S.current)===id,rev=currentRevision(r);return `<div class="tree-node"><div class="node-row ${active?"active":""}" data-node="${h(id)}"><button class="expander ${kids.length?"":"blank"}" data-expand="${h(id)}">${open?"−":"+"}</button><div class="avatar">${h(initials(assignmentDisplayUser(r)))}</div><div class="node-main"><div class="node-user">${h(assignmentDisplayUser(r))}</div><div class="node-scope">${h(scopeSummary(r))}</div></div><div class="node-side">${rev?`<span class="pill purple">${h(scalar(rev[AF.revision])||"R0")}</span>`:statusPill(scalar(r[AF.status]))}<div class="node-level">Level ${num(r[AF.assignmentLevel])}</div></div></div>${open&&kids.length?`<div class="tree-children">${kids.map(renderNode).join("")}</div>`:""}</div>`};return renderNode(root)}
+function renderDetailPage(){if(!S.current){S.view="home";return renderHome()}const a=S.current,d=S.drawing||drawingForAssignment(a),path=familyPath(a);$("page").innerHTML=`<div class="detail-shell"><aside class="panel tree-panel"><div class="tree-head"><div class="strong">Assignment Structure</div><div class="tiny muted" style="margin:2px 0 9px">Expand people and responsibilities.</div><div class="tree-search"><input id="treeSearch" class="input" placeholder="Search person / scope…" value="${h(S.treeSearch||"")}"></div></div><div id="treeArea" class="tree-scroll">${renderTree()}</div></aside><section class="detail-main"><div class="detail-hero"><div class="crumbs"><button data-back>← Back</button><span>›</span><span>Project ${h(scalar(a[AF.projectCode]))}</span><span>›</span><span>${h(d.short||d.name)}</span>${path.length>1?`<span>›</span><span>${h(assignmentDisplayUser(a))}</span>`:""}</div><div class="detail-top"><div class="detail-title"><div class="doc-badge">${h(d.short||"DOC")}</div><div><h2>${h(d.name)}</h2><p>Project ${h(scalar(a[AF.projectCode]))} • ${h(assignmentDisplayUser(a))}'s responsibility</p></div></div><div class="detail-actions">${statusPill(scalar(a[AF.status]))}${currentRevision(a)?`<span class="pill purple">Current ${h(scalar(currentRevision(a)[AF.revision])||"R0")}</span>`:""}</div></div><div class="detail-meta"><span class="pill">Assigned by ${h(assignmentByDisplay(a))}</span><span class="pill">Level ${num(a[AF.assignmentLevel])}</span><span class="pill">Target ${h(displayDate(a[AF.targetDate]))}</span></div></div><div class="subtabs"><button class="subtab ${S.detailTab==="overview"?"active":""}" data-detail-tab="overview">Overview</button><button class="subtab ${S.detailTab==="files"?"active":""}" data-detail-tab="files">Design Files</button><button class="subtab ${S.detailTab==="revisions"?"active":""}" data-detail-tab="revisions">Revision History</button><button class="subtab ${S.detailTab==="delegate"?"active":""}" data-detail-tab="delegate">Assign Further</button></div><div id="detailTabBody">${renderDetailTab()}</div></section></div>`}
+function renderDetailTab(){if(S.detailTab==="files")return renderFilesTab();if(S.detailTab==="revisions")return renderRevisionTab();if(S.detailTab==="delegate")return renderDelegateTab();return renderOverviewTab()}
+function renderOverviewTab(){const a=S.current,k=childStats(a),r=currentRevision(a),canEdit=currentUserMatches(a[AF.assignedTo]);return `<div class="tab-card"><div class="scope-box"><div class="k">RESPONSIBILITY</div><div class="v">${h(scopeSummary(a))}</div></div><div class="summary"><div class="summary-item"><div class="k">ASSIGNED TO</div><div class="v">${h(assignmentDisplayUser(a))}</div></div><div class="summary-item"><div class="k">ASSIGNED BY</div><div class="v">${h(assignmentByDisplay(a))}</div></div><div class="summary-item"><div class="k">START DATE</div><div class="v">${h(displayDate(a[AF.startDate]))}</div></div><div class="summary-item"><div class="k">TARGET DATE</div><div class="v">${h(displayDate(a[AF.targetDate]))}</div></div><div class="summary-item"><div class="k">STATUS</div><div class="v">${statusPill(scalar(a[AF.status]))}</div></div><div class="summary-item"><div class="k">PROGRESS</div><div class="v">${num(a[AF.progress])}%</div></div><div class="summary-item"><div class="k">CRITERIA</div><div class="v">${h(assignmentCriteria(a))}</div></div><div class="summary-item"><div class="k">END DATE</div><div class="v">${h(displayDate(a[AF.endDate]))}</div></div></div><div class="two-col"><div><div class="section-row" style="margin-top:0"><div><h2>Design execution</h2><p>Files, workflow and current revision for this responsibility.</p></div></div>${r?`<div class="exec-hero"><div class="exec-rev"><div class="rev-circle">${h(scalar(r[AF.revision])||"R0")}</div><div><h3>${h(scalar(r[AF.status])||"Not Started")}</h3><p>${h(scalar(r[AF.revisionDescription])||"No revision description")}</p></div></div><button class="btn sm primary" data-detail-tab="files">Open design</button></div>`:`<div class="empty compact"><strong>No design revision started</strong>${canEdit?`<div style="margin-top:9px"><button class="btn sm primary" data-detail-tab="files">Start R0</button></div>`:"The assignee can start R0 from Design Files."}</div>`}</div><div><div class="section-row" style="margin-top:0"><div><h2>Further assignments</h2><p>${k.total} responsibility${k.total===1?"":"ies"} below this node.</p></div>${canEdit?'<button class="btn sm soft" data-detail-tab="delegate">Assign Further</button>':""}</div>${k.total?`<div class="child-list">${assignmentChildren(idOf(a)).slice(0,5).map(c=>`<div class="child-row"><div class="avatar">${h(initials(assignmentDisplayUser(c)))}</div><div class="main"><div class="name">${h(assignmentDisplayUser(c))}</div><div class="sc">${h(scopeSummary(c))}</div></div>${statusPill(scalar(c[AF.status]))}</div>`).join("")}</div>`:`<div class="empty compact"><strong>No further assignment</strong>This responsibility has not been divided further.</div>`}</div></div><div class="actions" style="margin-top:14px">${canEdit?'<button class="btn" data-act="edit-assignment">Update status / progress</button>':""}<button class="btn" data-detail-tab="revisions">Revision history (${revisionsForAssignment(a).length})</button></div></div>`}
 
-function renderDetail(){const p=primaryAssignment();if(!p){renderPrimaryCreate();return;}if(!S.current)S.current=p;const a=S.current;$("detailHeading").textContent=num(a[AF.assignmentLevel])===0?"Primary Assignment":"Responsibility";$("detailSubtitle").textContent=assignmentPath(a);$("detailActions").innerHTML=`<button class="btn sm" data-act="edit-status">Update Status</button><button class="btn primary sm" data-act="assign-further">Assign Further</button>`;
-  const target=toInputDate(a[AF.targetDate]);const childCount=childrenOf(idOf(a)).length;$("detailBody").innerHTML=`<div class="detail-head"><div><div class="detail-title">${h(assignmentDisplayUser(a))}</div><div class="detail-path">${h(scopeSummary(a))}</div></div><div class="actions"><span class="pill brand">Level ${num(a[AF.assignmentLevel])}</span>${statusPill(scalar(a[AF.status]))}</div></div><div class="summary-grid"><div class="summary-card"><div class="label">Assigned By</div><div class="value">${h(assignmentByDisplay(a))}</div></div><div class="summary-card"><div class="label">Start Date</div><div class="value">${h(displayDate(a[AF.startDate]))}</div></div><div class="summary-card"><div class="label">Target Date</div><div class="value">${h(displayDate(a[AF.targetDate]))}</div></div><div class="summary-card"><div class="label">Further Assignments</div><div class="value">${childCount}</div></div></div><div class="notice good"><strong>Current responsibility is locked as the maximum scope.</strong> Any further assignment can only refine this responsibility; it cannot expand outside it.</div><div class="section-title"><h3>Responsibility Scope</h3></div><div class="scope-lock">${scopeLockHtml(a)}</div>${scalar(a[AF.remark])?`<div class="section-title"><h3>Remark</h3></div><div class="notice">${h(scalar(a[AF.remark]))}</div>`:""}<div id="delegationArea"></div>`;
-  if(a.__showDelegate)renderDelegationBuilder(a);
-}
-function scopeLockHtml(a){const chips=[`Project: ${S.project.code}`];for(const c of CRITERIA){if(c.key==="tag"){const t=scalar(a[AF.tagNo]),n=scalar(a[AF.equipmentName]);if(t||n)chips.push(`Tag: ${[t,n].filter(Boolean).join(" — ")}`);}else{const v=scalar(a[c.field]);if(v)chips.push(`${c.label}: ${v}`);}}return chips.map(x=>`<span class="lock-chip">${h(x)}</span>`).join("");}
+function revisionLocked(r,a){return isHistoricalRevision(r,a)||["Approved","Issued","Completed","Cancelled"].includes(scalar(r?.[AF.status]))}
+function canEditRevision(a,r){return currentUserMatches(a?.[AF.assignedTo])&&!isHistoricalRevision(r,a)&&!["Approved","Issued","Completed","Cancelled"].includes(scalar(r?.[AF.status]))}
+function renderFilesTab(){const a=S.current,r=currentRevision(a);if(!r)return renderStartR0();const locked=revisionLocked(r,a),editable=canEditRevision(a,r),fileRows=[[AF.drawingFile,"Drawing File","PDF / controlled drawing"],[AF.nativeFile,"Native File","DWG / XLSX / source"],[AF.supportingFile,"Supporting File","Calculation / reference"]];return `<div class="tab-card"><div class="exec-hero"><div class="exec-rev"><div class="rev-circle">${h(scalar(r[AF.revision])||"R0")}</div><div><h3>${h(locked?"Controlled revision":"Current working revision")}</h3><p>${h(scalar(r[AF.revisionDescription])||"No revision description")}</p></div></div><div class="actions">${statusPill(scalar(r[AF.status]))}${isHistoricalRevision(r,a)?'<span class="pill amber">Read only</span>':""}</div></div><div class="grid2"><div class="field"><label>Drawing Number</label><input id="execDrawingNo" value="${h(scalar(r[AF.drawingNumber]))}" ${editable?"":"disabled"}></div><div class="field"><label>Revision Description</label><input id="execRevDesc" value="${h(scalar(r[AF.revisionDescription]))}" ${editable?"":"disabled"}></div></div><div class="role-grid" style="margin-top:11px"><div class="field"><label>Checker</label><select id="execChecker" ${editable?"":"disabled"}>${employeeOptions(scalar(r[AF.checker]),"Select checker…")}</select></div><div class="field"><label>Reviewer</label><select id="execReviewer" ${editable?"":"disabled"}>${employeeOptions(scalar(r[AF.reviewer]),"Select reviewer…")}</select></div><div class="field"><label>Approver</label><select id="execApprover" ${editable?"":"disabled"}>${employeeOptions(scalar(r[AF.approver]),"Select approver…")}</select></div></div><div class="field" style="margin-top:11px"><label>Design Remark</label><textarea id="execRemark" ${editable?"":"disabled"}>${h(scalar(r[AF.remark]))}</textarea></div><div class="file-grid">${fileRows.map(([field,label,hint])=>renderFileBox(r,field,label,hint,editable)).join("")}</div>${editable?'<div class="actions"><button class="btn primary" data-act="save-revision">Save Design</button></div>':""}${renderWorkflow(r,a)}${(["Approved","Issued","Completed"].includes(scalar(r[AF.status]))&&currentUserMatches(a[AF.assignedTo]))?'<div style="margin-top:13px"><button class="btn soft" data-act="new-revision">＋ Create New Revision</button></div>':""}</div>`}
+function renderStartR0(){const a=S.current;if(!currentUserMatches(a[AF.assignedTo]))return `<div class="tab-card"><div class="empty"><div class="ico">🔒</div><strong>No design revision yet</strong>Only ${h(assignmentDisplayUser(a))}, the user responsible for this assignment, can start R0.</div></div>`;return `<div class="tab-card"><div class="empty compact" style="margin-bottom:13px"><strong>Start the first controlled design revision</strong>R0 will be linked to this exact assignment responsibility. All later revisions remain in history.</div><div class="grid2"><div class="field"><label>Drawing Number</label><input id="r0DrawingNo" placeholder="Example: 25005-SLP-001"></div><div class="field"><label>Revision</label><input value="R0" disabled></div></div><div class="field" style="margin-top:11px"><label>Revision Description *</label><input id="r0Desc" placeholder="Initial issue / first design"></div><div class="role-grid" style="margin-top:11px"><div class="field"><label>Checker</label><select id="r0Checker">${employeeOptions("","Select checker…")}</select></div><div class="field"><label>Reviewer</label><select id="r0Reviewer">${employeeOptions("","Select reviewer…")}</select></div><div class="field"><label>Approver</label><select id="r0Approver">${employeeOptions("","Select approver…")}</select></div></div><div class="field" style="margin-top:11px"><label>Design Remark</label><textarea id="r0Remark" placeholder="Optional design note"></textarea></div><div class="file-grid">${renderNewFileBox("r0DrawingFile","Drawing File","PDF / controlled drawing")}${renderNewFileBox("r0NativeFile","Native File","DWG / XLSX / source")}${renderNewFileBox("r0SupportingFile","Supporting File","Calculation / reference")}</div><div class="actions"><button class="btn primary lg" data-act="start-r0">Start R0</button></div></div>`}
+function renderNewFileBox(id,label,hint){return `<div class="file-box"><div class="label">${h(label)}</div><div class="current">${h(hint)}</div><input id="${h(id)}" type="file"></div>`}
+function renderFileBox(r,field,label,hint,editable){const existing=scalar(r[field]);return `<div class="file-box"><div class="label">${h(label)}</div><div class="current">${existing?h(existing):h(hint)}</div>${existing?`<button class="btn link sm" data-download-file="${h(idOf(r))}" data-file-field="${h(field)}" data-file-label="${h(label)}">Download current</button>`:""}${editable?`<input id="file_${h(field)}" type="file">`:""}</div>`}
+function workflowRoleAllowed(role,a,r){if(role==="owner")return currentUserMatches(a[AF.assignedTo]);if(role==="checker")return currentUserMatches(r[AF.checker]);if(role==="reviewer")return currentUserMatches(r[AF.reviewer]);if(role==="approver")return currentUserMatches(r[AF.approver]);if(role==="ownerOrApprover")return currentUserMatches(a[AF.assignedTo])||currentUserMatches(r[AF.approver]);return false}
+function workflowActions(r,a){const s=scalar(r[AF.status])||"Not Started";const map={
+  "Not Started":[["Start Design","In Progress","owner","primary"]],
+  "In Progress":[["Submit for Check","Submitted for Check","owner","primary"],["Put On Hold","On Hold","owner",""]],
+  "On Hold":[["Resume Work","In Progress","owner","primary"]],
+  "Returned":[["Resume Work","In Progress","owner","primary"]],
+  "Submitted for Check":[["Begin Checking","Checking","checker","primary"]],
+  "Checking":[["Mark Checked","Checked","checker","success"],["Return to Designer","Returned","checker","danger"]],
+  "Checked":[["Submit for Review","Submitted for Review","owner","primary"]],
+  "Submitted for Review":[["Begin Review","Reviewing","reviewer","primary"]],
+  "Reviewing":[["Mark Reviewed","Reviewed","reviewer","success"],["Return to Designer","Returned","reviewer","danger"]],
+  "Reviewed":[["Submit for Approval","Submitted for Approval","owner","primary"]],
+  "Submitted for Approval":[["Begin Approval","Approving","approver","primary"]],
+  "Approving":[["Approve","Approved","approver","success"],["Return to Designer","Returned","approver","danger"]],
+  "Approved":[["Issue Drawing","Issued","ownerOrApprover","primary"]],
+  "Issued":[["Complete","Completed","ownerOrApprover","success"]]
+  };return (map[s]||[]).filter(x=>workflowRoleAllowed(x[2],a,r))}
+function renderWorkflow(r,a){const acts=workflowActions(r,a);if(!acts.length)return `<div class="workflow"><h4>Workflow</h4><div class="small muted">No workflow action is available to the signed-in user at status <b>${h(scalar(r[AF.status])||"Not Started")}</b>.</div></div>`;return `<div class="workflow"><h4>Workflow actions</h4><div class="workflow-actions">${acts.map(([label,to,role,style])=>`<button class="btn ${style}" data-workflow-to="${h(to)}">${h(label)}</button>`).join("")}</div></div>`}
 
-function renderPrimaryCreate(){$("detailHeading").textContent="Create Primary Assignment";$("detailSubtitle").textContent="Mandatory project-level responsibility for this drawing / document.";$("detailActions").innerHTML="";const today=todayIso();$("detailBody").innerHTML=`<div class="primary-box"><div class="notice good"><strong>Primary Assignment = entire Project ${h(S.project.code)}.</strong> Create this once. Further division is optional and starts from the user who receives it.</div><div class="grid" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:14px"><div class="field"><label>Assigned To *</label><select id="primaryUser">${employeeOptions("")}</select></div><div class="field"><label>Status</label><select id="primaryStatus">${STATUSES.map(s=>`<option>${h(s)}</option>`).join("")}</select></div><div class="field"><label>Start Date *</label><input id="primaryStart" type="date" value="${today}"></div><div class="field"><label>Target Date *</label><input id="primaryTarget" type="date"></div><div class="field"><label>End Date</label><input id="primaryEnd" type="date"></div><div class="field"><label>Remark</label><input id="primaryRemark" placeholder="Optional assignment instruction"></div></div><div class="actions" style="margin-top:14px"><button class="btn primary" data-act="create-primary">Create Primary Assignment</button></div></div>`;}
-function employeeOptions(selected=""){return '<option value="">Select team member…</option>'+S.employees.map(e=>`<option value="${h(e.email||e.id)}" ${(e.email||e.id)===selected?"selected":""}>${h(e.name||e.email)}${e.department?` — ${h(e.department)}`:""}</option>`).join("");}
+function renderRevisionTab(){const a=S.current,rows=revisionsForAssignment(a).slice().reverse(),cur=currentRevision(a);return `<div class="tab-card"><div class="section-row" style="margin-top:0"><div><h2>Revision History</h2><p>Every revision is a separate Design_Tracking record. Older revisions remain read-only.</p></div>${cur&&["Approved","Issued","Completed"].includes(scalar(cur[AF.status]))&&currentUserMatches(a[AF.assignedTo])?'<button class="btn soft" data-act="new-revision">＋ New Revision</button>':""}</div>${rows.length?`<div class="timeline">${rows.map(r=>renderRevisionCard(r,cur)).join("")}</div>`:`<div class="empty"><div class="ico">R0</div><strong>No revision history yet</strong>Start R0 from Design Files.</div>`}</div>`}
+function renderRevisionCard(r,cur){const current=idOf(r)===idOf(cur),files=[[AF.drawingFile,"Drawing"],[AF.nativeFile,"Native"],[AF.supportingFile,"Support"]].filter(([f])=>scalar(r[f]));return `<div class="revision-card ${current?"current":""}"><div class="rev-tag">${h(scalar(r[AF.revision])||"R0")}</div><div class="rev-info"><h4>${h(scalar(r[AF.revisionDescription])||"No revision description")}</h4><p>${h(displayDateTime(pick(r,SYSTEM_ALIASES.addedTime)))} • ${h(personDisplay(pick(r,SYSTEM_ALIASES.addedUser))||pick(r,SYSTEM_ALIASES.addedUser)||"Creator User")}</p><div class="rev-files">${files.length?files.map(([f,l])=>`<button class="btn sm" data-download-file="${h(idOf(r))}" data-file-field="${h(f)}" data-file-label="${h(l)}">${h(l)}</button>`).join(""):'<span class="tiny muted">No files attached</span>'}</div></div><div class="rev-side">${current?'<span class="pill purple">Current</span>':""}${statusPill(scalar(r[AF.status]))}<button class="btn sm" data-view-revision="${h(idOf(r))}">View details</button></div></div>`}
 
-function criteriaAlreadyFixed(a,c){if(c.key==="tag")return Boolean(scalar(a[AF.tagNo]));return Boolean(scalar(a[c.field]));}
-function renderDelegationBuilder(a){const area=$("delegationArea");if(!area)return;const available=CRITERIA.filter(c=>!criteriaAlreadyFixed(a,c));area.innerHTML=`<div class="section-title"><div><h3>Assign Further</h3><div class="tiny muted">Choose one or more criteria. Only matching values inside the current responsibility will be offered.</div></div></div><div class="criteria-grid">${available.map(c=>`<button class="criteria-chip ${S.selectedCriteria.has(c.key)?"active":""}" data-criterion="${c.key}">${h(c.label)}</button>`).join("")}</div><div id="targetArea">${renderTargetArea(a)}</div>`;}
-function equipmentWithinAssignment(eq,a){if(!eq||!a)return false;if(eq.project&&S.project?.code&&!String(eq.project).includes(S.project.code))return false;const checks=[[AF.plantSection,"plantSection"],[AF.plantSectionType,"plantSectionType"],[AF.groupCode,"groupCode"],[AF.department,"department"],[AF.equipmentCategory,"equipmentCategory"],[AF.equipmentType,"equipmentType"],[AF.tagNo,"tag"]];for(const [f,k] of checks){const v=scalar(a[f]);if(v&&String(eq[k]||"")!==v)return false;}return true;}
-function targetKey(row){return [...S.selectedCriteria].map(k=>{const c=CRITERIA.find(x=>x.key===k);if(k==="tag")return `${row.tag}::${row.name}`;return String(row[k]||"");}).join("||");}
-function targetLabel(row){return [...S.selectedCriteria].map(k=>{const c=CRITERIA.find(x=>x.key===k);return k==="tag"?`${row.tag||"—"} — ${row.name||"—"}`:`${c.label}: ${row[k]||"—"}`;}).join(" • ");}
-function makeTargetRows(a){if(!S.selectedCriteria.size)return[];const base=S.equipment.filter(eq=>equipmentWithinAssignment(eq,a));const map=new Map();for(const eq of base){const row={plantSection:eq.plantSection,plantSectionType:eq.plantSectionType,equipmentCategory:eq.equipmentCategory,tag:eq.tag,name:eq.name,equipmentRecordId:eq.id,groupCode:eq.groupCode,department:eq.department,equipmentType:eq.equipmentType};const k=targetKey(row);if(k&&!map.has(k))map.set(k,row);}return [...map.values()].sort((x,y)=>targetLabel(x).localeCompare(targetLabel(y),undefined,{numeric:true}));}
-function existingChildForTarget(parent,row){return childrenOf(idOf(parent)).find(ch=>[...S.selectedCriteria].every(k=>{const c=CRITERIA.find(x=>x.key===k);if(k==="tag")return scalar(ch[AF.tagNo])===row.tag;return scalar(ch[c.field])===String(row[k]||"");}));}
-function renderTargetArea(a){S.targetRows=makeTargetRows(a);if(!S.selectedCriteria.size)return '<div class="notice" style="margin-top:12px">Select at least one Assignment Criteria. Example: <strong>Plant Section + Plant Section Type</strong>, or <strong>Tag No / Equipment</strong>.</div>';const q=S.targetSearch||"",rows=S.targetRows.filter(r=>!q||targetLabel(r).toLowerCase().includes(q.toLowerCase()));const selectedCount=S.selectedTargets.size;return `<div class="target-toolbar"><input id="targetSearch" class="search" placeholder="Search matching responsibility…" value="${h(q)}"><div class="actions"><button class="btn sm" data-act="select-next-10">Select next 10</button><button class="btn sm" data-act="select-all-targets">Select all</button><button class="btn link sm" data-act="clear-targets">Clear</button></div></div><div class="selection-note"><strong>${selectedCount}</strong> selected of ${rows.length} matching responsibilities.</div><div class="table-wrap" style="margin-top:8px"><table><thead><tr><th style="width:38px"></th>${[...S.selectedCriteria].map(k=>{const c=CRITERIA.find(x=>x.key===k);return k==="tag"?'<th>Tag No</th><th>Equipment Name</th>':`<th>${h(c.label)}</th>`;}).join("")}<th>Existing</th></tr></thead><tbody>${rows.length?rows.map(r=>{const key=targetKey(r),ex=existingChildForTarget(a,r),sel=S.selectedTargets.has(key);return `<tr class="${sel?"selected":""}"><td><input class="check target-check" type="checkbox" data-target="${h(key)}" ${sel?"checked":""} ${ex?"disabled":""}></td>${[...S.selectedCriteria].map(k=>{const c=CRITERIA.find(x=>x.key===k);return k==="tag"?`<td class="strong">${h(r.tag||"—")}</td><td>${h(r.name||"—")}</td>`:`<td>${h(r[k]||"—")}</td>`;}).join("")}<td>${ex?'<span class="pill green">Already assigned</span>':'<span class="pill">New</span>'}</td></tr>`;}).join(""):'<tr><td class="empty-row" colspan="10">No matching values exist inside this responsibility.</td></tr>'}</tbody></table></div>${selectedCount?renderBulkBar(a):""}`;}
-function renderBulkBar(a){const d=S.bulk||{};return `<div class="bulk-bar"><div class="bulk-grid"><div class="field"><label>Assign selected to *</label><select id="bulkUser">${employeeOptions(d.user||"")}</select></div><div class="field"><label>Start Date *</label><input id="bulkStart" type="date" value="${h(d.start||todayIso())}"></div><div class="field"><label>Target Date *</label><input id="bulkTarget" type="date" value="${h(d.target||"")}"></div><div class="field"><label>End Date</label><input id="bulkEnd" type="date" value="${h(d.end||"")}"></div><div class="field"><label>Common Remark</label><input id="bulkRemark" value="${h(d.remark||"")}" placeholder="Optional instruction"></div><button class="btn primary" data-act="review-bulk">Review ${S.selectedTargets.size}</button></div><div class="bulk-summary">Every selected row will become a separate <strong>Design_Tracking</strong> assignment record. Dates and status remain independent after creation.</div></div>`;}
+function canAssignFurther(a){return currentUserMatches(a?.[AF.assignedTo])}
+function equipmentWithinAssignment(eq,a){if(String(eq.project||"")!==scalar(a[AF.projectCode]))return false;const checks=[[AF.plantSection,"plantSection"],[AF.plantSectionType,"plantSectionType"],[AF.groupCode,"groupCode"],[AF.department,"department"],[AF.equipmentCategory,"equipmentCategory"],[AF.equipmentType,"equipmentType"],[AF.tagNo,"tag"]];for(const [f,k] of checks){const v=scalar(a[f]);if(v&&String(eq[k]||"")!==v)return false}return true}
+function targetKey(row){return [...S.selectedCriteria].map(k=>k==="tag"?`${row.tag}::${row.name}`:String(row[k]||"")).join("||")}
+function targetLabel(row){return [...S.selectedCriteria].map(k=>{const c=CRITERIA.find(x=>x.key===k);return k==="tag"?`${row.tag||"—"} — ${row.name||"—"}`:`${c.label}: ${row[k]||"—"}`}).join(" • ")}
+function makeTargetRows(a){if(!S.selectedCriteria.size)return[];const base=S.equipment.filter(eq=>equipmentWithinAssignment(eq,a)),map=new Map();for(const eq of base){const row={plantSection:eq.plantSection,plantSectionType:eq.plantSectionType,equipmentCategory:eq.equipmentCategory,tag:eq.tag,name:eq.name,equipmentRecordId:eq.id,groupCode:eq.groupCode,department:eq.department,equipmentType:eq.equipmentType};const k=targetKey(row);if(k&&!map.has(k))map.set(k,row)}return [...map.values()].sort((x,y)=>targetLabel(x).localeCompare(targetLabel(y),undefined,{numeric:true}))}
+function existingChildForTarget(parent,row){return assignmentChildren(idOf(parent)).find(ch=>[...S.selectedCriteria].every(k=>{const c=CRITERIA.find(x=>x.key===k);if(k==="tag")return scalar(ch[AF.tagNo])===row.tag;return scalar(ch[c.field])===String(row[k]||"")}))}
+function renderDelegateTab(){const a=S.current;if(!canAssignFurther(a))return `<div class="tab-card"><div class="empty"><div class="ico">🔒</div><strong>Only ${h(assignmentDisplayUser(a))} can assign this responsibility further</strong>You can still view the family tree and design history.</div></div>`;S.targetRows=makeTargetRows(a);return `<div class="tab-card"><div class="scope-box"><div class="k">CURRENT RESPONSIBILITY — LOCKED</div><div class="v">${h(scopeSummary(a))}</div></div><div class="section-row" style="margin-top:0"><div><h2>How do you want to divide this work?</h2><p>Select one or more criteria. The system only shows values inside your received responsibility.</p></div></div><div class="criteria-grid">${CRITERIA.map(c=>`<div class="criterion ${S.selectedCriteria.has(c.key)?"selected":""}" data-criterion="${h(c.key)}"><div class="t">${h(c.icon)} &nbsp;${h(c.label)}</div><div class="s">${c.key==="tag"?"Select individual equipment / tags":"Group work by this business value"}</div></div>`).join("")}</div><div id="targetArea">${renderTargetArea(a)}</div></div>`}
+function renderTargetArea(a){S.targetRows=makeTargetRows(a);if(!S.selectedCriteria.size)return `<div class="notice">Choose at least one option above. Example: <b>Plant Section + Plant Section Type</b>, or <b>Tag / Equipment</b>.</div>`;const q=S.targetSearch||"",rows=S.targetRows.filter(r=>!q||targetLabel(r).toLowerCase().includes(q.toLowerCase())),selected=S.selectedTargets.size;return `<div class="target-toolbar"><input id="targetSearch" class="input search" placeholder="Search matching responsibility…" value="${h(q)}"><div class="actions"><button class="btn sm" data-act="select-next-10">Select next 10</button><button class="btn sm" data-act="select-all-targets">Select all</button><button class="btn link sm" data-act="clear-targets">Clear</button></div></div><div class="selection-note"><b>${selected}</b> selected of ${rows.length} matching responsibility values.</div><div class="table-wrap" style="margin-top:8px"><table><thead><tr><th></th>${[...S.selectedCriteria].map(k=>{const c=CRITERIA.find(x=>x.key===k);return k==="tag"?'<th>Tag No</th><th>Equipment Name</th>':`<th>${h(c.label)}</th>`}).join("")}<th>Availability</th></tr></thead><tbody>${rows.length?rows.map(r=>{const key=targetKey(r),ex=existingChildForTarget(a,r),sel=S.selectedTargets.has(key);return `<tr class="${sel?"selected":""}"><td><input class="check target-check" type="checkbox" data-target="${h(key)}" ${sel?"checked":""} ${ex?"disabled":""}></td>${[...S.selectedCriteria].map(k=>{const c=CRITERIA.find(x=>x.key===k);return k==="tag"?`<td><b>${h(r.tag||"—")}</b></td><td>${h(r.name||"—")}</td>`:`<td>${h(r[k]||"—")}</td>`}).join("")}<td>${ex?'<span class="pill green">Already assigned</span>':'<span class="pill">New</span>'}</td></tr>`}).join(""):'<tr><td colspan="12" style="padding:20px;text-align:center;color:#667085">No matching values exist inside this responsibility.</td></tr>'}</tbody></table></div>${selected?renderBulkBar():""}`}
+function renderBulkBar(){const d=S.bulk||{};return `<div class="bulk-bar"><div class="bulk-grid"><div class="field"><label>Assign selected to *</label><select id="bulkUser">${employeeOptions(d.user||"")}</select></div><div class="field"><label>Priority</label><select id="bulkPriority">${PRIORITIES.map(p=>`<option ${p===(d.priority||"Medium")?"selected":""}>${h(p)}</option>`).join("")}</select></div><div class="field"><label>Start Date *</label><input id="bulkStart" type="date" value="${h(d.start||todayIso())}"></div><div class="field"><label>Target Date *</label><input id="bulkTarget" type="date" value="${h(d.target||"")}"></div><div class="field"><label>End Date</label><input id="bulkEnd" type="date" value="${h(d.end||"")}"></div><div class="field"><label>Common Remark</label><input id="bulkRemark" value="${h(d.remark||"")}" placeholder="Optional instruction"></div><button class="btn primary" data-act="review-bulk">Review ${S.selectedTargets.size}</button></div><div class="bulk-summary">Each selected row becomes an independent Design_Tracking assignment record. The receiver can divide it again later.</div></div>`}
+function collectBulk(){S.bulk={user:$("bulkUser")?.value||"",priority:$("bulkPriority")?.value||"Medium",start:$("bulkStart")?.value||"",target:$("bulkTarget")?.value||"",end:$("bulkEnd")?.value||"",remark:$("bulkRemark")?.value||""};return S.bulk}
+function responsibilityFromData(data){const bits=[`Project ${scalar(data[AF.projectCode])||S.project?.code||""}`],s=scalar(data[AF.plantSection]),st=scalar(data[AF.plantSectionType]),g=scalar(data[AF.groupCode]),d=scalar(data[AF.department]),c=scalar(data[AF.equipmentCategory]),t=scalar(data[AF.equipmentType]),tag=scalar(data[AF.tagNo]),name=scalar(data[AF.equipmentName]);if(s)bits.push(s);if(st)bits.push(st);if(g)bits.push(`Group: ${g}`);if(d)bits.push(`Department: ${d}`);if(c)bits.push(`Category: ${c}`);if(t)bits.push(`Type: ${t}`);if(tag||name)bits.push(`Tag: ${[tag,name].filter(Boolean).join(" — ")}`);return bits.filter(Boolean).join(" › ")}
+function assignmentCriteriaPayload(labels){return (Array.isArray(labels)?labels:String(labels||"").split(",")).map(x=>String(x||"").trim()).filter(Boolean).join(", ")}
+function buildChildPayload(parent,row,draft){const d=drawingForAssignment(parent),criteriaLabels=[...S.selectedCriteria].map(k=>CRITERIA.find(c=>c.key===k).label),data={
+  [AF.projectCode]:scalar(parent[AF.projectCode]),[AF.projectRecordId]:scalar(parent[AF.projectRecordId]),[AF.drawingDocument]:d.name,[AF.drawingMasterId]:d.id,[AF.shortName]:d.short||"",
+  [AF.primaryAssignment]:scalar(parent[AF.primaryAssignment])||idOf(primaryForRows(groupForAssignment(parent)?.rows||[])),[AF.assignedFrom]:idOf(parent),[AF.assignmentLevel]:num(parent[AF.assignmentLevel])+1,
+  [AF.assignedBy]:S.user||assignmentUser(parent),[AF.assignedTo]:draft.user,[AF.assignedEmployeeName]:employeeNameFor(draft.user),[AF.criteria]:assignmentCriteriaPayload(criteriaLabels),
+  [AF.startDate]:toCreatorDate(draft.start),[AF.targetDate]:toCreatorDate(draft.target),[AF.endDate]:toCreatorDate(draft.end),[AF.priority]:draft.priority||scalar(parent[AF.priority])||"Medium",[AF.status]:"Not Started",[AF.progress]:0,[AF.remark]:draft.remark||""
+};for(const c of CRITERIA){if(c.key==="tag"){if(parent[AF.tagNo])data[AF.tagNo]=scalar(parent[AF.tagNo]);if(parent[AF.equipmentName])data[AF.equipmentName]=scalar(parent[AF.equipmentName]);if(parent[AF.equipmentRecordId])data[AF.equipmentRecordId]=scalar(parent[AF.equipmentRecordId])}else if(parent[c.field])data[c.field]=scalar(parent[c.field])}for(const k of S.selectedCriteria){const c=CRITERIA.find(x=>x.key===k);if(k==="tag"){data[AF.tagNo]=row.tag||"";data[AF.equipmentName]=row.name||"";if(row.equipmentRecordId)data[AF.equipmentRecordId]=row.equipmentRecordId}else data[c.field]=row[k]||""}data[AF.responsibility]=responsibilityFromData(data);return data}
 
-function collectBulk(){S.bulk={user:$("bulkUser")?.value||"",start:$("bulkStart")?.value||"",target:$("bulkTarget")?.value||"",end:$("bulkEnd")?.value||"",remark:$("bulkRemark")?.value||""};return S.bulk;}
-function buildChildPayload(parent,row,draft){
-  const criteriaLabels=[...S.selectedCriteria].map(k=>CRITERIA.find(c=>c.key===k).label);
-  const data={
-    [AF.projectCode]:S.project.code,
-    [AF.projectRecordId]:S.project.id||"",
-    [AF.drawingDocument]:S.drawing.name,
-    [AF.drawingMasterId]:S.drawing.id,
-    [AF.shortName]:S.drawing.short||"",
-    [AF.primaryAssignment]:scalar(parent[AF.primaryAssignment])||idOf(primaryAssignment()),
-    [AF.assignedFrom]:idOf(parent),
-    [AF.assignmentLevel]:num(parent[AF.assignmentLevel])+1,
-    [AF.assignedBy]:S.user||assignmentUser(parent),
-    [AF.assignedTo]:draft.user,
-    [AF.assignedEmployeeName]:employeeNameFor(draft.user),
-    [AF.criteria]:assignmentCriteriaPayload(criteriaLabels),
-    [AF.startDate]:toCreatorDate(draft.start),
-    [AF.targetDate]:toCreatorDate(draft.target),
-    [AF.endDate]:toCreatorDate(draft.end),
-    [AF.status]:"Not Started",
-    [AF.progress]:0,
-    [AF.remark]:draft.remark||""
-  };
-  // Inherit the received responsibility first.
-  for(const c of CRITERIA){
-    if(c.key==="tag"){
-      if(parent[AF.tagNo])data[AF.tagNo]=scalar(parent[AF.tagNo]);
-      if(parent[AF.equipmentName])data[AF.equipmentName]=scalar(parent[AF.equipmentName]);
-      if(parent[AF.equipmentRecordId])data[AF.equipmentRecordId]=scalar(parent[AF.equipmentRecordId]);
-    }else if(parent[c.field]) data[c.field]=scalar(parent[c.field]);
-  }
-  // Then refine only criteria selected by the current user.
-  for(const k of S.selectedCriteria){
-    const c=CRITERIA.find(x=>x.key===k);
-    if(k==="tag"){
-      data[AF.tagNo]=row.tag||"";
-      data[AF.equipmentName]=row.name||"";
-      if(row.equipmentRecordId)data[AF.equipmentRecordId]=row.equipmentRecordId;
-    }else data[c.field]=row[k]||"";
-  }
-  data[AF.responsibility]=responsibilityFromData(data);
-  return data;
-}
-function reviewBulk(){const d=collectBulk();if(!d.user)throw new Error("Select Assigned To for the bulk assignment.");if(!d.start||!d.target)throw new Error("Start Date and Target Date are required.");if(d.end&&d.end<d.start)throw new Error("End Date cannot be before Start Date.");const parentTarget=toInputDate(S.current[AF.targetDate]);const late=parentTarget&&d.target>parentTarget;if(late&&!d.remark.trim())toast("Target Date is later than the received responsibility. Add a Remark before saving.","error");const selected=S.targetRows.filter(r=>S.selectedTargets.has(targetKey(r))&&!existingChildForTarget(S.current,r));if(!selected.length)throw new Error("No new responsibilities are selected.");openModal("Review Further Assignment",`${selected.length} independent assignment records will be created from ${assignmentUser(S.current)}'s responsibility.`,reviewBulkHtml(selected,d,late),`<button class="btn" data-modal="close">Back</button><button class="btn primary" data-modal="confirm-bulk">Create ${selected.length} Assignments</button>`);}
-function reviewBulkHtml(rows,d,late){return `<div class="review-grid"><div class="review-metric"><div class="n">${rows.length}</div><div class="l">NEW ASSIGNMENTS</div></div><div class="review-metric"><div class="n">${h(S.employees.find(e=>(e.email||e.id)===d.user)?.name||d.user)}</div><div class="l">ASSIGNED TO</div></div><div class="review-metric"><div class="n">Level ${num(S.current[AF.assignmentLevel])+1}</div><div class="l">ASSIGNMENT LEVEL</div></div></div>${late?'<div class="notice warn"><strong>Date warning:</strong> the new Target Date is later than the current responsibility Target Date. POC allows this with a Remark so the team can validate the business rule.</div>':""}<div class="notice good" style="margin-top:8px"><strong>Scope inheritance check passed.</strong> These rows were generated only from equipment inside the selected responsibility, so the new assignments refine the scope and do not broaden it.</div><div class="table-wrap" style="margin-top:12px"><table><thead><tr><th>#</th><th>Responsibility</th><th>Assigned To</th><th>Start</th><th>Target</th><th>End</th></tr></thead><tbody>${rows.map((r,i)=>`<tr><td>${i+1}</td><td>${h(targetLabel(r))}</td><td>${h(S.employees.find(e=>(e.email||e.id)===d.user)?.name||d.user)}</td><td>${h(d.start)}</td><td>${h(d.target)}</td><td>${h(d.end||"—")}</td></tr>`).join("")}</tbody></table></div>`;}
+async function createPrimary(){const p=S.projects.find(x=>x.id===S.newProjectId),d=S.drawings.find(x=>x.id===S.newDrawingId),user=$("primaryUser")?.value,priority=$("primaryPriority")?.value||"Medium",start=$("primaryStart")?.value,target=$("primaryTarget")?.value,end=$("primaryEnd")?.value,remark=$("primaryRemark")?.value.trim()||"",status=$("primaryStatus")?.value||"Not Started";if(!p||!d)throw new Error("Select Project and Drawing first.");if(!user||!start||!target)throw new Error("Assigned To, Start Date and Target Date are required.");if(end&&end<start)throw new Error("End Date cannot be before Start Date.");if(primaryAssignmentFor(p,d))throw new Error("Primary Assignment already exists for this Project + Drawing.");busy("Creating primary assignment…");try{const data={[AF.projectCode]:p.code,[AF.projectRecordId]:p.id||"",[AF.drawingDocument]:d.name,[AF.drawingMasterId]:d.id,[AF.shortName]:d.short||"",[AF.assignmentLevel]:0,[AF.assignedBy]:S.user||user,[AF.assignedTo]:user,[AF.assignedEmployeeName]:employeeNameFor(user),[AF.criteria]:"Project",[AF.responsibility]:`Entire Project ${p.code}`,[AF.startDate]:toCreatorDate(start),[AF.targetDate]:toCreatorDate(target),[AF.endDate]:toCreatorDate(end),[AF.priority]:priority,[AF.status]:status,[AF.progress]:status==="Completed"?100:0,[AF.remark]:remark};const id=await addRecord(data);if(!id)throw new Error("Creator did not return the new assignment ID.");await updateRecord(id,{[AF.primaryAssignment]:id});const record={ID:id,...data,[AF.primaryAssignment]:id};S.records.push(record);S.assignments.push(record);toast("Primary assignment created.","good");openAssignment(id)}finally{idle()}}
+async function reviewBulk(){const d=collectBulk();if(!d.user)throw new Error("Select Assigned To.");if(!d.start||!d.target)throw new Error("Start Date and Target Date are required.");if(d.end&&d.end<d.start)throw new Error("End Date cannot be before Start Date.");const parentTarget=toInputDate(S.current[AF.targetDate]),late=parentTarget&&d.target>parentTarget;if(late&&!d.remark.trim())throw new Error("Target Date is later than the received responsibility. Add a Remark to continue.");const rows=S.targetRows.filter(r=>S.selectedTargets.has(targetKey(r))&&!existingChildForTarget(S.current,r));if(!rows.length)throw new Error("No new responsibilities are selected.");openModal("Review Further Assignment",`${rows.length} independent responsibilities will be created under ${assignmentDisplayUser(S.current)}.`,reviewBulkHtml(rows,d,late),`<button class="btn" data-modal="close">Back</button><button class="btn primary" data-modal="confirm-bulk">Create ${rows.length} Assignments</button>`)}
+function reviewBulkHtml(rows,d,late){return `<div class="review-grid"><div class="review-metric"><div class="n">${rows.length}</div><div class="l">NEW ASSIGNMENTS</div></div><div class="review-metric"><div class="n">${h(employeeNameFor(d.user))}</div><div class="l">ASSIGNED TO</div></div><div class="review-metric"><div class="n">Level ${num(S.current[AF.assignmentLevel])+1}</div><div class="l">NEXT LEVEL • ${h(d.priority||"Medium")}</div></div></div>${late?'<div class="notice warn"><b>Date warning:</b> child Target Date is later than your received Target Date. Your remark will be stored with the assignment.</div>':""}<div class="notice good" style="margin-top:8px"><b>Scope inheritance passed.</b> All rows are inside your current responsibility.</div><div class="table-wrap" style="margin-top:12px"><table><thead><tr><th>#</th><th>Responsibility</th><th>Assigned To</th><th>Start</th><th>Target</th></tr></thead><tbody>${rows.map((r,i)=>`<tr><td>${i+1}</td><td>${h(targetLabel(r))}</td><td>${h(employeeNameFor(d.user))}</td><td>${h(d.start)}</td><td>${h(d.target)}</td></tr>`).join("")}</tbody></table></div>`}
+async function confirmBulk(){const d=S.bulk,rows=S.targetRows.filter(r=>S.selectedTargets.has(targetKey(r))&&!existingChildForTarget(S.current,r));if(rows.length>CONFIG.MAX_BATCH)throw new Error(`Maximum ${CONFIG.MAX_BATCH} assignments can be created in one batch.`);busy(`Creating ${rows.length} assignments…`);let ok=0,fail=0;try{for(const row of rows){try{const data=buildChildPayload(S.current,row,d),id=await addRecord(data);const rec={ID:id,...data};S.records.push(rec);S.assignments.push(rec);ok++}catch(e){console.error(e);fail++}}closeModal();S.selectedTargets.clear();S.selectedCriteria.clear();S.bulk={};S.detailTab="overview";renderView();toast(`${ok} assignment${ok===1?"":"s"} created${fail?`, ${fail} failed`:""}.`,fail?"warn":"good")}finally{idle()}}
 
-async function createPrimary(){
-  const user=$("primaryUser").value,start=$("primaryStart").value,target=$("primaryTarget").value,end=$("primaryEnd").value,remark=$("primaryRemark").value.trim(),status=$("primaryStatus").value;
-  if(!user||!start||!target)throw new Error("Assigned To, Start Date and Target Date are required.");
-  if(end&&end<start)throw new Error("End Date cannot be before Start Date.");
-  if(primaryAssignment())throw new Error("Primary Assignment already exists for this Project + Drawing.");
-  busy("Creating Primary Assignment…");
-  try{
-    const data={
-      [AF.projectCode]:S.project.code,
-      [AF.projectRecordId]:S.project.id||"",
-      [AF.drawingDocument]:S.drawing.name,
-      [AF.drawingMasterId]:S.drawing.id,
-      [AF.shortName]:S.drawing.short||"",
-      [AF.assignmentLevel]:0,
-      [AF.assignedBy]:S.user||user,
-      [AF.assignedTo]:user,
-      [AF.assignedEmployeeName]:employeeNameFor(user),
-      [AF.criteria]:assignmentCriteriaPayload(["Project"]),
-      [AF.responsibility]:`Entire Project ${S.project.code}`,
-      [AF.startDate]:toCreatorDate(start),
-      [AF.targetDate]:toCreatorDate(target),
-      [AF.endDate]:toCreatorDate(end),
-      [AF.status]:status,
-      [AF.progress]:status==="Completed"?100:0,
-      [AF.remark]:remark
-    };
-    const id=await addRecord(CONFIG.FORMS.assignment,data);
-    data.ID=id;
-    data[AF.primaryAssignment]=id;
-    await updateRecord(CONFIG.REPORTS.assignments,id,{[AF.primaryAssignment]:id});
-    S.assignments.push(data);S.current=data;S.expanded.add(id);
-    renderContextCard();renderTree();renderDetail();
-    toast("Primary Assignment created.","good");
-    log("Primary Assignment created",{id,project:S.project.code,drawing:S.drawing.name,user});
-  }finally{idle();}
-}
-async function confirmBulk(){const d=collectBulk(),rows=S.targetRows.filter(r=>S.selectedTargets.has(targetKey(r))&&!existingChildForTarget(S.current,r));if(!rows.length)return;busy(`Creating ${rows.length} assignments…`);const results=[];try{for(let i=0;i<rows.length;i++){$("loadingText").textContent=`Creating ${i+1} of ${rows.length}…`;const payload=buildChildPayload(S.current,rows[i],d);try{const id=await addRecord(CONFIG.FORMS.assignment,payload);payload.ID=id;S.assignments.push(payload);results.push({ok:true,row:rows[i],id});}catch(e){results.push({ok:false,row:rows[i],error:e.message||String(e)});} }closeModal();S.selectedTargets.clear();S.bulk={};S.current.__showDelegate=true;renderContextCard();renderTree();renderDetail();const ok=results.filter(x=>x.ok).length,fail=results.length-ok;toast(`${ok} assignment${ok===1?"":"s"} created${fail?`; ${fail} failed`:""}.`,fail?"error":"good");log("Bulk further assignment",{parent:idOf(S.current),ok,fail});}finally{idle();}}
+function baseRevisionPayload(a,rev,desc,parentId=""){const d=drawingForAssignment(a),prefix=executionPrefix(idOf(a)),data={
+  [AF.projectCode]:scalar(a[AF.projectCode]),[AF.projectRecordId]:scalar(a[AF.projectRecordId]),[AF.drawingDocument]:d.name,[AF.drawingMasterId]:d.id,[AF.shortName]:d.short||"",
+  [AF.designType]:d.name,[AF.designTitle]:`${d.name} — ${scopeSummary(a)}`,[AF.assignedTo]:scalar(a[AF.assignedTo]),[AF.assignedEmployeeName]:assignmentDisplayUser(a),
+  [AF.plantSection]:scalar(a[AF.plantSection]),[AF.plantSectionType]:scalar(a[AF.plantSectionType]),[AF.groupCode]:scalar(a[AF.groupCode]),[AF.department]:scalar(a[AF.department]),
+  [AF.tagNo]:scalar(a[AF.tagNo]),[AF.equipmentName]:scalar(a[AF.equipmentName]),[AF.equipmentCategory]:scalar(a[AF.equipmentCategory]),[AF.equipmentType]:scalar(a[AF.equipmentType]),[AF.equipmentRecordId]:scalar(a[AF.equipmentRecordId]),
+  [AF.startDate]:scalar(a[AF.startDate]),[AF.targetDate]:scalar(a[AF.targetDate]),[AF.endDate]:scalar(a[AF.endDate]),[AF.priority]:scalar(a[AF.priority]),
+  [AF.revision]:rev,[AF.revisionDescription]:desc,[AF.parentDesignId]:parentId,[AF.logicalTaskKey]:`${prefix}${rev}`,[AF.revisionKey]:`${prefix}${rev}`,[AF.status]:"In Progress",[AF.progress]:10,[AF.actualStart]:toCreatorDateTime(),[AF.startedBy]:S.user||scalar(a[AF.assignedTo])
+};return data}
+async function startR0(){const a=S.current;if(!currentUserMatches(a[AF.assignedTo]))throw new Error("Only the assigned user can start R0.");if(currentRevision(a))throw new Error("A design revision already exists for this responsibility.");const desc=$("r0Desc")?.value.trim(),drawingNo=$("r0DrawingNo")?.value.trim()||"",checker=$("r0Checker")?.value||"",reviewer=$("r0Reviewer")?.value||"",approver=$("r0Approver")?.value||"",remark=$("r0Remark")?.value.trim()||"";if(!desc)throw new Error("Revision Description is required.");busy("Creating R0…");try{const data={...baseRevisionPayload(a,"R0",desc),[AF.drawingNumber]:drawingNo,[AF.checker]:checker,[AF.reviewer]:reviewer,[AF.approver]:approver,[AF.remark]:remark};const id=await addRecord(data);const rec={ID:id,...data};S.records.push(rec);S.revisions.push(rec);await uploadRevisionFiles(id,[[AF.drawingFile,$("r0DrawingFile")?.files?.[0]],[AF.nativeFile,$("r0NativeFile")?.files?.[0]],[AF.supportingFile,$("r0SupportingFile")?.files?.[0]]],rec);if(CONFIG.SYNC_ASSIGNMENT_START&&scalar(a[AF.status])==="Not Started"){await updateRecord(idOf(a),{[AF.status]:"In Progress",[AF.progress]:10});a[AF.status]="In Progress";a[AF.progress]=10}toast("R0 created. Design execution has started.","good");renderView()}finally{idle()}}
+async function saveRevision(){const a=S.current,r=currentRevision(a);if(!r||!canEditRevision(a,r))throw new Error("This revision is read-only for the signed-in user.");const data={[AF.drawingNumber]:$("execDrawingNo")?.value.trim()||"",[AF.revisionDescription]:$("execRevDesc")?.value.trim()||scalar(r[AF.revisionDescription]),[AF.checker]:$("execChecker")?.value||"",[AF.reviewer]:$("execReviewer")?.value||"",[AF.approver]:$("execApprover")?.value||"",[AF.remark]:$("execRemark")?.value.trim()||""};busy("Saving design…");try{await updateRecord(idOf(r),data);Object.assign(r,data);await uploadRevisionFiles(idOf(r),[[AF.drawingFile,$(`file_${AF.drawingFile}`)?.files?.[0]],[AF.nativeFile,$(`file_${AF.nativeFile}`)?.files?.[0]],[AF.supportingFile,$(`file_${AF.supportingFile}`)?.files?.[0]]],r);toast("Design saved.","good");renderView()}finally{idle()}}
+async function uploadRevisionFiles(id,files,record){for(const [field,file] of files){if(!file)continue;$("loadingText").textContent=`Uploading ${file.name}…`;await uploadFile(id,field,file);record[field]=file.name}}
+async function downloadRevisionFile(id,field,label){busy(`Downloading ${label||"file"}…`);try{const response=await readFile(id,field),content=response&&response.data!==undefined?response.data:response,blob=content instanceof Blob?content:new Blob([content],{type:"application/octet-stream"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=`${scalar(S.current?.[AF.projectCode])||"project"}_${drawingForAssignment(S.current).short||"drawing"}_${label||"file"}`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000)}finally{idle()}}
+function validateWorkflowPrereq(to,r){if(to==="Submitted for Check"&&!scalar(r[AF.checker]))throw new Error("Select a Checker and save the design before submitting for check.");if(to==="Submitted for Review"&&!scalar(r[AF.reviewer]))throw new Error("Select a Reviewer and save the design before submitting for review.");if(to==="Submitted for Approval"&&!scalar(r[AF.approver]))throw new Error("Select an Approver and save the design before submitting for approval.")}
+async function moveWorkflow(to){const a=S.current,r=currentRevision(a);if(!r)throw new Error("No current revision exists.");validateWorkflowPrereq(to,r);const acts=workflowActions(r,a);if(!acts.some(x=>x[1]===to))throw new Error("You are not allowed to perform this workflow action.");if(to==="Returned")return openReturnModal();const data={[AF.status]:to,[AF.progress]:DESIGN_PROGRESS[to]??num(r[AF.progress])};if(to==="In Progress"&&!scalar(r[AF.actualStart])){data[AF.actualStart]=toCreatorDateTime();data[AF.startedBy]=S.user}if(to==="Completed"){data[AF.actualEnd]=toCreatorDate(todayIso());data[AF.completedBy]=S.user}busy(`Updating design to ${to}…`);try{await updateRecord(idOf(r),data);Object.assign(r,data);if(to==="Completed"&&currentUserMatches(a[AF.assignedTo])){await updateRecord(idOf(a),{[AF.status]:"Completed",[AF.progress]:100});a[AF.status]="Completed";a[AF.progress]=100}toast(`Design status: ${to}.`,"good");renderView()}finally{idle()}}
+function openReturnModal(){openModal("Return Design",`Return ${scalar(currentRevision(S.current)?.[AF.revision])||"current revision"} to ${assignmentDisplayUser(S.current)}.`,`<div class="field"><label>Return Reason *</label><textarea id="returnReason" placeholder="Explain what must be corrected"></textarea></div>`,`<button class="btn" data-modal="close">Cancel</button><button class="btn danger" data-modal="confirm-return">Return to Designer</button>`)}
+async function confirmReturn(){const reason=$("returnReason")?.value.trim();if(!reason)throw new Error("Return Reason is required.");const r=currentRevision(S.current);busy("Returning design…");try{const data={[AF.status]:"Returned",[AF.progress]:DESIGN_PROGRESS.Returned,[AF.returnReason]:reason};await updateRecord(idOf(r),data);Object.assign(r,data);closeModal();toast("Design returned to the designer.","warn");renderView()}finally{idle()}}
+function openNewRevisionModal(){const a=S.current,r=currentRevision(a);if(!r||!["Approved","Issued","Completed"].includes(scalar(r[AF.status])))throw new Error("Create a new revision only after the current revision is Approved, Issued or Completed.");if(!currentUserMatches(a[AF.assignedTo]))throw new Error("Only the assignment owner can create the next revision.");const next=`R${revisionNumber(r[AF.revision])+1}`;openModal("Create New Revision",`${scalar(r[AF.revision])||"R0"} will remain read-only. ${next} becomes the new working revision.`,`<div class="notice good"><b>New revision: ${h(next)}</b><br>Drawing identity, responsibility, Checker, Reviewer and Approver will be copied. Files are intentionally not copied.</div><div class="field" style="margin-top:12px"><label>Revision Description *</label><textarea id="newRevisionDesc" placeholder="What changed in this revision?"></textarea></div>`,`<button class="btn" data-modal="close">Cancel</button><button class="btn primary" data-modal="confirm-new-revision" data-next-rev="${h(next)}">Create ${h(next)}</button>`)}
+async function confirmNewRevision(next){const a=S.current,prev=currentRevision(a),desc=$("newRevisionDesc")?.value.trim();if(!desc)throw new Error("Revision Description is required.");busy(`Creating ${next}…`);try{const base=baseRevisionPayload(a,next,desc,idOf(prev));base[AF.drawingNumber]=scalar(prev[AF.drawingNumber]);base[AF.checker]=scalar(prev[AF.checker]);base[AF.reviewer]=scalar(prev[AF.reviewer]);base[AF.approver]=scalar(prev[AF.approver]);base[AF.status]="Not Started";base[AF.progress]=0;delete base[AF.actualStart];delete base[AF.startedBy];const id=await addRecord(base),rec={ID:id,...base};S.records.push(rec);S.revisions.push(rec);closeModal();S.detailTab="files";toast(`${next} created. Upload the new revision files.`,"good");renderView()}finally{idle()}}
+function viewRevisionModal(id){const r=S.revisions.find(x=>idOf(x)===String(id));if(!r)return;const files=[[AF.drawingFile,"Drawing File"],[AF.nativeFile,"Native File"],[AF.supportingFile,"Supporting File"]].filter(([f])=>scalar(r[f]));openModal(`${scalar(r[AF.revision])||"Revision"} — ${scalar(r[AF.status])||""}`,scalar(r[AF.revisionDescription])||"Revision details",`<div class="summary"><div class="summary-item"><div class="k">DRAWING NUMBER</div><div class="v">${h(scalar(r[AF.drawingNumber])||"—")}</div></div><div class="summary-item"><div class="k">CHECKER</div><div class="v">${h(personDisplay(r[AF.checker])||"—")}</div></div><div class="summary-item"><div class="k">REVIEWER</div><div class="v">${h(personDisplay(r[AF.reviewer])||"—")}</div></div><div class="summary-item"><div class="k">APPROVER</div><div class="v">${h(personDisplay(r[AF.approver])||"—")}</div></div></div><div class="scope-box"><div class="k">REVISION DESCRIPTION</div><div class="v">${h(scalar(r[AF.revisionDescription])||"—")}</div></div><div class="actions">${files.map(([f,l])=>`<button class="btn" data-download-file="${h(idOf(r))}" data-file-field="${h(f)}" data-file-label="${h(l)}">Download ${h(l)}</button>`).join("")}</div>`,`<button class="btn primary" data-modal="close">Close</button>`)}
 
-function canAssignFurther(a){if(S.demo)return true;const me=String(S.user||"").toLowerCase();const to=assignmentUser(a).toLowerCase();return Boolean(me&&to.includes(me));}
-function openAssignment(id){const a=S.assignments.find(x=>idOf(x)===String(id));if(!a)return;S.current=a;renderTree();renderDetail();}
-function toggleExpand(id){S.expanded.has(id)?S.expanded.delete(id):S.expanded.add(id);renderTree();}
-function showAssignFurther(){if(!canAssignFurther(S.current)){toast("Only the user who received this responsibility can assign further in the POC.","error");return;}S.current.__showDelegate=true;S.selectedCriteria.clear();S.selectedTargets.clear();S.bulk={};renderDetail();}
+function editAssignmentModal(){const a=S.current;if(!currentUserMatches(a[AF.assignedTo]))throw new Error("Only the assigned user can update this responsibility.");openModal("Update Assignment",`${assignmentDisplayUser(a)} — ${scopeSummary(a)}`,`<div class="grid2"><div class="field"><label>Status</label><select id="assignmentStatusEdit">${ASSIGNMENT_STATUSES.map(s=>`<option ${s===scalar(a[AF.status])?"selected":""}>${h(s)}</option>`).join("")}</select></div><div class="field"><label>Progress %</label><input id="assignmentProgressEdit" type="number" min="0" max="100" value="${num(a[AF.progress])}"></div></div><div class="field" style="margin-top:11px"><label>Remark</label><textarea id="assignmentRemarkEdit">${h(scalar(a[AF.remark]))}</textarea></div>`,`<button class="btn" data-modal="close">Cancel</button><button class="btn primary" data-modal="save-assignment-status">Save</button>`)}
+async function saveAssignmentStatus(){const a=S.current,s=$("assignmentStatusEdit")?.value,p=Math.max(0,Math.min(100,num($("assignmentProgressEdit")?.value))),remark=$("assignmentRemarkEdit")?.value.trim()||"";busy("Updating assignment…");try{const data={[AF.status]:s,[AF.progress]:s==="Completed"?100:p,[AF.remark]:remark};await updateRecord(idOf(a),data);Object.assign(a,data);closeModal();toast("Assignment updated.","good");renderView()}finally{idle()}}
 
-function registerRootId(a,idMap){
-  let cur=a,guard=0;
-  while(cur&&guard++<100){
-    const from=scalar(cur[AF.assignedFrom]);
-    if(!from)return idOf(cur);
-    const parent=idMap.get(from);
-    if(!parent)break;
-    cur=parent;
-  }
-  const stored=scalar(a[AF.primaryAssignment]);
-  return stored||idOf(a);
-}
-function registerGroups(){
-  const groups=new Map();
-  for(const a of S.assignments){
-    const project=scalar(a[AF.projectCode]);
-    const drawingId=scalar(a[AF.drawingMasterId]);
-    const drawing=scalar(a[AF.drawingDocument]);
-    const key=`${project}|||${drawingId||drawing}`;
-    if(!groups.has(key))groups.set(key,{groupKey:key,rows:[],project,drawing,drawingId});
-    groups.get(key).rows.push(a);
-  }
-  for(const g of groups.values()){
-    g.roots=g.rows.filter(a=>num(a[AF.assignmentLevel],-1)===0&&!scalar(a[AF.assignedFrom]));
-    if(!g.roots.length)g.roots=[g.rows.slice().sort((a,b)=>num(a[AF.assignmentLevel])-num(b[AF.assignmentLevel]))[0]];
-    g.root=g.roots[0];
-    g.project=g.project||scalar(g.root?.[AF.projectCode]);
-    g.drawing=g.drawing||scalar(g.root?.[AF.drawingDocument]);
-    g.short=scalar(g.root?.[AF.shortName])||"DR";
-  }
-  return [...groups.values()].sort((a,b)=>`${b.project}|${b.drawing}`.localeCompare(`${a.project}|${a.drawing}`,undefined,{numeric:true}));
-}
-function registerGroupMatches(g){
-  const q=$("regSearch").value.toLowerCase().trim(),p=$("regProject").value,d=$("regDrawing").value,st=$("regStatus").value;
-  if(p&&g.project!==p)return false;
-  if(d&&g.drawing!==d)return false;
-  if(S.regMode==="mine"){
-    const me=String(S.user||"").toLowerCase();
-    if(!g.rows.some(a=>assignmentUser(a).toLowerCase().includes(me)||assignmentBy(a).toLowerCase().includes(me)))return false;
-  }
-  if(st&&!g.rows.some(a=>scalar(a[AF.status])===st))return false;
-  if(q){
-    const hay=[g.project,g.drawing,...g.rows.flatMap(a=>[assignmentDisplayUser(a),assignmentByDisplay(a),scopeSummary(a),scalar(a[AF.status])])].join(" ").toLowerCase();
-    if(!hay.includes(q))return false;
-  }
-  return true;
-}
-function renderRegisterFamilyNode(a,rows,childrenMap){
-  const id=idOf(a),kids=(childrenMap.get(id)||[]).sort((x,y)=>num(x[AF.assignmentLevel])-num(y[AF.assignmentLevel])||assignmentDisplayUser(x).localeCompare(assignmentDisplayUser(y)));
-  const mine=String(assignmentUser(a)).toLowerCase().includes(String(S.user||"").toLowerCase());
-  const primary=num(a[AF.assignmentLevel])===0&&!scalar(a[AF.assignedFrom]);
-  return `<div class="family-item"><div class="family-node ${primary?"primary":""} ${mine?"mine":""}"><div class="family-avatar">${h(initials(assignmentDisplayUser(a)))}</div><div><div class="family-name">${h(assignmentDisplayUser(a))}<span class="level-badge">Level ${num(a[AF.assignmentLevel])}</span>${primary?'<span class="pill brand">Primary</span>':""}</div><div class="family-scope">${h(scopeSummary(a))}</div><div class="family-meta">Assigned by ${h(assignmentByDisplay(a))} • Target ${h(displayDate(a[AF.targetDate]))}</div></div><div class="family-side">${statusPill(scalar(a[AF.status]))}<button class="btn sm" data-open-reg="${h(id)}">Open</button></div></div>${kids.length?`<div class="family-children">${kids.map(k=>renderRegisterFamilyNode(k,rows,childrenMap)).join("")}</div>`:""}</div>`;
-}
-function renderRegisterGroup(g){
-  const open=S.registerExpanded.has(g.groupKey),root=g.root||g.rows[0];
-  const childrenMap=new Map();
-  g.rows.forEach(a=>{const pid=scalar(a[AF.assignedFrom]);if(pid){if(!childrenMap.has(pid))childrenMap.set(pid,[]);childrenMap.get(pid).push(a);}});
-  const maxLevel=Math.max(0,...g.rows.map(a=>num(a[AF.assignmentLevel]))),completed=g.rows.filter(a=>scalar(a[AF.status])==="Completed").length;
-  const progress=g.rows.length?Math.round(g.rows.reduce((s,a)=>s+num(a[AF.progress]),0)/g.rows.length):0;
-  const primaryNames=[...new Set(g.roots.map(assignmentDisplayUser))].join(", ");
-  const treeHtml=g.roots.map(r=>renderRegisterFamilyNode(r,g.rows,childrenMap)).join("");
-  return `<article class="assignment-group"><div class="assignment-group-head"><div class="group-icon">${h(g.short||"DR")}</div><div><div class="group-project">Project ${h(g.project)}</div><div class="group-drawing">${h(g.drawing)}</div><div class="group-sub">Primary responsibility: ${h(primaryNames||assignmentDisplayUser(root))}</div></div><div class="group-owner"><div class="label">Primary Assigned To</div><div class="value">${h(primaryNames||assignmentDisplayUser(root))}</div></div><div class="group-stat"><div class="label">Structure</div><div class="value">${g.rows.length} assignments • ${maxLevel+1} levels</div><div class="group-sub">${completed}/${g.rows.length} completed • ${progress}% avg.</div></div><div class="group-buttons">${statusPill(scalar(root[AF.status]))}<button class="btn ${open?"soft":"primary"} sm" data-group-toggle="${h(g.groupKey)}">${open?"Hide Structure":"View Structure"}</button></div></div>${open?`<div class="group-family"><div class="group-family-head"><div><div class="group-family-title">Assignment Family Tree</div><div class="group-family-sub">This Project + Drawing is shown once. All further assignments appear underneath their immediate assignment.</div></div><button class="btn sm" data-open-reg="${h(idOf(root))}">Open Primary Assignment</button></div><div class="family-tree">${treeHtml}</div></div>`:""}</article>`;
-}
-function renderRegister(){
-  S.view=S.regMode==="mine"?"mine":"all";
-  $("plannerView").classList.add("hidden");$("registerView").classList.remove("hidden");
-  $("registerTitle").textContent=S.regMode==="mine"?"My Drawing Responsibilities":"Drawing Assignment Overview";
-  const groups=registerGroups().filter(registerGroupMatches);
-  $("registerCount").textContent=`${groups.length} drawing${groups.length===1?"":"s"}`;
-  $("registerCards").innerHTML=groups.length?groups.map(renderRegisterGroup).join(""):'<div class="group-empty"><strong>No drawing assignments found</strong>Try changing the project, drawing, status or search filter.</div>';
-}
-function openRegisterAssignment(id){const a=S.assignments.find(x=>idOf(x)===String(id));if(!a)return;const p=S.projects.find(x=>x.code===scalar(a[AF.projectCode])),d=S.drawings.find(x=>x.id===scalar(a[AF.drawingMasterId])||x.name===scalar(a[AF.drawingDocument]));if(p&&d){S.project=p;S.drawing=d;$("projectSelect").value=p.id;$("drawingSelect").value=d.id;S.current=a;S.expanded.add(idOf(primaryAssignment()));switchView("planner");renderContextCard();$("workspace").classList.remove("hidden");renderTree();renderDetail();}}
+function openModal(title,sub,body,foot){$("modalTitle").textContent=title;$("modalSub").textContent=sub||"";$("modalBody").innerHTML=body||"";$("modalFoot").innerHTML=foot||"";$("modalBackdrop").classList.remove("hidden")}
+function closeModal(){$("modalBackdrop").classList.add("hidden")}
+function setupModal(){openModal("V17 One-Form Architecture","Assignment + Design Files + Revision History use your existing Design_Tracking form.",`<div class="notice good"><b>No new transaction form is used.</b> Assignment rows and Revision rows are both stored in Design_Tracking and separated by their backend identity fields.</div><div class="section-row"><div><h2>Assignment hierarchy</h2><p>Already added to your form.</p></div></div><div class="table-wrap"><table><thead><tr><th>Field</th><th>Link Name</th><th>Purpose</th></tr></thead><tbody><tr><td>Primary Assignment ID</td><td>Primary_Assignment_ID</td><td>First project-level assignment</td></tr><tr><td>Assigned From ID</td><td>Assigned_From_ID</td><td>Immediate previous responsibility</td></tr><tr><td>Assignment Level</td><td>Assignment_Level</td><td>0, 1, 2, 3… N</td></tr><tr><td>Assignment Criteria</td><td>Assignment_Criteria</td><td>Single Line</td></tr><tr><td>Responsibility</td><td>Responsibility</td><td>Readable scope</td></tr></tbody></table></div><div class="section-row"><div><h2>Design / revision identity</h2><p>Uses fields already visible in your Design_Tracking screenshots.</p></div></div><div class="table-wrap"><table><thead><tr><th>Field</th><th>Link Name</th><th>Use</th></tr></thead><tbody><tr><td>Logical Task Key</td><td>Logical_Task_Key</td><td>EXEC::AssignmentID::R0 / R1 / R2</td></tr><tr><td>Revision Key</td><td>Revision_Key</td><td>Unique revision identity</td></tr><tr><td>Parent Design ID</td><td>Parent_Design_ID</td><td>R0 → R1 → R2 chain</td></tr><tr><td>Revision</td><td>Revision</td><td>R0 / R1 / R2</td></tr><tr><td>Files</td><td>Drawing_File / Native_File / Supporting_File</td><td>Controlled document files</td></tr></tbody></table></div><div class="notice warn" style="margin-top:12px"><b>Do not use Parent_Design_ID for assignment hierarchy.</b> It is reserved only for revision history. Further_Assigned and Active are not written by the widget because this Creator app rejected Decision Box API values; children are derived from Assigned_From_ID.</div>`,`<button class="btn primary" data-modal="close">Close</button>`)}
 
-function updateStatusModal(){const a=S.current;openModal("Update Assignment Status",`${assignmentUser(a)} — ${scopeSummary(a)}`,`<div class="grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px"><div class="field"><label>Status</label><select id="statusEdit">${STATUSES.map(s=>`<option ${s===scalar(a[AF.status])?"selected":""}>${h(s)}</option>`).join("")}</select></div><div class="field"><label>Progress %</label><input id="progressEdit" type="number" min="0" max="100" value="${num(a[AF.progress])}"></div><div class="field" style="grid-column:1/-1"><label>Remark</label><textarea id="remarkEdit">${h(scalar(a[AF.remark]))}</textarea></div></div>`,`<button class="btn" data-modal="close">Cancel</button><button class="btn primary" data-modal="save-status">Save Status</button>`);}
-async function saveStatus(){const s=$("statusEdit").value,p=Math.max(0,Math.min(100,num($("progressEdit").value))),r=$("remarkEdit").value.trim();busy("Updating assignment…");try{await updateRecord(CONFIG.REPORTS.assignments,idOf(S.current),{[AF.status]:s,[AF.progress]:p,[AF.remark]:r});S.current[AF.status]=s;S.current[AF.progress]=p;S.current[AF.remark]=r;closeModal();renderTree();renderDetail();toast("Assignment status updated.","good");}finally{idle();}}
-
-function openModal(title,sub,body,foot){$("modalTitle").textContent=title;$("modalSub").textContent=sub||"";$("modalBody").innerHTML=body||"";$("modalFoot").innerHTML=foot||"";$("modalBackdrop").classList.remove("hidden");}
-function closeModal(){$("modalBackdrop").classList.add("hidden");}
-function setupModal(){openModal("V16.5 One-Form Setup","All assignments are stored in your existing Design_Tracking form.",`<div class="notice good"><strong>One transaction form only:</strong> the widget reads Project, Drawing and Equipment masters, then creates Primary and Further Assignment records inside <strong>Design_Tracking</strong>. The tree is reconstructed from Primary_Assignment_ID + Assigned_From_ID + Assignment_Level.</div><div class="section-title"><h3>Seven hierarchy fields used in Design_Tracking (Further_Assigned is derived, not written by API)</h3></div><div class="table-wrap"><table><thead><tr><th>Field</th><th>Link Name</th><th>Type</th></tr></thead><tbody><tr><td>Primary Assignment ID</td><td>Primary_Assignment_ID</td><td>Single Line</td></tr><tr><td>Assigned From ID</td><td>Assigned_From_ID</td><td>Single Line</td></tr><tr><td>Assignment Level</td><td>Assignment_Level</td><td>Number</td></tr><tr><td>Assigned By</td><td>Assigned_By</td><td>Email / Single Line</td></tr><tr><td>Assignment Criteria</td><td>Assignment_Criteria</td><td>Single Line</td></tr><tr><td>Responsibility</td><td>Responsibility</td><td>Multi Line</td></tr><tr><td>Further Assigned</td><td>Further_Assigned</td><td>Decision Box — optional; keep unchecked. Widget does not write this field.</td></tr><tr><td>Group Code</td><td>Group_Code</td><td>Single Line</td></tr></tbody></table></div><div class="notice warn" style="margin-top:12px"><strong>Keep Parent_Design_ID unchanged.</strong> It remains reserved for drawing revision history (R0 → R1 → R2) and is not used for assignment hierarchy.</div><div class="notice" style="margin-top:8px"><strong>Decision Box note:</strong> Further_Assigned and Active are not sent in create/update payloads. Further assignment is determined from child records; Active uses the form default.</div><div class="notice" style="margin-top:8px">Date mapping used by this widget: Planned_Start_Date = Start Date, Forecast_End_Date = Target Date, Planned_End_Date = End Date.</div>`,`<button class="btn primary" data-modal="close">Close</button>`);}
-
-function switchView(v){S.view=v;document.querySelectorAll(".tab").forEach(b=>b.classList.toggle("active",b.dataset.view===v));if(v==="planner"){$("plannerView").classList.remove("hidden");$("registerView").classList.add("hidden");}else{S.regMode=v==="mine"?"mine":"all";renderRegister();}}
-
-async function handleAction(act,el){if(act==="create-primary")return createPrimary();if(act==="assign-further")return showAssignFurther();if(act==="edit-status")return updateStatusModal();if(act==="select-next-10"){const rows=S.targetRows.filter(r=>!existingChildForTarget(S.current,r)&&!S.selectedTargets.has(targetKey(r))).slice(0,10);rows.forEach(r=>S.selectedTargets.add(targetKey(r)));renderDetail();return;}if(act==="select-all-targets"){S.targetRows.filter(r=>!existingChildForTarget(S.current,r)).forEach(r=>S.selectedTargets.add(targetKey(r)));renderDetail();return;}if(act==="clear-targets"){S.selectedTargets.clear();renderDetail();return;}if(act==="review-bulk")return reviewBulk();}
-async function handleModal(act){if(act==="close")return closeModal();if(act==="confirm-bulk")return confirmBulk();if(act==="save-status")return saveStatus();}
-
+async function handleAction(act){if(act==="create-primary")return createPrimary();if(act==="edit-assignment")return editAssignmentModal();if(act==="start-r0")return startR0();if(act==="save-revision")return saveRevision();if(act==="new-revision")return openNewRevisionModal();if(act==="select-next-10"){const rows=S.targetRows.filter(r=>!existingChildForTarget(S.current,r)&&!S.selectedTargets.has(targetKey(r))).slice(0,10);rows.forEach(r=>S.selectedTargets.add(targetKey(r)));return renderView()}if(act==="select-all-targets"){S.targetRows.filter(r=>!existingChildForTarget(S.current,r)).forEach(r=>S.selectedTargets.add(targetKey(r)));return renderView()}if(act==="clear-targets"){S.selectedTargets.clear();return renderView()}if(act==="review-bulk")return reviewBulk()}
+async function handleModal(act,el){if(act==="close")return closeModal();if(act==="confirm-bulk")return confirmBulk();if(act==="save-assignment-status")return saveAssignmentStatus();if(act==="confirm-return")return confirmReturn();if(act==="confirm-new-revision")return confirmNewRevision(el.dataset.nextRev)}
+function toggleExpand(id){S.expanded.has(id)?S.expanded.delete(id):S.expanded.add(id);renderView()}
 function wire(){
-  $("loadContextBtn").onclick=()=>openContext();$("refreshBtn").onclick=()=>location.reload();$("setupBtn").onclick=setupModal;$("modalClose").onclick=closeModal;$("modalBackdrop").addEventListener("click",e=>{if(e.target===$("modalBackdrop"))closeModal();});
-  document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>switchView(b.dataset.view));
-  $("treeSearch").oninput=renderTree;$("treeStatus").onchange=renderTree;
-  ["regSearch","regProject","regDrawing","regStatus"].forEach(id=>$(id).addEventListener(id==="regSearch"?"input":"change",renderRegister));
-  document.addEventListener("click",e=>{const expand=e.target.closest("[data-expand]");if(expand){e.stopPropagation();return toggleExpand(expand.dataset.expand);}const node=e.target.closest("[data-node]");if(node)return openAssignment(node.dataset.node);const a=e.target.closest("[data-act]");if(a)return guarded(()=>handleAction(a.dataset.act,a));const c=e.target.closest("[data-criterion]");if(c){const k=c.dataset.criterion;S.selectedCriteria.has(k)?S.selectedCriteria.delete(k):S.selectedCriteria.add(k);S.selectedTargets.clear();return renderDetail();}const gt=e.target.closest("[data-group-toggle]");if(gt){const id=gt.dataset.groupToggle;S.registerExpanded.has(id)?S.registerExpanded.delete(id):S.registerExpanded.add(id);return renderRegister();}const rr=e.target.closest("[data-open-reg]");if(rr)return openRegisterAssignment(rr.dataset.openReg);const m=e.target.closest("[data-modal]");if(m)return guarded(()=>handleModal(m.dataset.modal));});
-  document.addEventListener("change",e=>{if(e.target.classList.contains("target-check")){const k=e.target.dataset.target;e.target.checked?S.selectedTargets.add(k):S.selectedTargets.delete(k);renderDetail();}});
-  document.addEventListener("input",e=>{if(e.target.id==="targetSearch"){S.targetSearch=e.target.value;const area=$("targetArea");if(area)area.innerHTML=renderTargetArea(S.current);}});
-  document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("modalBackdrop").classList.contains("hidden"))closeModal();});
+  document.querySelectorAll(".navtab").forEach(b=>b.onclick=()=>setView(b.dataset.view));
+  $("refreshBtn").onclick=()=>guarded(refreshData);$("setupBtn").onclick=setupModal;$("modalClose").onclick=closeModal;$("modalBackdrop").addEventListener("click",e=>{if(e.target===$("modalBackdrop"))closeModal()});
+  $("globalSearch").addEventListener("input",e=>{S.globalSearch=e.target.value;renderView()});
+  document.addEventListener("click",e=>{
+    const v=e.target.closest("[data-view-jump]");if(v)return setView(v.dataset.viewJump);
+    const oa=e.target.closest("[data-open-assignment]");if(oa)return openAssignment(oa.dataset.openAssignment);
+    const og=e.target.closest("[data-open-group]");if(og)return openGroup(og.dataset.openGroup);
+    if(e.target.closest("[data-back]")){S.view=S.previousView||"home";return renderView()}
+    const ex=e.target.closest("[data-expand]");if(ex){e.stopPropagation();return toggleExpand(ex.dataset.expand)}
+    const node=e.target.closest("[data-node]");if(node){S.current=assignmentById(node.dataset.node);S.detailTab="overview";S.selectedCriteria.clear();S.selectedTargets.clear();return renderView()}
+    const dt=e.target.closest("[data-detail-tab]");if(dt){S.detailTab=dt.dataset.detailTab;S.selectedCriteria.clear();S.selectedTargets.clear();return renderView()}
+    const cr=e.target.closest("[data-criterion]");if(cr){const k=cr.dataset.criterion;S.selectedCriteria.has(k)?S.selectedCriteria.delete(k):S.selectedCriteria.add(k);S.selectedTargets.clear();return renderView()}
+    const ac=e.target.closest("[data-act]");if(ac)return guarded(()=>handleAction(ac.dataset.act));
+    const wf=e.target.closest("[data-workflow-to]");if(wf)return guarded(()=>moveWorkflow(wf.dataset.workflowTo));
+    const dl=e.target.closest("[data-download-file]");if(dl)return guarded(()=>downloadRevisionFile(dl.dataset.downloadFile,dl.dataset.fileField,dl.dataset.fileLabel));
+    const vr=e.target.closest("[data-view-revision]");if(vr)return viewRevisionModal(vr.dataset.viewRevision);
+    const md=e.target.closest("[data-modal]");if(md)return guarded(()=>handleModal(md.dataset.modal,md));
+  });
+  document.addEventListener("change",e=>{
+    if(e.target.id==="newProject"){S.newProjectId=e.target.value;return renderView()}
+    if(e.target.id==="newDrawing"){S.newDrawingId=e.target.value;return renderView()}
+    if(e.target.classList.contains("target-check")){const k=e.target.dataset.target;e.target.checked?S.selectedTargets.add(k):S.selectedTargets.delete(k);return renderView()}
+  });
+  document.addEventListener("input",e=>{
+    if(e.target.id==="treeSearch"){S.treeSearch=e.target.value;const area=$("treeArea");if(area)area.innerHTML=renderTree()}
+    if(e.target.id==="targetSearch"){S.targetSearch=e.target.value;const area=$("targetArea");if(area)area.innerHTML=renderTargetArea(S.current)}
+  });
+  document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("modalBackdrop").classList.contains("hidden"))closeModal()});
 }
-async function guarded(fn){try{return await fn();}catch(e){console.error(e);toast(e.message||String(e),"error");}finally{while(loadDepth>0)idle();}}
+async function guarded(fn){try{return await fn()}catch(e){console.error(e);toast(e.message||String(e),"error")}finally{while(loadDepth>0)idle()}}
 
-/* ================================ DEMO ================================ */
+/* ============================== DEMO DATA ============================== */
 const DEMO={
   projects:[{ID:"P25005",Project_Code:"25005",Project_Name:"Sample EPC Project"},{ID:"P26011",Project_Code:"26011",Project_Name:"Busia Sugar & Allied Limited"}],
   drawings:[{ID:"D1",Drawing_Name:"Site Location Plan",Drawing_Abbreviation:"SLP",Drawing_Type:"Project Code",Active:true},{ID:"D2",Drawing_Name:"Process Flow Diagram",Drawing_Abbreviation:"PFD",Drawing_Type:"Project Code + Plant Section",Active:true},{ID:"D3",Drawing_Name:"Process Data Sheet",Drawing_Abbreviation:"PDS",Drawing_Type:"Project Code + Plant Section + Tag No",Active:true}],
@@ -648,21 +412,20 @@ const DEMO={
     {ID:"E2",Project_Code:"25005",Plant_Section_Name:"Fermentation",Plant_Section_Type:"3 Fermenter",Tag_Number:"M-101",Equipment_Name:"Fermenter Agitator Motor",Group_Code:"Direct Supply",Department_Code:"Electrical",Equipment_Category:"Electric Motors",Equipment_Type:"Motor"},
     {ID:"E3",Project_Code:"25005",Plant_Section_Name:"Fermentation",Plant_Section_Type:"3 Fermenter",Tag_Number:"P-101",Equipment_Name:"Mash Pump",Group_Code:"Direct Supply",Department_Code:"Equipment - Rotating",Equipment_Category:"Pumps",Equipment_Type:"Centrifugal Pump"},
     {ID:"E4",Project_Code:"25005",Plant_Section_Name:"Fermentation",Plant_Section_Type:"4 Fermenter",Tag_Number:"CV-201",Equipment_Name:"Control Valve 201",Group_Code:"Shop",Department_Code:"Instrumentation",Equipment_Category:"Control Valves",Equipment_Type:"Control Valve"},
-    {ID:"E5",Project_Code:"25005",Plant_Section_Name:"Fermentation",Plant_Section_Type:"4 Fermenter",Tag_Number:"M-201",Equipment_Name:"Motor 201",Group_Code:"Direct Supply",Department_Code:"Electrical",Equipment_Category:"Electric Motors",Equipment_Type:"Motor"},
-    {ID:"E6",Project_Code:"25005",Plant_Section_Name:"Evaporation",Plant_Section_Type:"Standalone Evaporation",Tag_Number:"P-301",Equipment_Name:"Evaporation Pump",Group_Code:"Direct Supply",Department_Code:"Equipment - Rotating",Equipment_Category:"Pumps",Equipment_Type:"Centrifugal Pump"},
-    {ID:"E7",Project_Code:"25005",Plant_Section_Name:"Evaporation",Plant_Section_Type:"Standalone Evaporation",Tag_Number:"M-301",Equipment_Name:"Evaporation Motor",Group_Code:"Direct Supply",Department_Code:"Electrical",Equipment_Category:"Electric Motors",Equipment_Type:"Motor"}
+    {ID:"E5",Project_Code:"25005",Plant_Section_Name:"Evaporation",Plant_Section_Type:"Standalone Evaporation",Tag_Number:"P-301",Equipment_Name:"Evaporation Pump",Group_Code:"Direct Supply",Department_Code:"Equipment - Rotating",Equipment_Category:"Pumps",Equipment_Type:"Centrifugal Pump"}
   ],
-  assignments:[
-    {ID:"A001",Project_Code:"25005",Drawing_Document_Name:"Site Location Plan",Drawing_Master_ID:"D1",Short_Name:"SLP",Primary_Assignment_ID:"A001",Assigned_From_ID:"",Assignment_Level:0,Assigned_By:"Project Manager",Assigned_To:"rohan@mega.tc",Assigned_Employee_Name:"Rohan",Assignment_Criteria:"Project",Responsibility:"Entire Project 25005",Planned_Start_Date:"01-Sep-2026",Forecast_End_Date:"05-Sep-2026",Planned_End_Date:"07-Sep-2026",Status:"In Progress",Progress:25,Remarks:"Coordinate the complete SLP responsibility.",Further_Assigned:true,Active:true},
-    {ID:"A002",Project_Code:"25005",Drawing_Document_Name:"Site Location Plan",Drawing_Master_ID:"D1",Short_Name:"SLP",Primary_Assignment_ID:"A001",Assigned_From_ID:"A001",Assignment_Level:1,Assigned_By:"rohan@mega.tc",Assigned_To:"kunal@mega.tc",Assigned_Employee_Name:"Kunal",Assignment_Criteria:"Plant Section, Plant Section Type",Responsibility:"Project 25005 › Fermentation › 3 Fermenter",Plant_Section_Name:"Fermentation",Plant_Section_Type:"3 Fermenter",Planned_Start_Date:"03-Sep-2026",Forecast_End_Date:"10-Sep-2026",Planned_End_Date:"09-Sep-2026",Status:"In Progress",Progress:50,Remarks:"Handle 3 Fermenter scope.",Further_Assigned:true,Active:true},
-    {ID:"A003",Project_Code:"25005",Drawing_Document_Name:"Site Location Plan",Drawing_Master_ID:"D1",Short_Name:"SLP",Primary_Assignment_ID:"A001",Assigned_From_ID:"A001",Assignment_Level:1,Assigned_By:"rohan@mega.tc",Assigned_To:"vasu@mega.tc",Assigned_Employee_Name:"Vasu",Assignment_Criteria:"Plant Section, Plant Section Type",Responsibility:"Project 25005 › Fermentation › 4 Fermenter",Plant_Section_Name:"Fermentation",Plant_Section_Type:"4 Fermenter",Planned_Start_Date:"04-Sep-2026",Forecast_End_Date:"09-Sep-2026",Planned_End_Date:"08-Sep-2026",Status:"Not Started",Progress:0,Remarks:"Handle 4 Fermenter scope.",Further_Assigned:false,Active:true},
-    {ID:"A004",Project_Code:"25005",Drawing_Document_Name:"Site Location Plan",Drawing_Master_ID:"D1",Short_Name:"SLP",Primary_Assignment_ID:"A001",Assigned_From_ID:"A001",Assignment_Level:1,Assigned_By:"rohan@mega.tc",Assigned_To:"balaji@mega.tc",Assigned_Employee_Name:"Balaji",Assignment_Criteria:"Plant Section, Plant Section Type",Responsibility:"Project 25005 › Evaporation › Standalone Evaporation",Plant_Section_Name:"Evaporation",Plant_Section_Type:"Standalone Evaporation",Planned_Start_Date:"05-Sep-2026",Forecast_End_Date:"07-Sep-2026",Planned_End_Date:"07-Sep-2026",Status:"Not Started",Progress:0,Remarks:"Evaporation SLP.",Further_Assigned:false,Active:true},
-    {ID:"A005",Project_Code:"25005",Drawing_Document_Name:"Site Location Plan",Drawing_Master_ID:"D1",Short_Name:"SLP",Primary_Assignment_ID:"A001",Assigned_From_ID:"A002",Assignment_Level:2,Assigned_By:"kunal@mega.tc",Assigned_To:"tejas@mega.tc",Assigned_Employee_Name:"Tejas",Assignment_Criteria:"Equipment Category",Responsibility:"Project 25005 › Fermentation › 3 Fermenter › Category: Control Valves",Plant_Section_Name:"Fermentation",Plant_Section_Type:"3 Fermenter",Equipment_Category:"Control Valves",Planned_Start_Date:"04-Sep-2026",Forecast_End_Date:"09-Sep-2026",Planned_End_Date:"09-Sep-2026",Status:"Completed",Progress:100,Remarks:"Control valve portion.",Further_Assigned:false,Active:true},
-    {ID:"A006",Project_Code:"25005",Drawing_Document_Name:"Site Location Plan",Drawing_Master_ID:"D1",Short_Name:"SLP",Primary_Assignment_ID:"A001",Assigned_From_ID:"A002",Assignment_Level:2,Assigned_By:"kunal@mega.tc",Assigned_To:"rahul@mega.tc",Assigned_Employee_Name:"Rahul",Assignment_Criteria:"Equipment Category",Responsibility:"Project 25005 › Fermentation › 3 Fermenter › Category: Electric Motors",Plant_Section_Name:"Fermentation",Plant_Section_Type:"3 Fermenter",Equipment_Category:"Electric Motors",Planned_Start_Date:"04-Sep-2026",Forecast_End_Date:"09-Sep-2026",Planned_End_Date:"09-Sep-2026",Status:"In Progress",Progress:40,Remarks:"Motor portion.",Further_Assigned:false,Active:true}
+  tracking:[
+    {ID:"A001",Project_Code:"25005",Drawing_Document_Name:"Site Location Plan",Drawing_Master_ID:"D1",Short_Name:"SLP",Primary_Assignment_ID:"A001",Assigned_From_ID:"",Assignment_Level:0,Assigned_By:"Project Manager",Assigned_To:"rohan@mega.tc",Assigned_Employee_Name:"Rohan",Assignment_Criteria:"Project",Responsibility:"Entire Project 25005",Planned_Start_Date:"01-Sep-2026",Forecast_End_Date:"12-Sep-2026",Planned_End_Date:"14-Sep-2026",Status:"In Progress",Progress:35,Remarks:"Coordinate complete SLP."},
+    {ID:"A002",Project_Code:"25005",Drawing_Document_Name:"Site Location Plan",Drawing_Master_ID:"D1",Short_Name:"SLP",Primary_Assignment_ID:"A001",Assigned_From_ID:"A001",Assignment_Level:1,Assigned_By:"rohan@mega.tc",Assigned_To:"kunal@mega.tc",Assigned_Employee_Name:"Kunal",Assignment_Criteria:"Plant Section, Plant Section Type",Responsibility:"Project 25005 › Fermentation › 3 Fermenter",Plant_Section_Name:"Fermentation",Plant_Section_Type:"3 Fermenter",Planned_Start_Date:"03-Sep-2026",Forecast_End_Date:"10-Sep-2026",Planned_End_Date:"11-Sep-2026",Status:"In Progress",Progress:50},
+    {ID:"A003",Project_Code:"25005",Drawing_Document_Name:"Site Location Plan",Drawing_Master_ID:"D1",Short_Name:"SLP",Primary_Assignment_ID:"A001",Assigned_From_ID:"A001",Assignment_Level:1,Assigned_By:"rohan@mega.tc",Assigned_To:"vasu@mega.tc",Assigned_Employee_Name:"Vasu",Assignment_Criteria:"Plant Section, Plant Section Type",Responsibility:"Project 25005 › Fermentation › 4 Fermenter",Plant_Section_Name:"Fermentation",Plant_Section_Type:"4 Fermenter",Planned_Start_Date:"04-Sep-2026",Forecast_End_Date:"11-Sep-2026",Status:"Not Started",Progress:0},
+    {ID:"A004",Project_Code:"25005",Drawing_Document_Name:"Site Location Plan",Drawing_Master_ID:"D1",Short_Name:"SLP",Primary_Assignment_ID:"A001",Assigned_From_ID:"A002",Assignment_Level:2,Assigned_By:"kunal@mega.tc",Assigned_To:"tejas@mega.tc",Assigned_Employee_Name:"Tejas",Assignment_Criteria:"Equipment Category",Responsibility:"Project 25005 › Fermentation › 3 Fermenter › Category: Control Valves",Plant_Section_Name:"Fermentation",Plant_Section_Type:"3 Fermenter",Equipment_Category:"Control Valves",Forecast_End_Date:"09-Sep-2026",Status:"In Progress",Progress:70},
+    {ID:"A005",Project_Code:"25005",Drawing_Document_Name:"Site Location Plan",Drawing_Master_ID:"D1",Short_Name:"SLP",Primary_Assignment_ID:"A001",Assigned_From_ID:"A002",Assignment_Level:2,Assigned_By:"kunal@mega.tc",Assigned_To:"rahul@mega.tc",Assigned_Employee_Name:"Rahul",Assignment_Criteria:"Equipment Category",Responsibility:"Project 25005 › Fermentation › 3 Fermenter › Category: Electric Motors",Plant_Section_Name:"Fermentation",Plant_Section_Type:"3 Fermenter",Equipment_Category:"Electric Motors",Forecast_End_Date:"10-Sep-2026",Status:"In Progress",Progress:40},
+    {ID:"R001",Project_Code:"25005",Drawing_Document_Name:"Site Location Plan",Drawing_Master_ID:"D1",Short_Name:"SLP",Design_Type:"Site Location Plan",Design_Title:"Site Location Plan — Project 25005 › Fermentation › 3 Fermenter › Category: Control Valves",Assigned_To:"tejas@mega.tc",Assigned_Employee_Name:"Tejas",Plant_Section_Name:"Fermentation",Plant_Section_Type:"3 Fermenter",Equipment_Category:"Control Valves",Drawing_Number:"25005-SLP-CV-001",Checker:"kunal@mega.tc",Reviewer:"rahul@mega.tc",Approver:"rohan@mega.tc",Status:"Issued",Progress:100,Revision:"R0",Revision_Description:"Initial issue",Logical_Task_Key:"EXEC::A004::R0",Revision_Key:"EXEC::A004::R0",Parent_Design_ID:"",Added_Time:"06-Sep-2026 10:00:00",Added_User:"tejas@mega.tc",Drawing_File:"SLP_R0.pdf"},
+    {ID:"R002",Project_Code:"25005",Drawing_Document_Name:"Site Location Plan",Drawing_Master_ID:"D1",Short_Name:"SLP",Design_Type:"Site Location Plan",Design_Title:"Site Location Plan — Project 25005 › Fermentation › 3 Fermenter › Category: Control Valves",Assigned_To:"tejas@mega.tc",Assigned_Employee_Name:"Tejas",Plant_Section_Name:"Fermentation",Plant_Section_Type:"3 Fermenter",Equipment_Category:"Control Valves",Drawing_Number:"25005-SLP-CV-001",Checker:"kunal@mega.tc",Reviewer:"rahul@mega.tc",Approver:"rohan@mega.tc",Status:"In Progress",Progress:10,Revision:"R1",Revision_Description:"Valve locations revised",Logical_Task_Key:"EXEC::A004::R1",Revision_Key:"EXEC::A004::R1",Parent_Design_ID:"R001",Added_Time:"08-Sep-2026 09:30:00",Added_User:"tejas@mega.tc"}
   ]
 };
-function demoFetch(report){if(report===CONFIG.REPORTS.projects)return DEMO.projects.map(x=>({...x}));if(report===CONFIG.REPORTS.drawings)return DEMO.drawings.map(x=>({...x}));if(report===CONFIG.REPORTS.employees)return DEMO.employees.map(x=>({...x}));if(report===CONFIG.REPORTS.equipment)return DEMO.equipment.map(x=>({...x}));if(report===CONFIG.REPORTS.assignments||report==="Design_Tracking_Report")return DEMO.assignments.map(x=>({...x}));return[];}
-let demoSeq=100;function demoAdd(form,data){const id=`A${++demoSeq}`;DEMO.assignments.push({ID:id,...data});return id;}function demoUpdate(report,id,data){const r=DEMO.assignments.find(x=>String(x.ID)===String(id));if(r)Object.assign(r,data);return id;}
+function demoFetch(report){if(report===CONFIG.REPORTS.projects)return DEMO.projects.map(x=>({...x}));if(report===CONFIG.REPORTS.drawings)return DEMO.drawings.map(x=>({...x}));if(report===CONFIG.REPORTS.employees)return DEMO.employees.map(x=>({...x}));if(report===CONFIG.REPORTS.equipment)return DEMO.equipment.map(x=>({...x}));if(report===CONFIG.REPORTS.tracking)return DEMO.tracking.map(x=>({...x}));return[]}
+let demoSeq=500;function demoAdd(data){const id=(isAssignmentRecord(data)?"A":"R")+(++demoSeq);const rec={ID:id,...data};DEMO.tracking.push(rec);return id}function demoUpdate(id,data){const r=DEMO.tracking.find(x=>String(x.ID)===String(id));if(r)Object.assign(r,data);return id}
 
 wire();bootstrap();
 </script>
