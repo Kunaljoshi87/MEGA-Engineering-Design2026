@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="color-scheme" content="light">
-<title>MEGA Engineering | Drawing & Document Control V17.6 POC Full Open Delegation</title>
+<title>MEGA Engineering | Drawing & Document Control V17.7 POC Step-by-Step Open Workflow</title>
 <script src="https://static.zohocdn.com/creator/widgets/version/2.0/widgetsdk-min.js"></script>
 <style>
 :root{
@@ -35,7 +35,7 @@ body{font:14px/1.48 Inter,"Segoe UI",Arial,sans-serif}button,input,select,textar
 .detail-shell{display:grid;grid-template-columns:330px minmax(0,1fr);gap:14px}.tree-panel{overflow:hidden}.tree-head{padding:14px;border-bottom:1px solid var(--line2)}.tree-search{display:flex;gap:7px}.tree-scroll{max-height:760px;overflow:auto;padding:9px}.tree-node{margin:2px 0}.node-row{display:grid;grid-template-columns:25px 34px minmax(0,1fr) auto;gap:7px;align-items:center;padding:8px;border-radius:10px;border:1px solid transparent;cursor:pointer}.node-row:hover{background:#faf5f8}.node-row.active{background:var(--brand-soft);border-color:#edc6d8}.expander{width:24px;height:24px;border:0;border-radius:7px;background:#f0f2f5;color:#667085;font-weight:900}.expander.blank{visibility:hidden}.avatar{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;background:#eef2f7;color:#334155;font-size:10px;font-weight:900}.node-main{min-width:0}.node-user{font-weight:900;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.node-scope{font-size:10px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.node-side{text-align:right}.node-level{font-size:9px;color:var(--muted);margin-top:2px}.tree-children{margin-left:22px;padding-left:9px;border-left:1px dashed #d7dce3}.tree-empty{padding:35px 16px;text-align:center;color:var(--muted)}
 .detail-main{min-width:0}.detail-hero{background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow-sm);padding:17px;margin-bottom:12px}.crumbs{display:flex;gap:6px;align-items:center;flex-wrap:wrap;color:var(--muted);font-size:11px;margin-bottom:10px}.crumbs button{border:0;background:transparent;padding:0;color:var(--brand2);font-weight:800}.detail-top{display:flex;align-items:flex-start;justify-content:space-between;gap:14px}.detail-title{display:flex;align-items:flex-start;gap:11px}.detail-title h2{margin:0;font-size:20px}.detail-title p{margin:3px 0 0;color:var(--muted);font-size:12px}.detail-actions{display:flex;gap:7px;flex-wrap:wrap}.detail-meta{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}.subtabs{display:flex;gap:5px;padding:4px;background:#fff;border:1px solid var(--line);border-radius:12px;margin-bottom:12px;overflow:auto}.subtab{border:0;background:transparent;padding:8px 12px;border-radius:8px;font-weight:800;color:var(--muted);white-space:nowrap}.subtab.active{background:var(--brand-soft);color:var(--brand2)}.tab-card{background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow-sm);padding:17px}
 .summary{display:grid;grid-template-columns:repeat(4,minmax(120px,1fr));gap:9px;margin-bottom:14px}.summary-item{padding:11px;border:1px solid var(--line2);border-radius:10px;background:#fafbfc}.summary-item .k{font-size:9px;color:var(--muted);font-weight:850;letter-spacing:.03em}.summary-item .v{font-size:13px;font-weight:850;margin-top:4px;overflow-wrap:anywhere}.scope-box{padding:13px;border:1px solid #ead9e1;border-radius:11px;background:linear-gradient(135deg,#fff9fb,#fff);margin-bottom:13px}.scope-box .k{font-size:10px;color:var(--brand2);font-weight:900;margin-bottom:4px}.scope-box .v{font-size:14px;font-weight:850}.two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px}.child-list{display:grid;gap:8px}.child-row{padding:10px;border:1px solid var(--line2);border-radius:10px;display:flex;align-items:center;gap:10px}.child-row .main{flex:1;min-width:0}.child-row .name{font-weight:850}.child-row .sc{font-size:10px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.exec-hero{padding:15px;border:1px solid #e5d7ef;border-radius:13px;background:linear-gradient(135deg,#fbf8ff,#fff);display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:13px}.exec-rev{display:flex;align-items:center;gap:10px}.rev-circle{width:46px;height:46px;border-radius:50%;background:var(--purple);color:#fff;display:grid;place-items:center;font-weight:900}.exec-rev h3{margin:0;font-size:17px}.exec-rev p{margin:2px 0 0;color:var(--muted);font-size:11px}.file-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:13px 0}.file-box{border:1px dashed #ccd3dc;border-radius:12px;padding:13px;background:#fbfcfd}.file-box .label{font-size:11px;font-weight:850;margin-bottom:6px}.file-box .current{font-size:10px;color:var(--muted);min-height:17px;word-break:break-word}.file-box input[type=file]{width:100%;margin-top:8px;font-size:11px}.role-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.workflow{margin-top:14px;padding-top:13px;border-top:1px solid var(--line2)}.workflow h4{margin:0 0 8px;font-size:12px}.workflow-actions{display:flex;gap:8px;flex-wrap:wrap}
+.exec-hero{padding:15px;border:1px solid #e5d7ef;border-radius:13px;background:linear-gradient(135deg,#fbf8ff,#fff);display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:13px}.exec-rev{display:flex;align-items:center;gap:10px}.rev-circle{width:46px;height:46px;border-radius:50%;background:var(--purple);color:#fff;display:grid;place-items:center;font-weight:900}.exec-rev h3{margin:0;font-size:17px}.exec-rev p{margin:2px 0 0;color:var(--muted);font-size:11px}.file-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:13px 0}.file-box{border:1px dashed #ccd3dc;border-radius:12px;padding:13px;background:#fbfcfd}.file-box .label{font-size:11px;font-weight:850;margin-bottom:6px}.file-box .current{font-size:10px;color:var(--muted);min-height:17px;word-break:break-word}.file-box input[type=file]{width:100%;margin-top:8px;font-size:11px}.role-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.workflow{margin-top:14px;padding-top:13px;border-top:1px solid var(--line2)}.workflow h4{margin:0 0 8px;font-size:12px}.workflow-actions{display:flex;gap:8px;flex-wrap:wrap}.workflow-card{border:1px solid var(--line);border-radius:14px;background:linear-gradient(135deg,#fff,#fff9fb);padding:14px}.workflow-top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}.workflow-current{display:flex;align-items:center;gap:9px}.workflow-current .dot{width:10px;height:10px;border-radius:50%;background:var(--brand)}.workflow-next{margin-top:12px;padding:12px;border-radius:12px;background:#f8fafc;border:1px solid var(--line2);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.workflow-next .copy{min-width:180px}.workflow-next .copy strong{display:block;font-size:12px}.workflow-next .copy span{display:block;color:var(--muted);font-size:10px;margin-top:2px}.wf-track{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin:12px 0 4px}.wf-step{padding:8px 6px;border-radius:9px;background:#f2f4f7;border:1px solid var(--line2);text-align:center;font-size:9px;font-weight:800;color:var(--muted)}.wf-step.done{background:var(--green-soft);border-color:#c7e8d7;color:#166c4d}.wf-step.active{background:var(--brand-soft);border-color:#efc3d7;color:var(--brand2)}.workflow-more{margin-top:10px}.workflow-more summary{cursor:pointer;color:var(--muted);font-size:10px;font-weight:800;user-select:none}.workflow-more .workflow-actions{margin-top:8px}@media(max-width:780px){.wf-track{grid-template-columns:repeat(3,1fr)}}
 .timeline{display:grid;gap:10px}.revision-card{border:1px solid var(--line);border-radius:12px;padding:13px;display:grid;grid-template-columns:64px minmax(0,1fr) auto;gap:12px;align-items:start}.revision-card.current{border-color:#d7c1e8;background:#fcfaff}.rev-tag{width:50px;height:50px;border-radius:12px;background:var(--purple-soft);color:var(--purple);display:grid;place-items:center;font-weight:900}.revision-card.current .rev-tag{background:var(--purple);color:#fff}.rev-info h4{margin:0 0 3px;font-size:14px}.rev-info p{margin:0;color:var(--muted);font-size:11px}.rev-files{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.rev-side{text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:6px}
 .criteria-grid{display:grid;grid-template-columns:repeat(4,minmax(130px,1fr));gap:9px;margin:12px 0}.criterion{border:1px solid var(--line);border-radius:11px;padding:11px;background:#fff;cursor:pointer;transition:.12s}.criterion:hover{border-color:#dcb5c8;background:#fffafd}.criterion.selected{border-color:var(--brand);background:var(--brand-soft);box-shadow:0 0 0 2px rgba(196,39,112,.08)}.criterion .t{font-weight:900}.criterion .s{font-size:10px;color:var(--muted);margin-top:2px}.target-toolbar{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin:12px 0 7px}.target-toolbar .search{flex:1;min-width:220px}.selection-note{font-size:11px;color:var(--muted)}.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:11px}.table-wrap table{width:100%;border-collapse:collapse;min-width:650px}.table-wrap th{background:#f8fafc;text-align:left;font-size:9px;color:#667085;text-transform:uppercase;letter-spacing:.04em;padding:8px;border-bottom:1px solid var(--line)}.table-wrap td{padding:8px;border-bottom:1px solid var(--line2);font-size:11px;vertical-align:middle}.table-wrap tr:last-child td{border-bottom:0}.table-wrap tr.selected{background:#fff7fb}.check{width:16px;height:16px;accent-color:var(--brand)}.bulk-bar{margin-top:12px;padding:13px;border:1px solid #eccbd9;background:#fff8fb;border-radius:12px}.bulk-grid{display:grid;grid-template-columns:1.25fr .8fr 1fr 1fr 1fr 1.2fr auto;gap:9px;align-items:end}.bulk-summary{font-size:10px;color:var(--muted);margin-top:8px}
 .modal-backdrop{position:fixed;inset:0;background:#10182885;backdrop-filter:blur(2px);display:flex;align-items:center;justify-content:center;padding:18px;z-index:120}.modal{width:min(920px,100%);max-height:92vh;background:#fff;border-radius:16px;box-shadow:0 24px 80px rgba(16,24,40,.25);overflow:hidden;display:flex;flex-direction:column}.modal-head{padding:15px 18px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:12px}.modal-title{font-size:17px;font-weight:900}.modal-sub{font-size:11px;color:var(--muted);margin-top:2px}.modal-body{padding:17px;overflow:auto}.modal-foot{padding:12px 17px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap}.icon-btn{width:34px;height:34px;border:0;border-radius:9px;background:#f0f2f5;font-size:19px}.review-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:12px}.review-metric{border:1px solid var(--line);border-radius:10px;padding:12px}.review-metric .n{font-size:22px;font-weight:900}.review-metric .l{font-size:9px;color:var(--muted);font-weight:800}
@@ -81,7 +81,7 @@ body{font:14px/1.48 Inter,"Segoe UI",Arial,sans-serif}button,input,select,textar
 "use strict";
 
 /* ======================================================================
-   V17.6 ONE-FORM ENGINEERING DESIGN CONTROL — POC FULL OPEN DELEGATION
+   V17.7 ONE-FORM ENGINEERING DESIGN CONTROL — POC STEP-BY-STEP OPEN WORKFLOW
    ----------------------------------------------------------------------
    READS existing masters:
      - Project master
@@ -673,48 +673,103 @@ function workflowRoleAllowed(role,a,r){
 
   return true;
 }
-// workflowActions(): returns workflow buttons for the current revision.
+// workflowActions(): returns ONLY the next normal workflow action for the current revision.
+//
+// V17.7 POC BEHAVIOUR:
+// - The UI is STEP-BY-STEP. It does NOT display every possible status button together.
+// - Logged-in-user role validation is STILL DISABLED for the POC.
+// - Therefore ANY Creator user who can access/update this record may perform the visible step.
+// - Checker / Reviewer / Approver fields are informational during this POC and do not block action.
+// - The old backend sequence-validation block inside moveWorkflow() remains commented.
+//   So this is a USER-INTERFACE sequence, not a security restriction.
 function workflowActions(r,a){
   const s=scalar(r[AF.status])||"Not Started";
 
-  /* ORIGINAL PRODUCTION SEQUENCE — COMMENTED FOR POC:
-     Restore this strict map when the workflow is finalized.
-
-  const map={
-    "Not Started":[["Start Design","In Progress","owner","primary"]],
-    "In Progress":[["Submit for Check","Submitted for Check","owner","primary"],["Put On Hold","On Hold","owner",""]],
-    "On Hold":[["Resume Work","In Progress","owner","primary"]],
-    "Returned":[["Resume Work","In Progress","owner","primary"]],
-    "Submitted for Check":[["Begin Checking","Checking","checker","primary"]],
-    "Checking":[["Mark Checked","Checked","checker","success"],["Return to Designer","Returned","checker","danger"]],
-    "Checked":[["Submit for Review","Submitted for Review","owner","primary"]],
-    "Submitted for Review":[["Begin Review","Reviewing","reviewer","primary"]],
-    "Reviewing":[["Mark Reviewed","Reviewed","reviewer","success"],["Return to Designer","Returned","reviewer","danger"]],
-    "Reviewed":[["Submit for Approval","Submitted for Approval","owner","primary"]],
-    "Submitted for Approval":[["Begin Approval","Approving","approver","primary"]],
-    "Approving":[["Approve","Approved","approver","success"],["Return to Designer","Returned","approver","danger"]],
-    "Approved":[["Issue Drawing","Issued","ownerOrApprover","primary"]],
-    "Issued":[["Complete","Completed","ownerOrApprover","success"]]
-  };
-  return (map[s]||[]).filter(x=>workflowRoleAllowed(x[2],a,r));
-  */
-
-  // POC OPEN WORKFLOW:
-  // Any known design status can be selected directly. This intentionally bypasses
-  // the normal status sequence so the team can test every stage without waiting
-  // for the previous stage to be completed.
-  const styleFor=(status)=>{
-    if(["Completed","Approved","Issued","Checked","Reviewed"].includes(status))return "success";
-    if(["Returned","Cancelled"].includes(status))return "danger";
-    if(["On Hold"].includes(status))return "";
-    return "primary";
+  // Main happy-path sequence. Exactly one main button is displayed at a time.
+  const next={
+    "Not Started":["Start Design","In Progress","primary"],
+    "In Progress":["Submit for Check","Submitted for Check","primary"],
+    "Submitted for Check":["Begin Checking","Checking","primary"],
+    "Checking":["Mark Checked","Checked","success"],
+    "Checked":["Submit for Review","Submitted for Review","primary"],
+    "Submitted for Review":["Begin Review","Reviewing","primary"],
+    "Reviewing":["Mark Reviewed","Reviewed","success"],
+    "Reviewed":["Submit for Approval","Submitted for Approval","primary"],
+    "Submitted for Approval":["Begin Approval","Approving","primary"],
+    "Approving":["Approve","Approved","success"],
+    "Approved":["Issue Drawing","Issued","primary"],
+    "Issued":["Complete","Completed","success"],
+    "Returned":["Resume Work","In Progress","primary"],
+    "On Hold":["Resume Work","In Progress","primary"]
   };
 
-  return DESIGN_STATUSES
-    .filter(status=>status!==s)
-    .map(status=>[status,status,"poc",styleFor(status)]);
+  const x=next[s];
+  return x?[x]:[];
 }
-function renderWorkflow(r,a){const acts=workflowActions(r,a);if(!acts.length)return `<div class="workflow"><h4>Workflow</h4><div class="small muted">No further workflow action is available at status <b>${h(scalar(r[AF.status])||"Not Started")}</b>.</div></div>`;return `<div class="workflow"><h4>Workflow actions</h4><div class="workflow-actions">${acts.map(([label,to,role,style])=>`<button class="btn ${style}" data-workflow-to="${h(to)}">${h(label)}</button>`).join("")}</div></div>`}
+
+// workflowMoreActions(): keeps exception functionality available without cluttering the main UI.
+// These are intentionally placed under "More actions" so the normal user sees only one next step.
+// No logged-in-user role validation is applied in this POC.
+function workflowMoreActions(r,a){
+  const s=scalar(r[AF.status])||"Not Started";
+  const actions=[];
+
+  // Allow a working design to be put on hold without mixing it into the main next-step button.
+  if(["In Progress","Submitted for Check","Checking","Checked","Submitted for Review","Reviewing","Reviewed","Submitted for Approval","Approving"].includes(s)){
+    actions.push(["Put On Hold","On Hold",""]);
+  }
+
+  // Preserve Return functionality during checking/review/approval stages.
+  // Return Reason remains optional because its production validation is commented for the POC.
+  if(["Checking","Reviewing","Approving"].includes(s)){
+    actions.push(["Return to Designer","Returned","danger"]);
+  }
+
+  // Preserve Cancel functionality, but do not expose it as the main workflow action.
+  if(!["Completed","Cancelled","Issued"].includes(s)){
+    actions.push(["Cancel Design","Cancelled","danger"]);
+  }
+
+  return actions;
+}
+
+// workflowStageInfo(): converts detailed Creator statuses into a compact six-stage visual tracker.
+function workflowStageInfo(status){
+  const stages=["Design","Check","Review","Approval","Issue","Complete"];
+  const indexMap={
+    "Not Started":0,"In Progress":0,"Returned":0,"On Hold":0,
+    "Submitted for Check":1,"Checking":1,"Checked":1,
+    "Submitted for Review":2,"Reviewing":2,"Reviewed":2,
+    "Submitted for Approval":3,"Approving":3,"Approved":3,
+    "Issued":4,
+    "Completed":5,
+    "Cancelled":0
+  };
+  return {stages,index:indexMap[status]??0};
+}
+
+// renderWorkflow(): one clear next action at a time + compact progress track + optional exception actions.
+function renderWorkflow(r,a){
+  const status=scalar(r[AF.status])||"Not Started";
+  const acts=workflowActions(r,a);
+  const more=workflowMoreActions(r,a);
+  const info=workflowStageInfo(status);
+  const track=info.stages.map((name,i)=>{
+    const cls=i<info.index?"done":(i===info.index?"active":"");
+    return `<div class="wf-step ${cls}">${h(name)}</div>`;
+  }).join("");
+
+  const next=acts[0];
+  const nextHtml=next
+    ? `<div class="workflow-next"><div class="copy"><strong>Next step: ${h(next[0])}</strong><span>POC open access: any permitted Creator user can perform this step.</span></div><button class="btn ${h(next[2]||"primary")}" data-workflow-to="${h(next[1])}">${h(next[0])}</button></div>`
+    : `<div class="workflow-next"><div class="copy"><strong>${status==="Completed"?"Workflow completed":"No normal next step"}</strong><span>Current status: ${h(status)}</span></div></div>`;
+
+  const moreHtml=more.length
+    ? `<details class="workflow-more"><summary>More actions</summary><div class="workflow-actions">${more.map(([label,to,style])=>`<button class="btn ${h(style||"")}" data-workflow-to="${h(to)}">${h(label)}</button>`).join("")}</div></details>`
+    : "";
+
+  return `<div class="workflow"><div class="workflow-card"><div class="workflow-top"><div><h4 style="margin:0">Design workflow</h4><div class="small muted" style="margin-top:2px">Only the current next step is shown. No owner/checker/reviewer/approver identity validation is enforced in this POC.</div></div>${statusPill(status)}</div><div class="wf-track">${track}</div>${nextHtml}${moreHtml}</div></div>`;
+}
 
 function renderRevisionTab(){const a=S.current,rows=revisionsForAssignment(a).slice().reverse(),cur=currentRevision(a);return `<div class="tab-card"><div class="section-row" style="margin-top:0"><div><h2>Revision History</h2><p>Every revision is a separate Design_Tracking record. Older revisions remain read-only.</p></div>${cur&&["Approved","Issued","Completed"].includes(scalar(cur[AF.status]))?'<button class="btn soft" data-act="new-revision">＋ New Revision</button>':""}</div>${rows.length?`<div class="timeline">${rows.map(r=>renderRevisionCard(r,cur)).join("")}</div>`:`<div class="empty"><div class="ico">R0</div><strong>No revision history yet</strong>Start R0 from Design Files.</div>`}</div>`}
 function renderRevisionCard(r,cur){const current=idOf(r)===idOf(cur),files=[[AF.drawingFile,"Drawing"],[AF.nativeFile,"Native"],[AF.supportingFile,"Support"]].filter(([f])=>scalar(r[f]));return `<div class="revision-card ${current?"current":""}"><div class="rev-tag">${h(scalar(r[AF.revision])||"R0")}</div><div class="rev-info"><h4>${h(scalar(r[AF.revisionDescription])||"No revision description")}</h4><p>${h(displayDateTime(pick(r,SYSTEM_ALIASES.addedTime)))} • ${h(personDisplay(pick(r,SYSTEM_ALIASES.addedUser))||pick(r,SYSTEM_ALIASES.addedUser)||"Creator User")}</p><div class="rev-files">${files.length?files.map(([f,l])=>`<button class="btn sm" data-download-file="${h(idOf(r))}" data-file-field="${h(f)}" data-file-label="${h(l)}">${h(l)}</button>`).join(""):'<span class="tiny muted">No files attached</span>'}</div></div><div class="rev-side">${current?'<span class="pill purple">Current</span>':""}${statusPill(scalar(r[AF.status]))}<button class="btn sm" data-view-revision="${h(idOf(r))}">View details</button></div></div>`}
@@ -784,7 +839,7 @@ function renderDelegateTab(){
 
   END ORIGINAL PRODUCTION VALIDATION */
 
-  // V17.6 POC FULL OPEN DELEGATION:
+  // V17.7 POC FULL OPEN DELEGATION:
   // No logged-in-user ownership validation is applied here.
   // Any Creator user who can open this widget and has Creator permission to create/update
   // Design_Tracking records may open ANY assignment node and assign that responsibility
