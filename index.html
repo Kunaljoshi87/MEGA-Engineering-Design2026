@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="color-scheme" content="light">
-<title>MEGA Engineering | Drawing & Document Control V17.8 POC Step-by-Step Workflow + PDS Workspace</title>
+<title>MEGA Engineering | Drawing & Document Control V17.9 POC Step-by-Step Workflow + PDS Workspace + Bulk Assignment</title>
 <script src="https://static.zohocdn.com/creator/widgets/version/2.0/widgetsdk-min.js"></script>
 <style>
 :root{
@@ -55,6 +55,12 @@ body{font:14px/1.48 Inter,"Segoe UI",Arial,sans-serif}button,input,select,textar
 @media(max-width:1150px){.pds-type-grid{grid-template-columns:repeat(3,1fr)}}
 @media(max-width:780px){.pds-type-grid{grid-template-columns:repeat(2,1fr)}.pds-context{align-items:flex-start;flex-direction:column}}
 @media(max-width:520px){.pds-type-grid{grid-template-columns:1fr}}
+/* V17.9 PDS ASSIGNMENT UI --------------------------------------------------
+   PDS rows remain read-only source data. These styles only provide a clean
+   bulk-assignment layer that creates independent Design_Tracking assignments. */
+.pds-assign-banner{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 14px;border:1px solid #e7c0d2;border-radius:13px;background:linear-gradient(135deg,#fff8fb,#fff);margin-bottom:12px}.pds-assign-banner .title{font-weight:900;font-size:13px}.pds-assign-banner .sub{font-size:10px;color:var(--muted);margin-top:2px}.pds-assign-filter{display:grid;grid-template-columns:1.1fr 1fr 1fr auto;gap:9px;align-items:end;margin:12px 0}.pds-tag-list{display:grid;gap:10px}.pds-tag-card{border:1px solid var(--line);border-radius:13px;background:#fff;overflow:hidden;box-shadow:var(--shadow-sm)}.pds-tag-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 13px;background:#fbfcfe;border-bottom:1px solid var(--line2)}.pds-tag-title{display:flex;align-items:center;gap:9px}.pds-tag-code{font-weight:950;color:#172033}.pds-tag-name{font-size:10px;color:var(--muted);margin-top:2px}.pds-work-list{display:grid;grid-template-columns:repeat(2,minmax(260px,1fr));gap:8px;padding:10px}.pds-work-row{display:grid;grid-template-columns:auto 1fr auto;gap:9px;align-items:center;padding:10px;border:1px solid var(--line2);border-radius:10px;background:#fff}.pds-work-row.selected{border-color:#d88aae;background:#fff8fb}.pds-work-row.assigned{background:#f8fafc}.pds-work-main .name{font-weight:900;font-size:11px}.pds-work-main .meta{display:flex;gap:5px;flex-wrap:wrap;margin-top:5px}.pds-work-owner{font-size:9px;color:#475467;text-align:right;max-width:150px}.pds-selection-dock{position:sticky;bottom:8px;z-index:8;margin-top:12px;border:1px solid #dfb0c6;background:rgba(255,255,255,.98);backdrop-filter:blur(8px);border-radius:14px;box-shadow:0 12px 30px rgba(42,16,30,.14);padding:12px}.pds-mode-tabs{display:flex;gap:6px;margin-bottom:10px}.pds-mode-tab{border:1px solid var(--line);background:#fff;padding:7px 10px;border-radius:9px;font-size:10px;font-weight:900}.pds-mode-tab.active{background:var(--brand-soft);border-color:#e0aac2;color:var(--brand2)}.pds-bulk-grid{display:grid;grid-template-columns:1.25fr .8fr .9fr .9fr .9fr 1.2fr auto;gap:8px;align-items:end}.pds-individual-table select,.pds-individual-table input{min-width:140px}.pds-assignment-owner{margin-top:5px;font-size:9px;font-weight:800;color:#344054}.pds-assignment-owner .who{color:var(--brand2)}.pds-mini-status{display:flex;gap:4px;flex-wrap:wrap}.pds-mini-status .pill{font-size:8px;padding:3px 6px}.pds-assign-count{font-size:10px;color:var(--muted)}
+@media(max-width:1100px){.pds-assign-filter{grid-template-columns:1fr 1fr}.pds-work-list{grid-template-columns:1fr}.pds-bulk-grid{grid-template-columns:1fr 1fr 1fr}.pds-bulk-grid .wide{grid-column:1/-1}}
+@media(max-width:680px){.pds-assign-filter,.pds-bulk-grid{grid-template-columns:1fr}.pds-assign-banner{align-items:flex-start;flex-direction:column}.pds-work-list{padding:8px}.pds-work-row{grid-template-columns:auto 1fr}.pds-work-owner{grid-column:2;text-align:left;max-width:none}}
 @media(max-width:1250px){.cards,.group-grid{grid-template-columns:repeat(2,1fr)}.detail-shell{grid-template-columns:300px minmax(0,1fr)}.bulk-grid{grid-template-columns:1fr 1fr 1fr}.bulk-grid .field:nth-child(5){grid-column:1/3}.summary{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:900px){.top-search{display:none}.app{padding:12px}.metrics{grid-template-columns:repeat(2,1fr)}.cards,.group-grid{grid-template-columns:1fr}.detail-shell{grid-template-columns:1fr}.tree-scroll{max-height:340px}.grid2,.grid3,.two-col,.role-grid,.file-grid{grid-template-columns:1fr}.criteria-grid{grid-template-columns:repeat(2,1fr)}.bulk-grid{grid-template-columns:1fr}.bulk-grid .field:nth-child(5){grid-column:auto}.summary{grid-template-columns:1fr 1fr}.session{display:none}.brand{min-width:0}.topbar-inner{padding:11px 13px}.hero{align-items:flex-start;flex-direction:column}.hero-badge{width:100%}}
 @media(max-width:560px){.metrics{grid-template-columns:1fr 1fr}.metric{padding:11px}.navtabs{width:100%;overflow:auto}.navtab{white-space:nowrap}.summary{grid-template-columns:1fr}.criteria-grid{grid-template-columns:1fr}.detail-top{flex-direction:column}.revision-card{grid-template-columns:52px minmax(0,1fr)}.rev-side{grid-column:2;text-align:left;align-items:flex-start}}
@@ -412,7 +418,13 @@ const S={
   newProjectId:"",newDrawingId:"",logs:[],
   // PDS data is loaded lazily. Summary is read from All_PD_Sheet; each detailed
   // source is loaded only after its Equipment/Nozzle/Structure/etc. card is used.
-  pds:{activeType:"all",status:"All",search:"",summary:null,detail:{},resolved:{},errors:{},loading:{}}
+  pds:{
+    activeType:"all",status:"All",search:"",summary:null,detail:{},resolved:{},errors:{},loading:{},
+    // V17.9 PDS bulk-assignment state. This is UI state only; permanent rows are
+    // always created as independent Design_Tracking assignment records.
+    assignmentMode:false,assignType:"all",assignStatus:"Pending",assignSearch:"",
+    selectedUnits:new Set(),bulkMode:"same",bulkDraft:{},individualDraft:{}
+  }
 };
 const $=id=>document.getElementById(id);
 const h=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
@@ -617,7 +629,7 @@ function drawingForAssignment(a){return S.drawings.find(d=>d.id===scalar(a?.[AF.
 function groupAverageProgress(rows){if(!rows.length)return 0;return Math.round(rows.reduce((s,a)=>s+num(a[AF.progress]),0)/rows.length)}
 function childStats(a){const kids=assignmentChildren(idOf(a));return{total:kids.length,completed:kids.filter(x=>scalar(x[AF.status])==="Completed").length,inProgress:kids.filter(x=>scalar(x[AF.status])==="In Progress").length}}
 function currentExecutionLabel(a){const r=currentRevision(a);return r?`${scalar(r[AF.revision])||"R0"} • ${scalar(r[AF.status])||"Not Started"}`:"No revision"}
-function searchMatchAssignment(a,q){if(!q)return true;const d=drawingForAssignment(a);const hay=[scalar(a[AF.projectCode]),d.name,d.short,assignmentDisplayUser(a),assignmentByDisplay(a),scopeSummary(a),assignmentCriteria(a),scalar(a[AF.tagNo]),scalar(a[AF.equipmentName])].join(" ").toLowerCase();return hay.includes(q.toLowerCase())}
+function searchMatchAssignment(a,q){if(!q)return true;const d=drawingForAssignment(a);const hay=[scalar(a[AF.projectCode]),d.name,d.short,scalar(a[AF.designType]),assignmentDisplayUser(a),assignmentByDisplay(a),scopeSummary(a),assignmentCriteria(a),scalar(a[AF.tagNo]),scalar(a[AF.equipmentName])].join(" ").toLowerCase();return hay.includes(q.toLowerCase())}
 function assignmentDueClass(a){if(isClosedAssignment(a))return"completed";const diff=dateDiffDays(toInputDate(a[AF.targetDate]));if(diff!=null&&diff<0)return"overdue";if(scalar(a[AF.status])==="In Progress")return"inprogress";return""}
 function assignmentDueText(a){const iso=toInputDate(a[AF.targetDate]);const diff=dateDiffDays(iso);if(!iso)return"No target";if(isClosedAssignment(a))return displayDate(iso);if(diff<0)return `${Math.abs(diff)} day${Math.abs(diff)===1?"":"s"} overdue`;if(diff===0)return"Due today";if(diff<=7)return`Due in ${diff} day${diff===1?"":"s"}`;return displayDate(iso)}
 function primaryAssignmentFor(project,drawing){return S.assignments.find(a=>scalar(a[AF.projectCode])===project.code&&(scalar(a[AF.drawingMasterId])===drawing.id||scalar(a[AF.drawingDocument])===drawing.name)&&num(a[AF.assignmentLevel],-1)===0&&!scalar(a[AF.assignedFrom]))||null}
@@ -759,6 +771,151 @@ function pdsSummaryStats(type){
     approved:statuses.filter(s=>nk(s).includes("approved")&&!nk(s).includes("under")).length
   };
 }
+/* ================= V17.9: PDS BULK ASSIGNMENT ENGINE =================
+   Business rule:
+   - One Tag / Equipment is shown only once.
+   - Under that Tag, Equipment / Nozzle / Structure / Piping / Bought Out /
+     Consumable / E&I PDS are separate work items.
+   - Each selected PDS work item creates ONE independent Design_Tracking
+     assignment record. No PDS source record is copied or modified.
+   - Existing assignment identity uses Project + Drawing(PDS) + Tag/Work Item
+     + PDS Type. PDS Type is stored in the existing Design_Type field so no
+     new Creator field or form is required.
+   ===================================================================== */
+function pdsAssignableTypes(){return PDS_TYPES.filter(t=>t.key!=="all")}
+function pdsTypeLabel(type){return pdsTypeConfig(type).label}
+function pdsScopeValue(row,key){return pick(row,PDS_SCOPE_ALIASES[key]||[],"")}
+function pdsWorkIdentity(row){
+  const tag=pdsScopeValue(row,"tag"),name=pdsScopeValue(row,"equipmentName"),ref=pdsScopeValue(row,"sectionRef");
+  // Some PDS reports (Consumable / E&I) may not use an equipment tag. Keep a
+  // stable readable fallback so those rows can still participate in bulk assignment.
+  const fallback=pick(row,["Item_Name","Material_Name","Instrument_Tag","PDS_Name","Name"],"");
+  return {tag,name:name||fallback,ref,key:nk(tag||ref||name||fallback||idOf(row))};
+}
+function pdsAssignmentGroupKey(row){
+  const i=pdsWorkIdentity(row),project=pdsScopeValue(row,"project")||scalar(S.current?.[AF.projectCode]);
+  return `${nk(project)}::${i.key}`;
+}
+function addPdsSourceRowToGroup(map,row,type){
+  if(!row||!pdsRowMatchesAssignment(row,S.current))return;
+  const key=pdsAssignmentGroupKey(row),ident=pdsWorkIdentity(row);
+  if(!map.has(key)){
+    map.set(key,{key,project:pdsScopeValue(row,"project")||scalar(S.current?.[AF.projectCode]),plantSection:pdsScopeValue(row,"plantSection"),plantSectionType:pdsScopeValue(row,"plantSectionType"),tag:ident.tag,name:ident.name,sectionRef:ident.ref,groupCode:pdsScopeValue(row,"groupCode"),department:pdsScopeValue(row,"department"),equipmentCategory:pdsScopeValue(row,"category"),equipmentType:pdsScopeValue(row,"equipmentType"),raw:[],types:{}});
+  }
+  const g=map.get(key);g.raw.push(row);
+  // Fill blank context values from later duplicate source rows for the same Tag.
+  for(const k of ["plantSection","plantSectionType","tag","name","sectionRef","groupCode","department","equipmentCategory","equipmentType"]){if(!g[k]){const src={plantSection:"plantSection",plantSectionType:"plantSectionType",tag:"tag",name:"equipmentName",sectionRef:"sectionRef",groupCode:"groupCode",department:"department",equipmentCategory:"category",equipmentType:"equipmentType"}[k];g[k]=src?pdsScopeValue(row,src):g[k]}}
+  if(type&&type!=="all"){
+    const status=pdsStatusValue(row,type);
+    if(status){if(!g.types[type])g.types[type]={statuses:[],rows:[]};g.types[type].statuses.push(status);g.types[type].rows.push(row)}
+  }else{
+    for(const t of pdsAssignableTypes()){
+      const status=pdsStatusValue(row,t.key);
+      if(status){if(!g.types[t.key])g.types[t.key]={statuses:[],rows:[]};g.types[t.key].statuses.push(status);g.types[t.key].rows.push(row)}
+    }
+  }
+}
+function pdsAssignmentGroups(){
+  const map=new Map();
+  // All_PD_Sheet is the primary source because it contains multiple PDS status columns.
+  for(const r of (S.pds.summary||[]))addPdsSourceRowToGroup(map,r,"all");
+  // Merge any detailed PDS reports already loaded. This also supports PDS types that
+  // are not represented as a status column in All_PD_Sheet.
+  for(const t of pdsAssignableTypes())for(const r of (S.pds.detail[t.key]||[]))addPdsSourceRowToGroup(map,r,t.key);
+  return [...map.values()].sort((a,b)=>`${a.tag} ${a.name}`.localeCompare(`${b.tag} ${b.name}`,undefined,{numeric:true}));
+}
+function pdsStatusCounts(statuses=[]){
+  const m=new Map();for(const s0 of statuses){const s=scalar(s0).trim();if(!s)continue;const k=nk(s);if(!m.has(k))m.set(k,{label:s,count:0});m.get(k).count++}return [...m.values()];
+}
+function pdsStatusSummaryHtml(statuses=[]){const rows=pdsStatusCounts(statuses);return rows.length?`<div class="pds-mini-status">${rows.map(x=>`${pdsStatusPill(x.label)}${x.count>1?`<span class="pill">×${x.count}</span>`:""}`).join("")}</div>`:'<span class="tiny muted">No source status</span>'}
+function pdsUnitKey(group,type){return `${group.key}::${type}`}
+function pdsUnitFromKey(key){
+  for(const g of pdsAssignmentGroups())for(const type of Object.keys(g.types)){if(pdsUnitKey(g,type)===key)return {key,group:g,type,typeLabel:pdsTypeLabel(type),statuses:g.types[type].statuses,sourceRows:g.types[type].rows}}
+  return null;
+}
+function pdsAssignmentsForUnit(unit){
+  if(!unit||!S.current)return[];const g=groupForAssignment(S.current);if(!g)return[];
+  const wantedType=nk(unit.typeLabel),wantedTag=nk(unit.group.tag),wantedName=nk(unit.group.name);
+  return g.rows.filter(a=>{
+    if(idOf(a)===idOf(S.current))return false;
+    if(nk(scalar(a[AF.designType]))!==wantedType)return false;
+    const at=nk(scalar(a[AF.tagNo])),an=nk(scalar(a[AF.equipmentName]));
+    return wantedTag?at===wantedTag:(!wantedTag&&wantedName&&an===wantedName);
+  });
+}
+function pdsExistingAssignment(unit){return pdsAssignmentsForUnit(unit)[0]||null}
+function pdsOwnerText(unit){const rows=pdsAssignmentsForUnit(unit);if(!rows.length)return"";const names=[...new Set(rows.map(assignmentDisplayUser).filter(Boolean))];return names.join(", ")}
+function pdsUnitMatchesFilter(unit){
+  const type=S.pds.assignType||"all";if(type!=="all"&&unit.type!==type)return false;
+  const status=S.pds.assignStatus||"All";if(status!=="All"&&!unit.statuses.some(s=>nk(s)===nk(status)))return false;
+  const q=(S.pds.assignSearch||"").trim().toLowerCase();if(q){const g=unit.group,hay=[g.tag,g.name,g.plantSection,g.plantSectionType,g.department,g.groupCode,g.equipmentCategory,g.equipmentType,unit.typeLabel,...unit.statuses].join(" ").toLowerCase();if(!hay.includes(q))return false}
+  return true;
+}
+function pdsAssignableUnits(){
+  const out=[];for(const g of pdsAssignmentGroups())for(const type of Object.keys(g.types)){const unit={key:pdsUnitKey(g,type),group:g,type,typeLabel:pdsTypeLabel(type),statuses:g.types[type].statuses,sourceRows:g.types[type].rows};if(pdsUnitMatchesFilter(unit))out.push(unit)}
+  return out;
+}
+function pdsAssignmentSummaryForTagRow(row,type){
+  const map=new Map();addPdsSourceRowToGroup(map,row,"all");const g=[...map.values()][0];if(!g||!g.types[type])return"";const unit={key:pdsUnitKey(g,type),group:g,type,typeLabel:pdsTypeLabel(type),statuses:g.types[type].statuses};const owner=pdsOwnerText(unit);return owner?`<div class="pds-assignment-owner">Assigned: <span class="who">${h(owner)}</span></div>`:"";
+}
+function pdsBulkTypeOptions(){return [`<option value="all" ${S.pds.assignType==="all"?"selected":""}>All PDS Types</option>`,...pdsAssignableTypes().map(t=>`<option value="${h(t.key)}" ${S.pds.assignType===t.key?"selected":""}>${h(t.label)}</option>`)].join("")}
+function pdsBulkStatusOptions(){const vals=["Pending","All","Under Approval","Approved"];return vals.map(x=>`<option value="${h(x)}" ${S.pds.assignStatus===x?"selected":""}>${h(x)}</option>`).join("")}
+function pdsAssignmentUnitRowsHtml(){
+  const units=pdsAssignableUnits(),byGroup=new Map();for(const u of units){if(!byGroup.has(u.group.key))byGroup.set(u.group.key,{group:u.group,units:[]});byGroup.get(u.group.key).units.push(u)}
+  if(!units.length)return `<div class="empty compact"><strong>No matching PDS work items</strong>Change PDS Type / Status or search. Only PDS work visible inside this assignment responsibility is listed.</div>`;
+  return `<div class="pds-tag-list">${[...byGroup.values()].map(x=>{const g=x.group;return `<div class="pds-tag-card"><div class="pds-tag-head"><div class="pds-tag-title"><div class="doc-badge">${h(g.tag?"TAG":"PDS")}</div><div><div class="pds-tag-code">${h(g.tag||g.name||"PDS Work")}</div><div class="pds-tag-name">${h([g.name,g.plantSection,g.plantSectionType].filter(Boolean).join(" • "))}</div></div></div><span class="pill">${x.units.length} work item${x.units.length===1?"":"s"}</span></div><div class="pds-work-list">${x.units.map(u=>{const existing=pdsExistingAssignment(u),sel=S.pds.selectedUnits.has(u.key),owner=existing?pdsOwnerText(u):"";return `<div class="pds-work-row ${sel?"selected":""} ${existing?"assigned":""}"><input class="check pds-assign-check" type="checkbox" data-pds-unit="${h(u.key)}" ${sel?"checked":""} ${existing?"disabled":""}><div class="pds-work-main"><div class="name">${h(u.typeLabel)}</div><div class="meta">${pdsStatusSummaryHtml(u.statuses)}</div></div><div class="pds-work-owner">${existing?`<span class="pill green">Assigned</span><div>${h(owner||assignmentDisplayUser(existing))}</div><button type="button" class="btn link sm" data-open-assignment="${h(idOf(existing))}">Open</button>`:'<span class="pill">Yet to Assign</span>'}</div></div>`}).join("")}</div></div>`}).join("")}</div>`;
+}
+function pdsSamePersonDockHtml(){const d=S.pds.bulkDraft||{};return `<div class="pds-bulk-grid"><div class="field"><label>Assign selected to *</label><select id="pdsBulkUser">${employeeOptions(d.user||"")}</select></div><div class="field"><label>Priority</label><select id="pdsBulkPriority">${PRIORITIES.map(p=>`<option ${p===(d.priority||"Medium")?"selected":""}>${h(p)}</option>`).join("")}</select></div><div class="field"><label>Start Date *</label><input id="pdsBulkStart" type="date" value="${h(d.start||todayIso())}"></div><div class="field"><label>Target Date *</label><input id="pdsBulkTarget" type="date" value="${h(d.target||"")}"></div><div class="field"><label>End Date</label><input id="pdsBulkEnd" type="date" value="${h(d.end||"")}"></div><div class="field wide"><label>Common Remark</label><input id="pdsBulkRemark" value="${h(d.remark||"")}" placeholder="Optional instruction"></div><button class="btn primary" data-pds-review-bulk>Review ${S.pds.selectedUnits.size}</button></div>`}
+function pdsIndividualDockHtml(){
+  const units=[...S.pds.selectedUnits].map(pdsUnitFromKey).filter(u=>u&&!pdsExistingAssignment(u));
+  if(!units.length)return"";const d=S.pds.bulkDraft||{};
+  return `<div class="pds-bulk-grid" style="margin-bottom:10px"><div class="field"><label>Common Start Date *</label><input id="pdsBulkStart" type="date" value="${h(d.start||todayIso())}"></div><div class="field"><label>Common End Date</label><input id="pdsBulkEnd" type="date" value="${h(d.end||"")}"></div><div class="field"><label>Priority</label><select id="pdsBulkPriority">${PRIORITIES.map(p=>`<option ${p===(d.priority||"Medium")?"selected":""}>${h(p)}</option>`).join("")}</select></div><div class="field wide"><label>Common Remark</label><input id="pdsBulkRemark" value="${h(d.remark||"")}" placeholder="Optional instruction"></div></div><div class="table-wrap pds-individual-table"><table><thead><tr><th>Tag / Work Item</th><th>PDS Type</th><th>Assigned To *</th><th>Target Date *</th></tr></thead><tbody>${units.map(u=>{const x=S.pds.individualDraft[u.key]||{};return `<tr><td><b>${h(u.group.tag||u.group.name||"—")}</b><div class="tiny muted">${h(u.group.name||"")}</div></td><td>${h(u.typeLabel)}</td><td><select data-pds-unit-user="${h(u.key)}">${employeeOptions(x.user||"")}</select></td><td><input type="date" data-pds-unit-target="${h(u.key)}" value="${h(x.target||"")}"></td></tr>`}).join("")}</tbody></table></div><div style="display:flex;justify-content:flex-end;margin-top:10px"><button class="btn primary" data-pds-review-bulk>Review ${units.length}</button></div>`;
+}
+function pdsSelectionDockHtml(){if(!S.pds.selectedUnits.size)return"";return `<div class="pds-selection-dock"><div style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap"><div><b>${S.pds.selectedUnits.size} PDS work item${S.pds.selectedUnits.size===1?"":"s"} selected</b><div class="tiny muted">Each selected Tag + PDS Type becomes one independent Design_Tracking assignment.</div></div><button class="btn link sm" data-pds-clear-selection>Clear selection</button></div><div class="pds-mode-tabs"><button class="pds-mode-tab ${S.pds.bulkMode==="same"?"active":""}" data-pds-bulk-mode="same">Same Person</button><button class="pds-mode-tab ${S.pds.bulkMode==="individual"?"active":""}" data-pds-bulk-mode="individual">Different People</button></div>${S.pds.bulkMode==="individual"?pdsIndividualDockHtml():pdsSamePersonDockHtml()}</div>`}
+function renderPdsAssignmentMode(){
+  const units=pdsAssignableUnits(),newCount=units.filter(u=>!pdsExistingAssignment(u)).length,assigned=units.length-newCount;
+  return `<div class="pds-assign-banner"><div><div class="title">Bulk Assign PDS Responsibilities</div><div class="sub">One Tag is shown once. Equipment / Nozzle / Structure / Piping / other PDS types are independent work items underneath it.</div></div><button class="btn" data-pds-bulk-toggle>← Back to PDS Data</button></div><div class="pds-assign-filter"><div class="field"><label>PDS Type</label><select id="pdsAssignType">${pdsBulkTypeOptions()}</select></div><div class="field"><label>PDS Source Status</label><select id="pdsAssignStatus">${pdsBulkStatusOptions()}</select></div><div class="field"><label>Search Tag / Equipment / Section</label><input id="pdsAssignSearch" value="${h(S.pds.assignSearch)}" placeholder="e.g. CL-1401"></div><div class="actions"><button class="btn sm" data-pds-select-next>Next 10</button><button class="btn sm" data-pds-select-all>Select all new</button></div></div><div class="selection-note"><b>${newCount}</b> yet to assign • <b>${assigned}</b> already assigned • <b>${S.pds.selectedUnits.size}</b> selected</div>${pdsAssignmentUnitRowsHtml()}${pdsSelectionDockHtml()}`;
+}
+function collectPdsBulkDraft(){
+  S.pds.bulkDraft={user:$("pdsBulkUser")?.value||"",priority:$("pdsBulkPriority")?.value||"Medium",start:$("pdsBulkStart")?.value||"",target:$("pdsBulkTarget")?.value||"",end:$("pdsBulkEnd")?.value||"",remark:$("pdsBulkRemark")?.value||""};
+  if(S.pds.bulkMode==="individual"){
+    document.querySelectorAll("[data-pds-unit-user]").forEach(el=>{const k=el.dataset.pdsUnitUser;S.pds.individualDraft[k]=S.pds.individualDraft[k]||{};S.pds.individualDraft[k].user=el.value||""});
+    document.querySelectorAll("[data-pds-unit-target]").forEach(el=>{const k=el.dataset.pdsUnitTarget;S.pds.individualDraft[k]=S.pds.individualDraft[k]||{};S.pds.individualDraft[k].target=el.value||""});
+  }
+  return S.pds.bulkDraft;
+}
+function buildPdsAssignmentPayload(parent,unit,draft,user,target){
+  const d=drawingForAssignment(parent),g=unit.group,assignedUser=user||draft.user;
+  const equipment=S.equipment.find(e=>nk(e.project)===nk(scalar(parent[AF.projectCode]))&&((g.tag&&nk(e.tag)===nk(g.tag))||(!g.tag&&g.name&&nk(e.name)===nk(g.name))));
+  const data={
+    [AF.projectCode]:scalar(parent[AF.projectCode]),[AF.projectRecordId]:scalar(parent[AF.projectRecordId]),[AF.drawingDocument]:d.name,[AF.drawingMasterId]:d.id,[AF.shortName]:d.short||"",
+    [AF.primaryAssignment]:scalar(parent[AF.primaryAssignment])||idOf(primaryForRows(groupForAssignment(parent)?.rows||[])),[AF.assignedFrom]:idOf(parent),[AF.assignmentLevel]:num(parent[AF.assignmentLevel])+1,
+    [AF.assignedBy]:S.user||assignmentUser(parent),[AF.assignedTo]:assignedUser,[AF.assignedEmployeeName]:employeeNameFor(assignedUser),[AF.criteria]:"Tag / Equipment, PDS Type",
+    [AF.designType]:unit.typeLabel,[AF.designTitle]:`${unit.typeLabel} — ${g.tag||g.name||"PDS Work"}`,
+    // Reuse the existing Logical_Task_Key as a deterministic PDS-assignment identity.
+    // Assignment_Level still classifies this row as an Assignment, so this does not
+    // interfere with revision keys (which use EXEC::AssignmentID::R0/R1/...).
+    [AF.logicalTaskKey]:`PDS_ASSIGN::${scalar(parent[AF.projectCode])}::${d.id||d.short||d.name}::${g.tag||g.name||g.sectionRef||g.key}::${unit.type}`,
+    [AF.plantSection]:g.plantSection||"",[AF.plantSectionType]:g.plantSectionType||"",[AF.groupCode]:g.groupCode||"",[AF.department]:g.department||"",[AF.equipmentCategory]:g.equipmentCategory||"",[AF.equipmentType]:g.equipmentType||"",
+    [AF.tagNo]:g.tag||"",[AF.equipmentName]:g.name||"",[AF.equipmentRecordId]:equipment?.id||"",
+    [AF.startDate]:toCreatorDate(draft.start),[AF.targetDate]:toCreatorDate(target||draft.target),[AF.endDate]:toCreatorDate(draft.end),[AF.priority]:draft.priority||scalar(parent[AF.priority])||"Medium",[AF.status]:"Not Started",[AF.progress]:0,[AF.remark]:draft.remark||""
+  };
+  const bits=[`Project ${scalar(parent[AF.projectCode])}`,g.plantSection,g.plantSectionType,g.groupCode?`Group: ${g.groupCode}`:"",g.department?`Department: ${g.department}`:"",g.equipmentCategory?`Category: ${g.equipmentCategory}`:"",g.equipmentType?`Type: ${g.equipmentType}`:"",g.tag||g.name?`Tag: ${[g.tag,g.name].filter(Boolean).join(" — ")}`:"",`PDS Type: ${unit.typeLabel}`];
+  data[AF.responsibility]=bits.filter(Boolean).join(" › ");return data;
+}
+function pdsSelectedNewUnits(){return [...S.pds.selectedUnits].map(pdsUnitFromKey).filter(u=>u&&!pdsExistingAssignment(u))}
+function pdsBulkAssignmentsDraft(){
+  const d=collectPdsBulkDraft(),units=pdsSelectedNewUnits();if(!units.length)throw new Error("Select at least one unassigned PDS work item.");
+  if(!d.start)throw new Error("Start Date is required.");if(d.end&&d.end<d.start)throw new Error("End Date cannot be before Start Date.");
+  return units.map(u=>{
+    if(S.pds.bulkMode==="individual"){const x=S.pds.individualDraft[u.key]||{};if(!x.user)throw new Error(`Select Assigned To for ${u.group.tag||u.group.name} / ${u.typeLabel}.`);if(!x.target)throw new Error(`Select Target Date for ${u.group.tag||u.group.name} / ${u.typeLabel}.`);return {unit:u,user:x.user,target:x.target}}
+    if(!d.user)throw new Error("Select Assigned To.");if(!d.target)throw new Error("Target Date is required.");return {unit:u,user:d.user,target:d.target};
+  });
+}
+function pdsBulkReviewHtml(items,d){return `<div class="review-grid"><div class="review-metric"><div class="n">${items.length}</div><div class="l">NEW PDS ASSIGNMENTS</div></div><div class="review-metric"><div class="n">${h(S.pds.bulkMode==="same"?employeeNameFor(d.user):"Multiple")}</div><div class="l">ASSIGNEE MODE</div></div><div class="review-metric"><div class="n">Level ${num(S.current[AF.assignmentLevel])+1}</div><div class="l">NEXT LEVEL</div></div></div><div class="notice good"><b>One-form architecture:</b> each row below will create one independent Design_Tracking assignment linked to the currently opened responsibility. Existing PDS source records are read-only and remain unchanged.</div><div class="table-wrap" style="margin-top:12px"><table><thead><tr><th>#</th><th>Tag / Equipment</th><th>PDS Type</th><th>Source Status</th><th>Assigned To</th><th>Target</th></tr></thead><tbody>${items.map((x,i)=>`<tr><td>${i+1}</td><td><b>${h(x.unit.group.tag||x.unit.group.name||"—")}</b><div class="tiny muted">${h(x.unit.group.name||"")}</div></td><td>${h(x.unit.typeLabel)}</td><td>${pdsStatusSummaryHtml(x.unit.statuses)}</td><td>${h(employeeNameFor(x.user))}</td><td>${h(x.target)}</td></tr>`).join("")}</tbody></table></div>`}
+function reviewPdsBulk(){const d=collectPdsBulkDraft(),items=pdsBulkAssignmentsDraft();if(items.length>CONFIG.MAX_BATCH)throw new Error(`Maximum ${CONFIG.MAX_BATCH} assignments can be created in one batch.`);openModal("Review PDS Bulk Assignment",`${items.length} independent PDS responsibilities will be created.`,pdsBulkReviewHtml(items,d),`<button class="btn" data-modal="close">Back</button><button class="btn primary" data-modal="confirm-pds-bulk">Create ${items.length} Assignments</button>`)}
+async function confirmPdsBulk(){const d=S.pds.bulkDraft||{},items=pdsBulkAssignmentsDraft();if(items.length>CONFIG.MAX_BATCH)throw new Error(`Maximum ${CONFIG.MAX_BATCH} assignments can be created in one batch.`);busy(`Creating ${items.length} PDS assignments…`);let ok=0,fail=0;try{for(const x of items){try{const data=buildPdsAssignmentPayload(S.current,x.unit,d,x.user,x.target),id=await addRecord(data);const rec={ID:id,...data};S.records.push(rec);S.assignments.push(rec);ok++}catch(e){console.error("PDS assignment failed",x,e);fail++}}closeModal();S.pds.selectedUnits.clear();S.pds.individualDraft={};S.pds.bulkDraft={};S.pds.assignmentMode=false;renderView();toast(`${ok} PDS assignment${ok===1?"":"s"} created${fail?`, ${fail} failed`:""}.`,fail?"warn":"good")}finally{idle()}}
+
 function pdsTypeCardsHtml(){
   return `<div class="pds-type-grid">${PDS_TYPES.map(t=>{
     const active=S.pds.activeType===t.key,loaded=t.key==="all"?Array.isArray(S.pds.summary):Array.isArray(S.pds.detail[t.key]);
@@ -780,8 +937,10 @@ function pdsToolbarHtml(type){
   return `<div class="pds-toolbar"><div class="search"><input id="pdsSearch" class="input" value="${h(S.pds.search)}" placeholder="Search equipment, tag, section, type…"></div><div class="pds-status-row">${pdsAvailableStatuses(type).map(s=>`<button class="pds-status-btn ${nk(s)} ${nk(S.pds.status)===nk(s)?"active":""}" data-pds-status="${h(s)}">${h(s)}</button>`).join("")}</div><button class="btn sm" data-pds-refresh="${h(type)}">↻ Refresh</button></div>`;
 }
 function pdsSummaryTableHtml(rows){
+  // V17.9: collapse duplicate All_PD_Sheet rows so each Tag / Equipment is shown once.
+  const map=new Map();for(const r of rows)addPdsSourceRowToGroup(map,r,"all");const groups=[...map.values()];
   const types=PDS_TYPES.filter(t=>!["all","boughtout","consumable","ei"].includes(t.key));
-  return `<div class="table-wrap"><table><thead><tr><th>Equipment</th><th>Category</th><th>Type</th><th>Subtype</th><th>Section Ref</th><th>Actual Cost</th>${types.map(t=>`<th>${h(t.label)}</th>`).join("")}<th></th></tr></thead><tbody>${rows.slice(0,500).map((r,i)=>`<tr><td><div class="pds-summary-name">${h(pick(r,PDS_SCOPE_ALIASES.equipmentName)||"—")}</div><div class="tiny muted">${h(pick(r,PDS_SCOPE_ALIASES.tag)||"")}</div></td><td>${h(pick(r,PDS_SCOPE_ALIASES.category)||"—")}</td><td>${h(pick(r,PDS_SCOPE_ALIASES.equipmentType)||"—")}</td><td>${h(pick(r,PDS_SCOPE_ALIASES.subtype)||"—")}</td><td>${h(pick(r,PDS_SCOPE_ALIASES.sectionRef)||"—")}</td><td>${h(pick(r,PDS_SCOPE_ALIASES.actualCost)||"—")}</td>${types.map(t=>`<td>${pdsStatusPill(pdsStatusValue(r,t.key))}</td>`).join("")}<td><button class="btn sm" data-pds-row="all:${i}">View</button></td></tr>`).join("")}</tbody></table></div>${rows.length>500?`<div class="tiny muted" style="margin-top:7px">Showing first 500 of ${rows.length} matching records.</div>`:""}`;
+  return `<div class="table-wrap"><table><thead><tr><th>Tag / Equipment</th><th>Category</th><th>Type</th><th>Section Ref</th>${types.map(t=>`<th>${h(t.label)}</th>`).join("")}</tr></thead><tbody>${groups.slice(0,500).map(g=>`<tr><td><div class="pds-summary-name">${h(g.tag||g.name||"—")}</div><div class="tiny muted">${h(g.name||"")}</div></td><td>${h(g.equipmentCategory||"—")}</td><td>${h(g.equipmentType||"—")}</td><td>${h(g.sectionRef||"—")}</td>${types.map(t=>{const x=g.types[t.key];if(!x)return'<td>—</td>';const unit={key:pdsUnitKey(g,t.key),group:g,type:t.key,typeLabel:t.label,statuses:x.statuses,sourceRows:x.rows},owner=pdsOwnerText(unit);return `<td>${pdsStatusSummaryHtml(x.statuses)}${owner?`<div class="pds-assignment-owner">Assigned: <span class="who">${h(owner)}</span></div>`:'<div class="pds-assignment-owner">Yet to Assign</div>'}</td>`}).join("")}</tr>`).join("")}</tbody></table></div>${groups.length>500?`<div class="tiny muted" style="margin-top:7px">Showing first 500 of ${groups.length} unique Tags / work items.</div>`:""}`;
 }
 function pdsColumnsFor(type,rows){
   const defs=PDS_DETAIL_COLUMNS[type]||[];
@@ -789,16 +948,18 @@ function pdsColumnsFor(type,rows){
 }
 function pdsDetailTableHtml(type,rows){
   const cols=pdsColumnsFor(type,rows);
-  return `<div class="table-wrap"><table><thead><tr>${cols.map(([label])=>`<th>${h(label)}</th>`).join("")}<th>Status</th><th></th></tr></thead><tbody>${rows.slice(0,500).map((r,i)=>`<tr>${cols.map(([,aliases])=>`<td>${h(pick(r,aliases)||"—")}</td>`).join("")}<td>${pdsStatusPill(pdsStatusValue(r,type))}</td><td><button class="btn sm" data-pds-row="${h(type)}:${i}">View</button></td></tr>`).join("")}</tbody></table></div>${rows.length>500?`<div class="tiny muted" style="margin-top:7px">Showing first 500 of ${rows.length} matching records.</div>`:""}`;
+  return `<div class="table-wrap"><table><thead><tr>${cols.map(([label])=>`<th>${h(label)}</th>`).join("")}<th>Status</th><th>Assignment</th><th></th></tr></thead><tbody>${rows.slice(0,500).map((r,i)=>{const map=new Map();addPdsSourceRowToGroup(map,r,type);const g=[...map.values()][0],unit=g&&g.types[type]?{key:pdsUnitKey(g,type),group:g,type,typeLabel:pdsTypeLabel(type),statuses:g.types[type].statuses}:null,owner=unit?pdsOwnerText(unit):"";return `<tr>${cols.map(([,aliases])=>`<td>${h(pick(r,aliases)||"—")}</td>`).join("")}<td>${pdsStatusPill(pdsStatusValue(r,type))}</td><td>${owner?`<span class="pill green">Assigned</span><div class="tiny strong" style="margin-top:4px">${h(owner)}</div>`:'<span class="pill">Yet to Assign</span>'}</td><td><button class="btn sm" data-pds-row="${h(type)}:${i}">View</button></td></tr>`}).join("")}</tbody></table></div>${rows.length>500?`<div class="tiny muted" style="margin-top:7px">Showing first 500 of ${rows.length} matching records.</div>`:""}`;
 }
 function renderPdsWorkspaceBody(){
+  // Assignment mode sits on top of the same read-only PDS source data.
+  if(S.pds.assignmentMode)return renderPdsAssignmentMode();
   const type=S.pds.activeType,report=S.pds.resolved[type],loading=S.pds.loading[type];
   if(loading)return `<div class="empty compact"><strong>Loading ${h(pdsTypeConfig(type).label)}…</strong>Reading the existing Creator report.</div>`;
   if(type==="all"&&!Array.isArray(S.pds.summary))return `<div class="empty compact"><strong>Preparing PDS Workspace…</strong>Loading All PD Sheet for this responsibility.</div>`;
   if(type!=="all"&&!Array.isArray(S.pds.detail[type]))return `<div class="empty compact"><strong>Loading ${h(pdsTypeConfig(type).label)}…</strong>This source is loaded only when you open it.</div>`;
   if(!report){return `<div class="pds-empty-source"><strong>${h(pdsTypeConfig(type).label)} source could not be resolved.</strong><br>${h(S.pds.errors[type]||"Check the existing Creator report link name / View permission.")}</div>`}
   const rows=pdsFilteredRows(type);
-  return `${pdsToolbarHtml(type)}<div class="section-row"><div><h2>${h(pdsTypeConfig(type).label)}</h2><p>${rows.length} matching record${rows.length===1?"":"s"} inside ${h(scopeSummary(S.current))}.</p></div><span class="pds-source">Source: ${h(report)}</span></div>${rows.length?(type==="all"?pdsSummaryTableHtml(rows):pdsDetailTableHtml(type,rows)):`<div class="empty compact"><strong>No matching ${h(pdsTypeConfig(type).label)} records</strong>Try All Status or remove the search text. The current assignment responsibility is automatically applied.</div>`}`;
+  return `${pdsToolbarHtml(type)}<div class="section-row"><div><h2>${h(pdsTypeConfig(type).label)}</h2><p>${rows.length} matching source record${rows.length===1?"":"s"} inside ${h(scopeSummary(S.current))}. All PD Sheet is collapsed to one Tag / Equipment for easier working.</p></div><div class="actions"><span class="pds-source">Source: ${h(report)}</span><button class="btn primary sm" data-pds-bulk-toggle>+ Bulk Assign PDS</button></div></div>${rows.length?(type==="all"?pdsSummaryTableHtml(rows):pdsDetailTableHtml(type,rows)):`<div class="empty compact"><strong>No matching ${h(pdsTypeConfig(type).label)} records</strong>Try All Status or remove the search text. The current assignment responsibility is automatically applied.</div>`}`;
 }
 function renderPdsWorkspaceTab(){
   const a=S.current;
@@ -806,7 +967,7 @@ function renderPdsWorkspaceTab(){
   if(!Array.isArray(S.pds.summary)&&!S.pds.loading.all)setTimeout(()=>guarded(async()=>{await ensurePdsData("all");renderView()}),0);
   const type=S.pds.activeType;
   if(type!=="all"&&!Array.isArray(S.pds.detail[type])&&!S.pds.loading[type])setTimeout(()=>guarded(async()=>{await ensurePdsData(type);renderView()}),0);
-  return `<div class="tab-card"><div class="pds-shell"><div class="pds-context"><div><h3>PDS Workspace</h3><p>Read-only engineering data for Project ${h(scalar(a[AF.projectCode]))} • ${h(scopeSummary(a))}. Assignment scope is applied automatically.</p></div><span class="pill brand">Existing PD Sheet reports</span></div>${pdsTypeCardsHtml()}<div id="pdsWorkspaceBody">${renderPdsWorkspaceBody()}</div></div></div>`;
+  return `<div class="tab-card"><div class="pds-shell"><div class="pds-context"><div><h3>PDS Workspace</h3><p>Existing PD Sheet data + PDS responsibility assignment for Project ${h(scalar(a[AF.projectCode]))} • ${h(scopeSummary(a))}. Source PDS records remain read-only.</p></div><span class="pill brand">PDS Data + Bulk Assignment</span></div>${S.pds.assignmentMode?"":pdsTypeCardsHtml()}<div id="pdsWorkspaceBody">${renderPdsWorkspaceBody()}</div></div></div>`;
 }
 function pdsRecordForModal(type,index){const rows=pdsFilteredRows(type);return rows[Number(index)]||null}
 function pdsHumanLabel(k){return String(k||"").replace(/_/g," ").replace(/\b\w/g,c=>c.toUpperCase())}
@@ -931,7 +1092,7 @@ function openAssignment(id){const a=assignmentById(id);if(!a)return;S.previousVi
   // PDS-specific UX: when the selected Drawing / Document is PDS, open the
   // PDS Workspace first. Normal drawings still open the Overview tab.
   S.detailTab=isPdsDrawing(a)?"pds":"overview";
-  S.pds.activeType="all";S.pds.status="All";S.pds.search="";
+  S.pds.activeType="all";S.pds.status="All";S.pds.search="";S.pds.assignmentMode=false;S.pds.assignType="all";S.pds.assignStatus="Pending";S.pds.assignSearch="";S.pds.selectedUnits.clear();S.pds.bulkMode="same";S.pds.bulkDraft={};S.pds.individualDraft={};
   S.expanded.add(idOf(primaryForRows(groupForAssignment(a)?.rows||[])));S.selectedCriteria.clear();S.selectedTargets.clear();S.targetRows=[];S.targetSearch="";S.bulk={};S.view="detail";renderView()}
 function currentGroupRows(){return S.current?(groupForAssignment(S.current)?.rows||[]):[]}
 function familyPath(a){const rows=currentGroupRows(),map=new Map(rows.map(x=>[idOf(x),x])),path=[];let cur=a;while(cur){path.unshift(cur);const pid=scalar(cur[AF.assignedFrom]);cur=pid?map.get(pid):null}return path}
@@ -1367,10 +1528,10 @@ async function saveAssignmentStatus(){const a=S.current,s=$("assignmentStatusEdi
 // openModal(): opens the reusable dialog shell.
 function openModal(title,sub,body,foot){$("modalTitle").textContent=title;$("modalSub").textContent=sub||"";$("modalBody").innerHTML=body||"";$("modalFoot").innerHTML=foot||"";$("modalBackdrop").classList.remove("hidden")}
 function closeModal(){$("modalBackdrop").classList.add("hidden")}
-function setupModal(){openModal("V17 One-Form Architecture","Assignment + Design Files + Revision History use your existing Design_Tracking form.",`<div class="notice good"><b>No new transaction form is used.</b> Assignment rows and Revision rows are both stored in Design_Tracking and separated by their backend identity fields.</div><div class="section-row"><div><h2>Assignment hierarchy</h2><p>Already added to your form.</p></div></div><div class="table-wrap"><table><thead><tr><th>Field</th><th>Link Name</th><th>Purpose</th></tr></thead><tbody><tr><td>Primary Assignment ID</td><td>Primary_Assignment_ID</td><td>First project-level assignment</td></tr><tr><td>Assigned From ID</td><td>Assigned_From_ID</td><td>Immediate previous responsibility</td></tr><tr><td>Assignment Level</td><td>Assignment_Level</td><td>0, 1, 2, 3… N</td></tr><tr><td>Assignment Criteria</td><td>Assignment_Criteria</td><td>Single Line</td></tr><tr><td>Responsibility</td><td>Responsibility</td><td>Readable scope</td></tr></tbody></table></div><div class="section-row"><div><h2>Design / revision identity</h2><p>Uses fields already visible in your Design_Tracking screenshots.</p></div></div><div class="table-wrap"><table><thead><tr><th>Field</th><th>Link Name</th><th>Use</th></tr></thead><tbody><tr><td>Logical Task Key</td><td>Logical_Task_Key</td><td>EXEC::AssignmentID::R0 / R1 / R2</td></tr><tr><td>Revision Key</td><td>Revision_Key</td><td>Unique revision identity</td></tr><tr><td>Parent Design ID</td><td>Parent_Design_ID</td><td>R0 → R1 → R2 chain</td></tr><tr><td>Revision</td><td>Revision</td><td>R0 / R1 / R2</td></tr><tr><td>Files</td><td>Drawing_File / Native_File / Supporting_File</td><td>Controlled document files</td></tr></tbody></table></div><div class="notice warn" style="margin-top:12px"><b>Do not use Parent_Design_ID for assignment hierarchy.</b> It is reserved only for revision history. Further_Assigned and Active are not written by the widget because this Creator app rejected Decision Box API values; children are derived from Assigned_From_ID.</div><div class="notice good" style="margin-top:10px"><b>PDS Workspace:</b> When the selected Drawing is PDS, the widget reads existing All_PD_Sheet plus Equipment / Nozzle / Structure / Piping / Bought Out / Consumable / E&amp;I PDS reports as read-only reference data. No PDS row is copied into Design_Tracking.</div>`,`<button class="btn primary" data-modal="close">Close</button>`)}
+function setupModal(){openModal("V17 One-Form Architecture","Assignment + Design Files + Revision History use your existing Design_Tracking form.",`<div class="notice good"><b>No new transaction form is used.</b> Assignment rows and Revision rows are both stored in Design_Tracking and separated by their backend identity fields.</div><div class="section-row"><div><h2>Assignment hierarchy</h2><p>Already added to your form.</p></div></div><div class="table-wrap"><table><thead><tr><th>Field</th><th>Link Name</th><th>Purpose</th></tr></thead><tbody><tr><td>Primary Assignment ID</td><td>Primary_Assignment_ID</td><td>First project-level assignment</td></tr><tr><td>Assigned From ID</td><td>Assigned_From_ID</td><td>Immediate previous responsibility</td></tr><tr><td>Assignment Level</td><td>Assignment_Level</td><td>0, 1, 2, 3… N</td></tr><tr><td>Assignment Criteria</td><td>Assignment_Criteria</td><td>Single Line</td></tr><tr><td>Responsibility</td><td>Responsibility</td><td>Readable scope</td></tr></tbody></table></div><div class="section-row"><div><h2>Design / revision identity</h2><p>Uses fields already visible in your Design_Tracking screenshots.</p></div></div><div class="table-wrap"><table><thead><tr><th>Field</th><th>Link Name</th><th>Use</th></tr></thead><tbody><tr><td>Logical Task Key</td><td>Logical_Task_Key</td><td>EXEC::AssignmentID::R0 / R1 / R2</td></tr><tr><td>Revision Key</td><td>Revision_Key</td><td>Unique revision identity</td></tr><tr><td>Parent Design ID</td><td>Parent_Design_ID</td><td>R0 → R1 → R2 chain</td></tr><tr><td>Revision</td><td>Revision</td><td>R0 / R1 / R2</td></tr><tr><td>Files</td><td>Drawing_File / Native_File / Supporting_File</td><td>Controlled document files</td></tr></tbody></table></div><div class="notice warn" style="margin-top:12px"><b>Do not use Parent_Design_ID for assignment hierarchy.</b> It is reserved only for revision history. Further_Assigned and Active are not written by the widget because this Creator app rejected Decision Box API values; children are derived from Assigned_From_ID.</div><div class="notice good" style="margin-top:10px"><b>PDS Workspace:</b> When the selected Drawing is PDS, the widget reads existing All_PD_Sheet plus Equipment / Nozzle / Structure / Piping / Bought Out / Consumable / E&amp;I PDS reports as read-only source data. V17.9 can bulk-assign Tag + PDS Type responsibilities; each assignment is a separate Design_Tracking row, while the source PDS report itself is never modified or copied.</div>`,`<button class="btn primary" data-modal="close">Close</button>`)}
 
 async function handleAction(act){if(act==="create-primary")return createPrimary();if(act==="edit-assignment")return editAssignmentModal();if(act==="start-r0")return startR0();if(act==="save-revision")return saveRevision();if(act==="new-revision")return openNewRevisionModal();if(act==="select-next-10"){const rows=S.targetRows.filter(r=>!existingChildForTarget(S.current,r)&&!S.selectedTargets.has(targetKey(r))).slice(0,10);rows.forEach(r=>S.selectedTargets.add(targetKey(r)));return renderView()}if(act==="select-all-targets"){S.targetRows.filter(r=>!existingChildForTarget(S.current,r)).forEach(r=>S.selectedTargets.add(targetKey(r)));return renderView()}if(act==="clear-targets"){S.selectedTargets.clear();return renderView()}if(act==="review-bulk")return reviewBulk()}
-async function handleModal(act,el){if(act==="close")return closeModal();if(act==="confirm-bulk")return confirmBulk();if(act==="save-assignment-status")return saveAssignmentStatus();if(act==="confirm-return")return confirmReturn();if(act==="confirm-new-revision")return confirmNewRevision(el.dataset.nextRev)}
+async function handleModal(act,el){if(act==="close")return closeModal();if(act==="confirm-bulk")return confirmBulk();if(act==="confirm-pds-bulk")return confirmPdsBulk();if(act==="save-assignment-status")return saveAssignmentStatus();if(act==="confirm-return")return confirmReturn();if(act==="confirm-new-revision")return confirmNewRevision(el.dataset.nextRev)}
 function toggleExpand(id){S.expanded.has(id)?S.expanded.delete(id):S.expanded.add(id);renderView()}
 // wire(): connects all buttons, tabs, tree nodes, workflow buttons and inputs to their handlers.
 function wire(){
@@ -1383,11 +1544,17 @@ function wire(){
     const og=e.target.closest("[data-open-group]");if(og)return openGroup(og.dataset.openGroup);
     if(e.target.closest("[data-back]")){S.view=S.previousView||"home";return renderView()}
     const ex=e.target.closest("[data-expand]");if(ex){e.stopPropagation();return toggleExpand(ex.dataset.expand)}
-    const node=e.target.closest("[data-node]");if(node){S.current=assignmentById(node.dataset.node);S.drawing=drawingForAssignment(S.current);S.detailTab=isPdsDrawing(S.current)?"pds":"overview";S.pds.activeType="all";S.pds.status="All";S.pds.search="";S.selectedCriteria.clear();S.selectedTargets.clear();return renderView()}
+    const node=e.target.closest("[data-node]");if(node){S.current=assignmentById(node.dataset.node);S.drawing=drawingForAssignment(S.current);S.detailTab=isPdsDrawing(S.current)?"pds":"overview";S.pds.activeType="all";S.pds.status="All";S.pds.search="";S.pds.assignmentMode=false;S.pds.assignType="all";S.pds.assignStatus="Pending";S.pds.assignSearch="";S.pds.selectedUnits.clear();S.pds.bulkMode="same";S.pds.bulkDraft={};S.pds.individualDraft={};S.selectedCriteria.clear();S.selectedTargets.clear();return renderView()}
     const dt=e.target.closest("[data-detail-tab]");if(dt){S.detailTab=dt.dataset.detailTab;S.selectedCriteria.clear();S.selectedTargets.clear();return renderView()}
     const pt=e.target.closest("[data-pds-type]");if(pt){S.pds.activeType=pt.dataset.pdsType;S.pds.status="All";S.pds.search="";return renderView()}
     const ps=e.target.closest("[data-pds-status]");if(ps){S.pds.status=ps.dataset.pdsStatus;return renderView()}
     const pr=e.target.closest("[data-pds-refresh]");if(pr)return guarded(async()=>{await ensurePdsData(pr.dataset.pdsRefresh,true);renderView();toast(`${pdsTypeConfig(pr.dataset.pdsRefresh).label} refreshed.`,"good")});
+    const pbt=e.target.closest("[data-pds-bulk-toggle]");if(pbt){S.pds.assignmentMode=!S.pds.assignmentMode;S.pds.selectedUnits.clear();S.pds.bulkDraft={};S.pds.individualDraft={};if(S.pds.assignmentMode){S.pds.assignType=S.pds.activeType==="all"?"all":S.pds.activeType;S.pds.assignStatus=S.pds.status==="All"?"Pending":S.pds.status;S.pds.assignSearch=S.pds.search||""}return renderView()}
+    const pnext=e.target.closest("[data-pds-select-next]");if(pnext){pdsAssignableUnits().filter(u=>!pdsExistingAssignment(u)&&!S.pds.selectedUnits.has(u.key)).slice(0,10).forEach(u=>S.pds.selectedUnits.add(u.key));return renderView()}
+    const pall=e.target.closest("[data-pds-select-all]");if(pall){pdsAssignableUnits().filter(u=>!pdsExistingAssignment(u)).forEach(u=>S.pds.selectedUnits.add(u.key));return renderView()}
+    const pcl=e.target.closest("[data-pds-clear-selection]");if(pcl){S.pds.selectedUnits.clear();return renderView()}
+    const pmode=e.target.closest("[data-pds-bulk-mode]");if(pmode){collectPdsBulkDraft();S.pds.bulkMode=pmode.dataset.pdsBulkMode;return renderView()}
+    const prev=e.target.closest("[data-pds-review-bulk]");if(prev)return guarded(()=>reviewPdsBulk());
     const prow=e.target.closest("[data-pds-row]");if(prow){const [type,index]=String(prow.dataset.pdsRow).split(":");return openPdsRecordModal(type,index)}
     const cr=e.target.closest("[data-criterion]");if(cr){const k=cr.dataset.criterion;S.selectedCriteria.has(k)?S.selectedCriteria.delete(k):S.selectedCriteria.add(k);S.selectedTargets.clear();return renderView()}
     const ac=e.target.closest("[data-act]");if(ac)return guarded(()=>handleAction(ac.dataset.act));
@@ -1400,11 +1567,15 @@ function wire(){
     if(e.target.id==="newProject"){S.newProjectId=e.target.value;return renderView()}
     if(e.target.id==="newDrawing"){S.newDrawingId=e.target.value;return renderView()}
     if(e.target.classList.contains("target-check")){const k=e.target.dataset.target;e.target.checked?S.selectedTargets.add(k):S.selectedTargets.delete(k);return renderView()}
+    if(e.target.id==="pdsAssignType"){S.pds.assignType=e.target.value;S.pds.selectedUnits.clear();if(S.pds.assignType!=="all"&&!Array.isArray(S.pds.detail[S.pds.assignType]))return guarded(async()=>{await ensurePdsData(S.pds.assignType);renderView()});return renderView()}
+    if(e.target.id==="pdsAssignStatus"){S.pds.assignStatus=e.target.value;S.pds.selectedUnits.clear();return renderView()}
+    if(e.target.classList.contains("pds-assign-check")){const k=e.target.dataset.pdsUnit;e.target.checked?S.pds.selectedUnits.add(k):S.pds.selectedUnits.delete(k);return renderView()}
   });
   document.addEventListener("input",e=>{
     if(e.target.id==="treeSearch"){S.treeSearch=e.target.value;const area=$("treeArea");if(area)area.innerHTML=renderTree()}
     if(e.target.id==="targetSearch"){S.targetSearch=e.target.value;const area=$("targetArea");if(area)area.innerHTML=renderTargetArea(S.current)}
     if(e.target.id==="pdsSearch"){S.pds.search=e.target.value;const area=$("pdsWorkspaceBody");if(area)area.innerHTML=renderPdsWorkspaceBody()}
+    if(e.target.id==="pdsAssignSearch"){S.pds.assignSearch=e.target.value;const area=$("pdsWorkspaceBody");if(area)area.innerHTML=renderPdsWorkspaceBody()}
   });
   document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("modalBackdrop").classList.contains("hidden"))closeModal()});
 }
