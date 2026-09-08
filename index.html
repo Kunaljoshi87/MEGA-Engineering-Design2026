@@ -109,6 +109,11 @@ const CONFIG={
     tracking:"Design_Tracking_Report"
   },
   FORMS:{tracking:"Design_Tracking"},
+  TRACKING_REPORT_CANDIDATES:[
+    "Design_Tracking_Report",
+    "All_Design_Tracking",
+    "Design_Tracking"
+  ],
   SYNC_ASSIGNMENT_START:true,
   PAGE_SIZE:100,
   MAX_BATCH:250
@@ -195,6 +200,12 @@ function adaptEmployee(r){return{raw:r,id:pick(r,EMP_ALIASES.id),name:pick(r,EMP
 function adaptEquipment(r){return{raw:r,id:pick(r,EQ_ALIASES.id),project:pick(r,EQ_ALIASES.project),plantSection:pick(r,EQ_ALIASES.section),plantSectionType:pick(r,EQ_ALIASES.sectionType),tag:pick(r,EQ_ALIASES.tag),name:pick(r,EQ_ALIASES.name),groupCode:pick(r,EQ_ALIASES.group),department:pick(r,EQ_ALIASES.department),equipmentCategory:pick(r,EQ_ALIASES.category),equipmentType:pick(r,EQ_ALIASES.type)}}
 function adaptRecord(r){return{...r,ID:idOf(r)}}
 function withApp(c){return{app_name:S.app||CONFIG.APP_NAME,...c}}
+function errorText(e){
+  if(e==null)return "Unknown Creator error";
+  if(typeof e==="string")return e;
+  if(e instanceof Error)return e.message||String(e);
+  try{return JSON.stringify(e)}catch(_){return String(e)}
+}
 function assertResp(r,label){if(!r)throw new Error(`${label}: empty response.`);if(r.code!=null&&Number(r.code)!==3000)throw new Error(`${label}: ${r.message||r.description||JSON.stringify(r)}`);return r}
 function prepareCreatorPayload(data){const out={...data};delete out[AF.furtherAssigned];delete out[AF.active];return out}
 async function fetchRecords(report,criteria="",max=20){if(S.demo)return demoFetch(report,criteria);const out=[];let cursor="";for(let i=0;i<max;i++){const c=withApp({report_name:report,field_config:"all",max_records:1000});if(criteria)c.criteria=criteria;if(cursor)c.record_cursor=cursor;let r;try{r=assertResp(await ZOHO.CREATOR.DATA.getRecords(c),`Read ${report}`)}catch(e){if(/9280|No records found/i.test(String(e.message||e)))return out;throw e}const rows=Array.isArray(r.data)?r.data:[];out.push(...rows);cursor=r.record_cursor||r.cursor||"";if(!cursor||!rows.length)break}return out}
@@ -202,7 +213,63 @@ async function addRecord(data){if(S.demo)return demoAdd(data);if(!CONFIG.LIVE_WR
 async function updateRecord(id,data){if(S.demo)return demoUpdate(id,data);if(!CONFIG.LIVE_WRITES)throw new Error("Live writes are disabled in CONFIG.");assertResp(await ZOHO.CREATOR.DATA.updateRecordById(withApp({report_name:CONFIG.REPORTS.tracking,id:String(id),payload:{data:prepareCreatorPayload(data)}})),"Update Design_Tracking");return id}
 async function uploadFile(id,field,file){if(!file)return;if(file.size>CONFIG.MAX_FILE_BYTES)throw new Error(`${file.name} is larger than 50 MB.`);if(S.demo){const r=S.records.find(x=>idOf(x)===String(id));if(r)r[field]=file.name;return}assertResp(await ZOHO.CREATOR.FILE.uploadFile(withApp({report_name:CONFIG.REPORTS.tracking,id:String(id),field_name:field,file})),`Upload ${field}`)}
 async function readFile(id,field){if(S.demo)throw new Error("File download is unavailable in demo mode.");return await ZOHO.CREATOR.FILE.readFile(withApp({report_name:CONFIG.REPORTS.tracking,id:String(id),field_name:field}))}
-async function safeSource(report,label,{required=false}={}){try{return await fetchRecords(report)}catch(e){const msg=`${label} access failed (${report}). Check this user's Creator permissions.`;console.error(msg,e);if(required)throw new Error(`${msg} ${e.message||e}`);toast(msg,"error");return[]}}
+async function safeSource(report,label,{required=false}={}){
+  try{return await fetchRecords(report)}
+  catch(e){
+    const detail=errorText(e);
+    const msg=`${label} access failed (${report}).`;
+    console.error(msg,e);
+    if(required)throw new Error(`${msg} ${detail}`);
+    toast(`${msg} ${detail}`,"error");
+    return[];
+  }
+}
+
+/*
+  V17.1 FIX:
+  Do not hard-code Design_Tracking_Report. Different Creator apps commonly have
+  a generated report link such as All_Design_Tracking or Design_Tracking.
+  Normal users may also lack META API permission, so we resolve the report only
+  by trying DATA.getRecords against known candidates. No META call is required.
+*/
+async function resolveTrackingSource(){
+  if(S.demo)return {report:CONFIG.REPORTS.tracking,rows:await fetchRecords(CONFIG.REPORTS.tracking)};
+
+  const candidates=[...new Set([
+    CONFIG.REPORTS.tracking,
+    ...(CONFIG.TRACKING_REPORT_CANDIDATES||[])
+  ].filter(Boolean))];
+
+  let emptySuccess=null;
+  const failures=[];
+
+  for(const report of candidates){
+    try{
+      const rows=await fetchRecords(report,"",20);
+      if(rows.length){
+        CONFIG.REPORTS.tracking=report;
+        log("tracking-report-resolved",{report,records:rows.length});
+        return {report,rows};
+      }
+      if(!emptySuccess)emptySuccess={report,rows};
+    }catch(e){
+      failures.push(`${report}: ${errorText(e)}`);
+      console.warn(`Tracking report candidate failed: ${report}`,e);
+    }
+  }
+
+  if(emptySuccess){
+    CONFIG.REPORTS.tracking=emptySuccess.report;
+    log("tracking-report-resolved-empty",{report:emptySuccess.report});
+    return emptySuccess;
+  }
+
+  throw new Error(
+    `Design Tracking data is not accessible. Tried report links: ${candidates.join(", ")}. `+
+    `Open the Design Tracking report in Creator, copy its exact link name, or grant this user View permission. `+
+    (failures.length?`Details: ${failures.join(" | ")}`:"")
+  );
+}
 
 function isAssignmentRecord(r){return scalar(r?.[AF.assignmentLevel])!==""||Boolean(scalar(r?.[AF.primaryAssignment]))||Boolean(scalar(r?.[AF.assignedFrom]))}
 function isRevisionRecord(r){if(isAssignmentRecord(r))return false;const key=scalar(r?.[AF.logicalTaskKey]);return Boolean(scalar(r?.[AF.revision])||scalar(r?.[AF.parentDesignId])||key.startsWith("EXEC::"))}
@@ -241,7 +308,8 @@ async function bootstrap(){busy("Loading your drawing workspace…");try{
     const init=await Promise.race([ZOHO.CREATOR.UTIL.getInitParams(),new Promise((_,rej)=>setTimeout(()=>rej(new Error("Creator session timed out.")),9000))]);
     S.user=init?.loginUser||"";S.app=init?.appLinkName||CONFIG.APP_NAME;
   }
-  const tr=await safeSource(CONFIG.REPORTS.tracking,"Design Tracking",{required:true});
+  const trackingSource=await resolveTrackingSource();
+  const tr=trackingSource.rows;
   const [pr,dr,er,eq]=await Promise.all([
     safeSource(CONFIG.REPORTS.projects,"Project master"),safeSource(CONFIG.REPORTS.drawings,"Drawing master"),safeSource(CONFIG.REPORTS.employees,"Employee master"),safeSource(CONFIG.REPORTS.equipment,"Equipment master")
   ]);
@@ -251,10 +319,11 @@ async function bootstrap(){busy("Loading your drawing workspace…");try{
   S.equipment=eq.map(adaptEquipment);
   S.records=tr.map(adaptRecord);S.assignments=S.records.filter(isAssignmentRecord);S.revisions=S.records.filter(isRevisionRecord);
   $("sessionPill").textContent=S.user?`Signed in: ${personDisplay(S.user)||S.user}`:"Creator session connected";
+  log("tracking-report-in-use",{report:CONFIG.REPORTS.tracking});
   renderView();
   if(!S.projects.length||!S.drawings.length||!S.employees.length||!S.equipment.length)toast("Some master reports are not accessible. Existing assignments still work, but new assignment/delegation options may be limited.","warn");
-}catch(e){console.error(e);$("sessionPill").textContent="Creator data access error";$("page").innerHTML=`<div class="panel"><div class="panel-body"><div class="empty"><div class="ico">⚠</div><strong>Creator data could not be loaded</strong><div>${h(e.message||e)}</div><div class="small" style="margin-top:8px">Grant this user View access to Design_Tracking_Report and the required master reports.</div></div></div></div>`;toast(e.message||String(e),"error")}finally{idle()}}
-async function refreshData(){busy("Refreshing assignments and design revisions…");try{const tr=await safeSource(CONFIG.REPORTS.tracking,"Design Tracking",{required:true});S.records=tr.map(adaptRecord);S.assignments=S.records.filter(isAssignmentRecord);S.revisions=S.records.filter(isRevisionRecord);renderView();toast("Workspace refreshed.","good")}finally{idle()}}
+}catch(e){console.error(e);const detail=errorText(e);$("sessionPill").textContent="Creator data access error";$("page").innerHTML=`<div class="panel"><div class="panel-body"><div class="empty"><div class="ico">⚠</div><strong>Creator data could not be loaded</strong><div>${h(detail)}</div><div class="small" style="margin-top:8px">The widget automatically tries Design_Tracking_Report, All_Design_Tracking and Design_Tracking. If all fail, verify the exact report link name and this user's View permission.</div></div></div></div>`;toast(detail,"error")}finally{idle()}}
+async function refreshData(){busy("Refreshing assignments and design revisions…");try{const source=await resolveTrackingSource();const tr=source.rows;S.records=tr.map(adaptRecord);S.assignments=S.records.filter(isAssignmentRecord);S.revisions=S.records.filter(isRevisionRecord);renderView();toast("Workspace refreshed.","good")}finally{idle()}}
 
 function employeeOptions(value="",blank="Select team member…"){const v=String(value||"");return `<option value="">${h(blank)}</option>`+S.employees.map(e=>{const val=e.email||e.id;return `<option value="${h(val)}" ${String(val)===v?"selected":""}>${h(e.name||e.email)}${e.department?` — ${h(e.department)}`:""}</option>`}).join("")}
 function projectOptions(value=""){return `<option value="">Select project…</option>`+S.projects.map(p=>`<option value="${h(p.id)}" ${p.id===value?"selected":""}>${h(p.code)}${p.name?` — ${h(p.name)}`:""}</option>`).join("")}
