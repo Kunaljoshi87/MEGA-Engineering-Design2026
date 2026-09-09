@@ -645,15 +645,43 @@ async function uploadFile(id,field,file){
   })),`Upload ${field}`);
 }
 
-// readFile(): for a Multiple Upload field Creator needs the exact file_path.
+// extractCreatorFilePath(): Creator record responses for Multiple Upload fields
+// can return a complete relative download URL such as:
+// /api/v2.1/.../Drawing_File/download?filepath=1788952924226152_Drawing.pdf
+// FILE.readFile does NOT want that whole URL. It wants only the exact filepath
+// query value, e.g. 1788952924226152_Drawing.pdf.
+function extractCreatorFilePath(value){
+  let s=String(value||"").trim();
+  if(!s)return "";
+  s=s.replace(/&amp;/gi,"&");
+  const m=s.match(/[?&](?:filepath|file_path)=([^&#]+)/i);
+  if(m){
+    try{return decodeURIComponent(m[1])}catch(_){return m[1]}
+  }
+  return s;
+}
+
+function creatorDisplayFileName(value){
+  const filePath=extractCreatorFilePath(value);
+  let name=String(filePath||"").split("/").pop()||String(filePath||"");
+  try{name=decodeURIComponent(name)}catch(_){ }
+  // Creator prefixes uploaded files with a long numeric unique value.
+  // Hide only that technical prefix in the UI.
+  name=name.replace(/^\d+_/,"");
+  return name||"File";
+}
+
+// readFile(): for a Multiple Upload field Creator needs ONLY the exact file_path.
 async function readFile(id,field,filePath=""){
   if(S.demo)throw new Error("File download is unavailable in demo mode.");
-  if(!filePath)throw new Error("Creator file path is missing for this file.");
+  const exactFilePath=extractCreatorFilePath(filePath);
+  if(!exactFilePath)throw new Error("Creator file path is missing for this file.");
+  log("file-download-request",{recordId:String(id),field,filePath:exactFilePath});
   return await ZOHO.CREATOR.FILE.readFile(withApp({
     report_name:CONFIG.REPORTS.tracking,
     id:String(id),
     field_name:field,
-    file_path:filePath
+    file_path:exactFilePath
   }));
 }
 
@@ -675,44 +703,73 @@ async function getTrackingRecordById(id){
 function creatorFileEntries(value){
   const out=[];
   const seen=new Set();
-  const add=(filename,filepath)=>{
-    filename=String(filename||"").trim();
-    filepath=String(filepath||"").trim();
-    if(!filename&&filepath){
-      const raw=filepath.split("/").pop()||filepath;
-      filename=raw.replace(/^\d+_/,"");
-    }
-    if(!filepath&&filename)filepath=filename;
-    if(!filename&&!filepath)return;
-    const key=`${filename}|||${filepath}`;
+
+  const add=(filename,filepath,downloadUrl="")=>{
+    let rawName=String(filename||"").trim();
+    let rawPath=String(filepath||"").trim();
+    const rawUrl=String(downloadUrl||"").trim();
+
+    // A Creator Multiple Upload field often returns the COMPLETE download URL
+    // instead of {filename, filepath}. Extract only the filepath query value.
+    const sourceWithPath=rawPath||rawName||rawUrl;
+    const exactPath=extractCreatorFilePath(sourceWithPath);
+
+    // If the supplied "filename" itself is a Creator API URL, never show that
+    // technical URL to the user. Display only the cleaned file name.
+    const nameLooksLikeUrl=/\/api\/|[?&](?:filepath|file_path)=/i.test(rawName);
+    let displayName=(!nameLooksLikeUrl&&rawName)?rawName:creatorDisplayFileName(exactPath);
+    if(!displayName)displayName=creatorDisplayFileName(exactPath);
+    if(!exactPath&&!displayName)return;
+
+    const key=`${displayName}|||${exactPath}`;
     if(seen.has(key))return;
-    seen.add(key);out.push({filename,filepath});
+    seen.add(key);
+    out.push({
+      filename:displayName||"File",
+      filepath:exactPath,
+      downloadUrl:rawUrl||((/\/api\//i.test(rawPath)||/\/api\//i.test(rawName))?(rawPath||rawName):"")
+    });
   };
+
   const parse=item=>{
     if(item==null||item==="")return;
     if(Array.isArray(item)){item.forEach(parse);return;}
+
     if(typeof item==="object"){
       const filename=item.filename||item.file_name||item.name||"";
       const filepath=item.filepath||item.file_path||item.path||"";
-      if(filename||filepath){add(filename,filepath);return;}
+      const downloadUrl=item.download_url||item.downloadUrl||item.url||"";
+      if(filename||filepath||downloadUrl){add(filename,filepath||downloadUrl,downloadUrl);return;}
       if(item.display_value!=null){parse(item.display_value);return;}
       if(item.zc_display_value!=null){parse(item.zc_display_value);return;}
       if(item.value!=null){parse(item.value);return;}
       return;
     }
-    const s=String(item).trim();
-    if(!s)return;
-    if((s.startsWith("[")&&s.endsWith("]"))||(s.startsWith("{")&&s.endsWith("}"))){
-      try{parse(JSON.parse(s));return}catch(_){ }
+
+    const text=String(item).trim();
+    if(!text)return;
+
+    if((text.startsWith("[")&&text.endsWith("]"))||(text.startsWith("{")&&text.endsWith("}"))){
+      try{parse(JSON.parse(text));return}catch(_){ }
     }
-    // Some Creator responses expose multiple files as comma-separated display text.
-    // Do not split ordinary filenames blindly; split only obvious URL/path lists.
-    if(s.includes(",")&&(/filepath|\/uploads\//i.test(s))){
-      s.split(",").map(x=>x.trim()).filter(Boolean).forEach(x=>add("",x));
+
+    // Some Creator responses may return several API download URLs in one string.
+    // Split only when each part clearly looks like a Creator file URL.
+    if(text.includes(",")&&/[?&](?:filepath|file_path)=/i.test(text)){
+      text.split(",").map(x=>x.trim()).filter(Boolean).forEach(x=>add("",x,x));
       return;
     }
-    add(s,s);
+
+    // Normal Creator Multiple Upload response: a relative download URL.
+    if(/\/api\/|[?&](?:filepath|file_path)=/i.test(text)){
+      add("",text,text);
+      return;
+    }
+
+    // Legacy/single-file fallback.
+    add(text,text,"");
   };
+
   parse(value);
   return out;
 }
@@ -2293,6 +2350,12 @@ async function creatorFileResponseToBlob(value,fileName,depth=0){
   }
 
   if(typeof value==="object"){
+    // If Creator returned an API ERROR object, surface the real error instead
+    // of calling it an unsupported [object Object] file response.
+    if(value.code!=null&&Number(value.code)!==3000){
+      throw new Error(value.message||value.description||`Creator file API failed with code ${value.code}.`);
+    }
+
     // Node/SDK Buffer JSON shape: { type:"Buffer", data:[...] }
     if(value.type==="Buffer"&&Array.isArray(value.data)){
       return new Blob([new Uint8Array(value.data)],{type:mime});
