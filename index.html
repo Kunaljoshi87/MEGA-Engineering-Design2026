@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="color-scheme" content="light">
-<title>MEGA Engineering | Drawing & Document Control V17.13 Alerts + Activity Timeline + Detail Drawer + Performance</title>
+<title>MEGA Engineering | Drawing & Document Control V17.14 Alerts + Activity Timeline + Detail Drawer + Performance</title>
 <script src="https://static.zohocdn.com/creator/widgets/version/2.0/widgetsdk-min.js"></script>
 <style>
 :root{
@@ -62,7 +62,7 @@ body{font:14px/1.48 Inter,"Segoe UI",Arial,sans-serif}button,input,select,textar
 @media(max-width:1100px){.pds-assign-filter{grid-template-columns:1fr 1fr}.pds-work-list{grid-template-columns:1fr}.pds-bulk-grid{grid-template-columns:1fr 1fr 1fr}.pds-bulk-grid .wide{grid-column:1/-1}}
 @media(max-width:680px){.pds-assign-filter,.pds-bulk-grid{grid-template-columns:1fr}.pds-assign-banner{align-items:flex-start;flex-direction:column}.pds-work-list{padding:8px}.pds-work-row{grid-template-columns:auto 1fr}.pds-work-owner{grid-column:2;text-align:left;max-width:none}}
 
-/* ================= V17.13 UX: DRAWER / ALERTS / ACTIVITY ================= */
+/* ================= V17.14 UX: DRAWER / ALERTS / ACTIVITY ================= */
 .drawer-backdrop{position:fixed;inset:0;background:rgba(15,23,42,.28);z-index:115;opacity:0;pointer-events:none;transition:.18s ease}.drawer-backdrop.open{opacity:1;pointer-events:auto}.detail-drawer{position:fixed;top:0;right:0;bottom:0;width:min(540px,96vw);background:#fff;z-index:120;box-shadow:-18px 0 45px rgba(15,23,42,.18);transform:translateX(105%);transition:transform .22s ease;display:flex;flex-direction:column}.detail-drawer.open{transform:translateX(0)}.drawer-head{padding:18px 18px 14px;border-bottom:1px solid var(--line);background:linear-gradient(135deg,#fff,#fff7fb)}.drawer-head-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}.drawer-title{font-size:18px;font-weight:950;margin:3px 0}.drawer-sub{font-size:11px;color:var(--muted)}.drawer-close{width:36px;height:36px;border-radius:10px;border:1px solid var(--line);background:#fff;font-size:20px}.drawer-crumbs{display:flex;gap:5px;align-items:center;flex-wrap:wrap;margin-bottom:8px}.drawer-crumb{border:0;background:transparent;padding:0;color:var(--brand2);font-size:10px;font-weight:850}.drawer-crumb.current{color:#475467}.drawer-tabs{display:flex;gap:5px;padding:8px 14px;border-bottom:1px solid var(--line);overflow:auto}.drawer-tab{white-space:nowrap;border:0;background:transparent;border-radius:8px;padding:7px 10px;font-size:11px;font-weight:900;color:var(--muted)}.drawer-tab.active{background:var(--brand-soft);color:var(--brand2)}.drawer-body{padding:16px;overflow:auto;flex:1}.drawer-actions{display:flex;gap:8px;flex-wrap:wrap;padding:12px 16px;border-top:1px solid var(--line);background:#fff}.alert-center{display:grid;grid-template-columns:repeat(4,minmax(170px,1fr));gap:9px;margin-bottom:14px}.alert-card{border:1px solid var(--line);border-radius:13px;background:#fff;padding:12px;display:flex;gap:10px;align-items:flex-start;box-shadow:var(--shadow-sm)}.alert-card .ai{width:32px;height:32px;border-radius:9px;display:grid;place-items:center;font-size:15px;font-weight:900}.alert-card .an{font-size:18px;font-weight:950;line-height:1}.alert-card .at{font-size:10px;font-weight:900;margin-top:3px}.alert-card .ad{font-size:9px;color:var(--muted);margin-top:2px}.alert-card.red .ai{background:var(--red-soft);color:var(--red)}.alert-card.amber .ai{background:var(--amber-soft);color:var(--amber)}.alert-card.blue .ai{background:var(--blue-soft);color:var(--blue)}.alert-card.purple .ai{background:var(--purple-soft);color:var(--purple)}.smart-alerts{display:grid;gap:8px}.smart-alert{display:grid;grid-template-columns:auto 1fr;gap:9px;align-items:center;border:1px solid var(--line);border-left-width:4px;border-radius:10px;background:#fff;padding:10px 11px}.smart-alert.red{border-left-color:var(--red)}.smart-alert.amber{border-left-color:var(--amber)}.smart-alert.blue{border-left-color:var(--blue)}.smart-alert.purple{border-left-color:var(--purple)}.smart-alert.green{border-left-color:var(--green)}.smart-alert .title{font-weight:900;font-size:11px}.smart-alert .detail{font-size:9px;color:var(--muted);margin-top:2px}.timeline{position:relative;display:grid;gap:0;padding-left:8px}.timeline:before{content:"";position:absolute;left:18px;top:8px;bottom:8px;width:2px;background:#edf0f4}.timeline-item{position:relative;display:grid;grid-template-columns:22px 1fr;gap:10px;padding:0 0 15px}.timeline-dot{width:12px;height:12px;border-radius:50%;background:var(--brand);border:3px solid #fff;box-shadow:0 0 0 2px #efc5d7;margin-top:4px;z-index:1}.timeline-card{border:1px solid var(--line2);border-radius:10px;padding:9px 10px;background:#fff}.timeline-card .action{font-size:11px;font-weight:900}.timeline-card .meta{font-size:9px;color:var(--muted);margin-top:2px}.timeline-card .detail{font-size:10px;color:#475467;margin-top:5px}.quick-view-link{font-size:10px;font-weight:900;color:var(--brand2);border:0;background:transparent;padding:0}.perf-note{font-size:9px;color:var(--muted);margin-top:5px}
 @media(max-width:1100px){.alert-center{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:620px){.alert-center{grid-template-columns:1fr}.detail-drawer{width:100vw}}
@@ -101,7 +101,7 @@ body{font:14px/1.48 Inter,"Segoe UI",Arial,sans-serif}button,input,select,textar
 <!-- UI SECTION: Reusable modal for assignment, return and revision actions. -->
 <div id="modalBackdrop" class="modal-backdrop hidden"><div class="modal"><div class="modal-head"><div><div id="modalTitle" class="modal-title"></div><div id="modalSub" class="modal-sub"></div></div><button id="modalClose" class="icon-btn">×</button></div><div id="modalBody" class="modal-body"></div><div id="modalFoot" class="modal-foot"></div></div></div>
 
-<!-- UI SECTION V17.13: Right-side quick detail drawer. -->
+<!-- UI SECTION V17.14: Right-side quick detail drawer. -->
 <div id="drawerBackdrop" class="drawer-backdrop"></div>
 <aside id="detailDrawer" class="detail-drawer" aria-hidden="true">
   <div id="drawerHead" class="drawer-head"></div>
@@ -118,7 +118,7 @@ body{font:14px/1.48 Inter,"Segoe UI",Arial,sans-serif}button,input,select,textar
 "use strict";
 
 /* ======================================================================
-   V17.13 ONE-FORM ENGINEERING DESIGN CONTROL — UX + ALERTS + ACTIVITY + PERFORMANCE
+   V17.14 ONE-FORM ENGINEERING DESIGN CONTROL — UX + ALERTS + ACTIVITY + PERFORMANCE
    ----------------------------------------------------------------------
    READS existing masters:
      - Project master
@@ -179,7 +179,27 @@ const CONFIG={
   TRACKING_REPORT_CANDIDATES:["Design_Tracking_Report"],
   SYNC_ASSIGNMENT_START:true,
   PAGE_SIZE:100,
-  MAX_BATCH:250
+  MAX_BATCH:250,
+
+  /* ================= V17.14 ASSIGNMENT EMAIL NOTIFICATION =================
+     After a successful Design_Tracking save, the widget invokes one Creator
+     Custom API that performs Deluge sendmail on the server.
+
+     REQUIRED ONE-TIME CREATOR SETUP:
+       Custom API link name : send_design_assignment_email
+       Method               : POST
+       Authentication       : OAuth2
+       User scope           : All (or selected widget users)
+       Arguments            : to_email, to_name, subject_text, message_html
+
+     FAIL_OPEN=true means assignment creation is not rolled back if email fails.
+     ======================================================================= */
+  NOTIFICATIONS:{
+    enabled:true,
+    assignmentEmailApi:"send_design_assignment_email",
+    workspaceName:"",
+    failOpen:true
+  }
 };
 
 /* ===================== EXISTING PDS REPORT SOURCES =====================
@@ -663,8 +683,152 @@ function employeeNameFor(value){const v=String(value||"");const e=S.employees.fi
 function personDisplay(value){const raw=scalar(value).trim();if(!raw)return"";const e=S.employees.find(x=>String(x.email||"").toLowerCase()===raw.toLowerCase()||String(x.id||"")===raw);return e?.name||raw}
 // currentUserMatches(): compares email/ID/name to logged-in user. In POC it is used only for My Work / My Team filtering, not permissions.
 function currentUserMatches(value){const raw=scalar(value).trim().toLowerCase(),me=String(S.user||"").trim().toLowerCase();if(!raw||!me)return false;if(raw===me||raw.includes(me))return true;const emp=S.employees.find(e=>String(e.email||"").toLowerCase()===me);return emp?raw===String(emp.id||"").toLowerCase()||raw===String(emp.name||"").toLowerCase():false}
-/* ================= V17.13: EMAIL / ACTIVITY / SMART ALERT HELPERS ================= */
+/* ================= V17.14: EMAIL / ACTIVITY / SMART ALERT HELPERS ================= */
 function employeeEmailFor(value){const raw=scalar(value).trim();if(!raw)return"";if(raw.includes("@"))return raw;const e=S.employees.find(x=>String(x.id||"")===raw||String(x.name||"").toLowerCase()===raw.toLowerCase());return e?.email||""}
+
+/* ================= V17.14 EMPLOYEE -> NORMAL EMAIL RESOLUTION =================
+   The visible dropdown is populated from Employ_to_Create_ticket_Report.
+   When the user selects an Employee Name, the widget resolves that employee and
+   always writes the report's normal Email field into Design_Tracking.Assigned_To.
+   Support Email is intentionally NOT used for Design Control notifications.
+   ============================================================================ */
+function employeeRecordFor(value){
+  const raw=scalar(value).trim();
+  if(!raw)return null;
+  const low=raw.toLowerCase();
+  return S.employees.find(e=>
+    String(e.email||"").toLowerCase()===low ||
+    String(e.id||"")===raw ||
+    String(e.name||"").toLowerCase()===low
+  )||null;
+}
+function requireAssignmentRecipient(value){
+  const emp=employeeRecordFor(value);
+  const email=String(emp?.email||employeeEmailFor(value)||"").trim();
+  const name=String(emp?.name||employeeNameFor(value)||"").trim();
+  if(!email || !email.includes("@")){
+    throw new Error(`${name||"Selected employee"} does not have a valid normal Email in ${CONFIG.REPORTS.employees}. Add the Email value before assigning work.`);
+  }
+  return {employee:emp,email,name:name||email,id:String(emp?.id||"")};
+}
+function assignmentRecipientFromRecord(record){
+  return requireAssignmentRecipient(scalar(record?.[AF.assignedTo])||scalar(record?.[AF.assignedEmployeeName]));
+}
+
+/* ================= V17.14 ASSIGNMENT EMAIL CUSTOM API =================
+   One saved assignment -> one email.
+   Bulk assignments to the same person -> one summary email.
+   Different-people bulk -> one summary email per recipient.
+   ======================================================================= */
+function notificationAssignmentItem(record){
+  return {
+    recordId:idOf(record),
+    project:scalar(record?.[AF.projectCode]),
+    drawing:scalar(record?.[AF.drawingDocument]),
+    shortName:scalar(record?.[AF.shortName]),
+    responsibility:scopeSummary(record),
+    tag:scalar(record?.[AF.tagNo]),
+    equipment:scalar(record?.[AF.equipmentName]),
+    designType:scalar(record?.[AF.designType]),
+    target:displayDate(record?.[AF.targetDate]),
+    priority:scalar(record?.[AF.priority])||"Medium"
+  };
+}
+function assignmentEmailSubject(records){
+  const first=records[0]||{};
+  const project=scalar(first[AF.projectCode]);
+  const drawing=scalar(first[AF.shortName])||scalar(first[AF.drawingDocument]);
+  if(records.length===1){
+    const dt=scalar(first[AF.designType]);
+    return `[Design Control] New Assignment${project?` - ${project}`:""}${drawing?` - ${drawing}`:""}${dt?` - ${dt}`:""}`;
+  }
+  return `[Design Control] ${records.length} New Assignments${project?` - ${project}`:""}${drawing?` - ${drawing}`:""}`;
+}
+function assignmentEmailHtml(recipient,records){
+  const visibleRecords=records.slice(0,50);
+  const hiddenCount=Math.max(0,records.length-visibleRecords.length);
+  const items=visibleRecords.map(notificationAssignmentItem);
+  const assignedBy=personDisplay(records[0]?.[AF.assignedBy])||scalar(records[0]?.[AF.assignedBy])||S.user||"Design Control";
+  const rows=items.map((x,i)=>`<tr>
+    <td style="padding:8px;border:1px solid #e5e7eb">${i+1}</td>
+    <td style="padding:8px;border:1px solid #e5e7eb"><b>${h(x.project||"—")}</b><br>${h(x.drawing||x.shortName||"—")}</td>
+    <td style="padding:8px;border:1px solid #e5e7eb">${h(x.responsibility||"—")}${x.designType?`<br><b>${h(x.designType)}</b>`:""}</td>
+    <td style="padding:8px;border:1px solid #e5e7eb">${h(x.target||"—")}</td>
+    <td style="padding:8px;border:1px solid #e5e7eb">${h(x.priority||"Medium")}</td>
+  </tr>`).join("");
+  return `<div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#1f2937;line-height:1.5">
+    <div style="background:#c42770;color:#fff;padding:16px 18px;border-radius:8px 8px 0 0">
+      <div style="font-size:12px;opacity:.9">MEGA ENGINEERING</div>
+      <div style="font-size:20px;font-weight:700">Drawing &amp; Document Control</div>
+    </div>
+    <div style="padding:18px;border:1px solid #e5e7eb;border-top:0;border-radius:0 0 8px 8px">
+      <p>Hello <b>${h(recipient.name||recipient.email)}</b>,</p>
+      <p>${records.length===1?"A new design/document responsibility has been assigned to you.":`<b>${records.length}</b> new design/document responsibilities have been assigned to you.`}</p>
+      <p><b>Assigned By:</b> ${h(assignedBy)}</p>
+      <table style="width:100%;border-collapse:collapse;margin-top:12px">
+        <thead><tr style="background:#f9fafb">
+          <th style="padding:8px;border:1px solid #e5e7eb;text-align:left">#</th>
+          <th style="padding:8px;border:1px solid #e5e7eb;text-align:left">Project / Drawing</th>
+          <th style="padding:8px;border:1px solid #e5e7eb;text-align:left">Responsibility</th>
+          <th style="padding:8px;border:1px solid #e5e7eb;text-align:left">Target</th>
+          <th style="padding:8px;border:1px solid #e5e7eb;text-align:left">Priority</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+      ${hiddenCount?`<p style="margin-top:12px;color:#667085"><b>+ ${hiddenCount} more assignment${hiddenCount===1?"":"s"}</b> are included in this bulk assignment. Open Design Control to view the complete list.</p>`:""}
+      <p style="margin-top:16px">Please open <b>Drawing &amp; Document Control</b> in Zoho Creator to review and work on this assignment.</p>
+      <p style="color:#667085;font-size:12px">Notification email resolved from Employee Details: ${h(recipient.email)}</p>
+    </div>
+  </div>`;
+}
+async function invokeAssignmentEmailCustomApi(recipient,records){
+  if(!CONFIG.NOTIFICATIONS?.enabled || !records?.length)return {skipped:true};
+  if(S.demo){console.info("DEMO assignment email",recipient,records);return {demo:true};}
+  if(!ZOHO?.CREATOR?.DATA?.invokeCustomApi){
+    throw new Error("Creator Custom API invocation is unavailable. Confirm Widget JS API v2 is loaded.");
+  }
+  const cfg={
+    api_name:CONFIG.NOTIFICATIONS.assignmentEmailApi,
+    http_method:"POST",
+    content_type:"application/json",
+    payload:{
+      to_email:recipient.email,
+      to_name:recipient.name||recipient.email,
+      subject_text:assignmentEmailSubject(records),
+      message_html:assignmentEmailHtml(recipient,records)
+    }
+  };
+  if(CONFIG.NOTIFICATIONS.workspaceName)cfg.workspace_name=CONFIG.NOTIFICATIONS.workspaceName;
+  const response=await ZOHO.CREATOR.DATA.invokeCustomApi(cfg);
+  log("assignment-email",{to:recipient.email,count:records.length,response});
+  return response||{status:"sent"};
+}
+async function notifyCreatedAssignments(records){
+  const valid=(records||[]).filter(Boolean);
+  if(!valid.length || !CONFIG.NOTIFICATIONS?.enabled)return {sent:0,failed:0};
+  const groups=new Map();
+  for(const record of valid){
+    const recipient=assignmentRecipientFromRecord(record);
+    const key=recipient.email.toLowerCase();
+    if(!groups.has(key))groups.set(key,{recipient,records:[]});
+    groups.get(key).records.push(record);
+  }
+  let sent=0,failed=0;
+  for(const {recipient,records:rows} of groups.values()){
+    try{
+      await invokeAssignmentEmailCustomApi(recipient,rows);
+      sent++;
+      toast(`Email sent to ${recipient.name} (${recipient.email})${rows.length>1?` for ${rows.length} assignments`:""}.`,"good");
+    }catch(e){
+      failed++;
+      console.error("Assignment email failed",recipient,e);
+      toast(`Assignment saved, but email to ${recipient.name||recipient.email} failed: ${errorText(e)}`,"warn");
+      if(!CONFIG.NOTIFICATIONS.failOpen)throw e;
+    }
+  }
+  return {sent,failed};
+}
+
 function activityEntry(action,detail="",record=null,extra={}){return{time:new Date().toISOString(),actor:S.user||employeeEmailFor(record?.[AF.assignedTo])||"system",action:String(action||"Activity"),detail:String(detail||""),...extra}}
 function parseActivityLog(record){const raw=scalar(record?.[AF.activityLog]).trim();if(!raw)return[];try{const v=JSON.parse(raw);return Array.isArray(v)?v:[]}catch(_){return raw.split(/\n+/).filter(Boolean).map(line=>({time:"",actor:"",action:"Activity",detail:line}))}}
 function activityLogWith(record,entry){const arr=parseActivityLog(record);arr.push(entry);return JSON.stringify(arr.slice(-80))}
@@ -1216,12 +1380,13 @@ function collectPdsBulkDraft(){
   return S.pds.bulkDraft;
 }
 function buildPdsAssignmentPayload(parent,unit,draft,user,target){
-  const d=drawingForAssignment(parent),g=unit.group,assignedUser=user||draft.user;
+  const recipient=requireAssignmentRecipient(user||draft.user);
+  const d=drawingForAssignment(parent),g=unit.group,assignedUser=recipient.email;
   const equipment=S.equipment.find(e=>nk(e.project)===nk(scalar(parent[AF.projectCode]))&&((g.tag&&nk(e.tag)===nk(g.tag))||(!g.tag&&g.name&&nk(e.name)===nk(g.name))));
   const data={
     [AF.projectCode]:scalar(parent[AF.projectCode]),[AF.projectRecordId]:scalar(parent[AF.projectRecordId]),[AF.drawingDocument]:d.name,[AF.drawingMasterId]:d.id,[AF.shortName]:d.short||"",
     [AF.primaryAssignment]:scalar(parent[AF.primaryAssignment])||idOf(primaryForRows(groupForAssignment(parent)?.rows||[])),[AF.assignedFrom]:idOf(parent),[AF.assignmentLevel]:num(parent[AF.assignmentLevel])+1,
-    [AF.assignedBy]:S.user||assignmentUser(parent),[AF.assignedTo]:assignedUser,[AF.assignedEmployeeName]:employeeNameFor(assignedUser),[AF.criteria]:"Tag / Equipment, PDS Type",
+    [AF.assignedBy]:S.user||assignmentUser(parent),[AF.assignedTo]:recipient.email,[AF.assignedEmployeeName]:recipient.name,[AF.criteria]:"Tag / Equipment, PDS Type",
     [AF.designType]:unit.typeLabel,[AF.designTitle]:`${unit.typeLabel} — ${g.tag||g.name||"PDS Work"}`,
     // Reuse the existing Logical_Task_Key as a deterministic PDS-assignment identity.
     // Assignment_Level still classifies this row as an Assignment, so this does not
@@ -1248,7 +1413,23 @@ function pdsBulkAssignmentsDraft(){
 }
 function pdsBulkReviewHtml(items,d){return `<div class="review-grid"><div class="review-metric"><div class="n">${items.length}</div><div class="l">NEW PDS ASSIGNMENTS</div></div><div class="review-metric"><div class="n">${h(S.pds.bulkMode==="same"?employeeNameFor(d.user):"Multiple")}</div><div class="l">ASSIGNEE MODE</div></div><div class="review-metric"><div class="n">Level ${num(S.current[AF.assignmentLevel])+1}</div><div class="l">NEXT LEVEL</div></div></div><div class="notice good"><b>One-form architecture:</b> each row below will create one independent Design_Tracking assignment linked to the currently opened responsibility. Existing PDS source records are read-only and remain unchanged.</div><div class="table-wrap" style="margin-top:12px"><table><thead><tr><th>#</th><th>Tag / Equipment</th><th>PDS Type</th><th>Source Status</th><th>Assigned To</th><th>Target</th></tr></thead><tbody>${items.map((x,i)=>`<tr><td>${i+1}</td><td><b>${h(x.unit.group.tag||x.unit.group.name||"—")}</b><div class="tiny muted">${h(x.unit.group.name||"")}</div></td><td>${h(x.unit.typeLabel)}</td><td>${pdsStatusSummaryHtml(x.unit.statuses)}</td><td>${h(employeeNameFor(x.user))}</td><td>${h(x.target)}</td></tr>`).join("")}</tbody></table></div>`}
 function reviewPdsBulk(){const d=collectPdsBulkDraft(),items=pdsBulkAssignmentsDraft();if(items.length>CONFIG.MAX_BATCH)throw new Error(`Maximum ${CONFIG.MAX_BATCH} assignments can be created in one batch.`);openModal("Review PDS Bulk Assignment",`${items.length} independent PDS responsibilities will be created.`,pdsBulkReviewHtml(items,d),`<button class="btn" data-modal="close">Back</button><button class="btn primary" data-modal="confirm-pds-bulk">Create ${items.length} Assignments</button>`)}
-async function confirmPdsBulk(){const d=S.pds.bulkDraft||{},items=pdsBulkAssignmentsDraft();if(items.length>CONFIG.MAX_BATCH)throw new Error(`Maximum ${CONFIG.MAX_BATCH} assignments can be created in one batch.`);busy(`Creating ${items.length} PDS assignments…`);let ok=0,fail=0;try{for(const x of items){try{const data=buildPdsAssignmentPayload(S.current,x.unit,d,x.user,x.target),id=await addRecord(data);const rec={ID:id,...data};S.records.push(rec);S.assignments.push(rec);ok++}catch(e){console.error("PDS assignment failed",x,e);fail++}}closeModal();S.pds.selectedUnits.clear();S.pds.individualDraft={};S.pds.bulkDraft={};S.pds.assignmentMode=false;renderView();toast(`${ok} PDS assignment${ok===1?"":"s"} created${fail?`, ${fail} failed`:""}.`,fail?"warn":"good")}finally{idle()}}
+async function confirmPdsBulk(){
+  const d=S.pds.bulkDraft||{},items=pdsBulkAssignmentsDraft();
+  if(items.length>CONFIG.MAX_BATCH)throw new Error(`Maximum ${CONFIG.MAX_BATCH} assignments can be created in one batch.`);
+  busy(`Creating ${items.length} PDS assignments…`);
+  let ok=0,fail=0;const created=[];
+  try{
+    for(const x of items){
+      try{
+        const data=buildPdsAssignmentPayload(S.current,x.unit,d,x.user,x.target),id=await addRecord(data),rec={ID:id,...data};
+        S.records.push(rec);S.assignments.push(rec);created.push(rec);ok++;
+      }catch(e){console.error("PDS assignment failed",x,e);fail++;}
+    }
+    if(created.length)await notifyCreatedAssignments(created);
+    closeModal();S.pds.selectedUnits.clear();S.pds.individualDraft={};S.pds.bulkDraft={};S.pds.assignmentMode=false;renderView();
+    toast(`${ok} PDS assignment${ok===1?"":"s"} created${fail?`, ${fail} failed`:""}.`,fail?"warn":"good");
+  }finally{idle()}
+}
 
 function pdsTypeCardsHtml(){
   const level0=isLevelZeroPdsDashboard();
@@ -1369,7 +1550,7 @@ async function bootstrap(){
       .sort((a,b)=>a.name.localeCompare(b.name));
     S.employees=er.map(adaptEmployee).filter(x=>x.email||x.name)
       .sort((a,b)=>a.name.localeCompare(b.name));
-    // V17.13 performance: Equipment is loaded lazily per Project and cached.
+    // V17.14 performance: Equipment is loaded lazily per Project and cached.
     S.equipment=[];
 
     // Tracking is secondary. An empty Design_Tracking_Report is valid and a
@@ -1411,7 +1592,17 @@ async function bootstrap(){
 
 async function refreshData(){busy("Refreshing assignments and design revisions…");try{let tr=[];try{const source=await resolveTrackingSource();tr=source.rows||[]}catch(e){toast(`Design Tracking refresh warning: ${errorText(e)}`,"warn");return}S.records=tr.map(adaptRecord);S.assignments=S.records.filter(isAssignmentRecord);S.revisions=S.records.filter(isRevisionRecord);renderView();toast("Workspace refreshed.","good")}finally{idle()}}
 
-function employeeOptions(value="",blank="Select team member…"){const v=String(value||"");return `<option value="">${h(blank)}</option>`+S.employees.map(e=>{const val=e.email||e.id;return `<option value="${h(val)}" ${String(val)===v?"selected":""}>${h(e.name||e.email)}${e.department?` — ${h(e.department)}`:""}</option>`}).join("")}
+function employeeOptions(value="",blank="Select team member…"){
+  const v=String(value||"");
+  const selected=employeeRecordFor(v);
+  return `<option value="">${h(blank)}</option>`+S.employees.map(e=>{
+    const email=String(e.email||"").trim();
+    const val=email||e.id||e.name||"";
+    const isSelected=selected?String(selected.id||selected.email)===String(e.id||e.email):String(val)===v;
+    const label=`${e.name||e.email||"Unnamed Employee"}${e.department?` — ${e.department}`:""}${email?` • ${email}`:" • EMAIL MISSING"}`;
+    return `<option value="${h(val)}" ${isSelected?"selected":""} ${email?"":"disabled"}>${h(label)}</option>`;
+  }).join("");
+}
 function projectOptions(value=""){return `<option value="">Select project…</option>`+S.projects.map(p=>`<option value="${h(p.id)}" ${p.id===value?"selected":""}>${h(p.code)}${p.name?` — ${h(p.name)}`:""}</option>`).join("")}
 function drawingOptions(value=""){return `<option value="">Select drawing / document…</option>`+S.drawings.map(d=>`<option value="${h(d.id)}" ${d.id===value?"selected":""}>${h(d.name)}${d.short?` (${h(d.short)})`:""}</option>`).join("")}
 function setView(v){if(S.view!=="detail")S.previousView=S.view;S.view=v;document.querySelectorAll(".navtab").forEach(b=>b.classList.toggle("active",b.dataset.view===v));renderView()}
@@ -1451,7 +1642,7 @@ function renderGroupCard(g){
   return `<div class="group-card"><div class="group-head"><div class="doc-badge">${h(d.short||"DOC")}</div><div class="group-main"><div class="group-title">${h(d.name||g.drawingName)}</div><div class="group-sub">Project ${h(g.projectCode)}${p.name?` • ${h(p.name)}`:""}</div></div>${g.root?statusPill(scalar(g.root[AF.status])):'<span class="pill amber">No primary</span>'}</div><div class="scope" style="margin-bottom:9px">Primary owner: <strong>${h(g.root?assignmentDisplayUser(g.root):"Not assigned")}</strong></div>${loadingPds?`<div class="notice" style="margin:8px 0">Loading actual PDS work counts from <b>All PD Sheet</b>…</div>`:`<div class="group-stats work4"><div class="mini-stat"><div class="n">${st.total}</div><div class="l">TOTAL WORK</div></div><div class="mini-stat"><div class="n">${st.assigned}</div><div class="l">ASSIGNED</div></div><div class="mini-stat"><div class="n">${st.unassigned}</div><div class="l">YET TO ASSIGN</div></div><div class="mini-stat"><div class="n">${st.completed}</div><div class="l">COMPLETED</div></div></div>${renderPdsBreakdownChips(st)}<div class="engineer-line"><strong>${engineers.length}</strong> current engineer${engineers.length===1?"":"s"} • <strong>${revCount}</strong> revision record${revCount===1?"":"s"}</div><div class="small strong" style="margin:8px 0 5px">Overall work progress ${st.progress}%</div>${progressBar(st.progress)}` }<div style="margin-top:12px;display:flex;gap:7px;flex-wrap:wrap"><button class="btn primary sm" data-open-group="${h(g.key)}">Open structure</button>${st.isPds?`<button class="btn sm" data-open-group-pds="${h(g.key)}">PDS Workspace</button>`:""}</div></div>`}
 
 function renderNewAssignment(){const p=S.projects.find(x=>x.id===S.newProjectId)||null,d=S.drawings.find(x=>x.id===S.newDrawingId)||null,existing=p&&d?primaryAssignmentFor(p,d):null;$("page").innerHTML=`<div class="new-wrap"><div class="stepper"><div class="step active"><span class="n">1</span>Project & Drawing</div><div class="step ${p&&d?"active":""}"><span class="n">2</span>Primary Owner</div><div class="step"><span class="n">3</span>Further delegation later</div></div><div class="new-card"><div class="new-head"><h2>Create Primary Drawing Assignment</h2><p>Create this once for the entire Project + Drawing. The assigned user can then divide the work to any number of levels.</p></div><div class="new-body"><div class="grid2"><div class="field"><label>Project Code *</label><select id="newProject">${projectOptions(S.newProjectId)}</select></div><div class="field"><label>Drawing / Document *</label><select id="newDrawing">${drawingOptions(S.newDrawingId)}</select></div></div>${p&&d?renderPrimaryForm(p,d,existing):'<div class="notice" style="margin-top:14px">Select a Project and Drawing / Document to continue.</div>'}</div></div></div>`}
-function renderPrimaryForm(p,d,existing){if(existing)return `<div class="notice good" style="margin-top:14px"><strong>Primary assignment already exists.</strong><br>${h(d.name)} for Project ${h(p.code)} is assigned to ${h(assignmentDisplayUser(existing))}. No duplicate primary record will be created.<div style="margin-top:10px"><button class="btn primary" data-open-assignment="${h(idOf(existing))}">Open existing structure</button></div></div>`;return `<div class="notice good" style="margin-top:14px"><strong>Primary responsibility = Entire Project ${h(p.code)}</strong>. Further division is optional and starts from the user who receives it.</div><div class="grid3" style="margin-top:14px"><div class="field"><label>Assigned To *</label><select id="primaryUser">${employeeOptions()}</select></div><div class="field"><label>Priority</label><select id="primaryPriority">${PRIORITIES.map(p=>`<option ${p==="Medium"?"selected":""}>${h(p)}</option>`).join("")}</select></div><div class="field"><label>Status</label><select id="primaryStatus">${ASSIGNMENT_STATUSES.map(s=>`<option>${h(s)}</option>`).join("")}</select></div></div><div class="grid3" style="margin-top:12px"><div class="field"><label>Start Date *</label><input id="primaryStart" type="date" value="${todayIso()}"></div><div class="field"><label>Target Date *</label><input id="primaryTarget" type="date"></div><div class="field"><label>End Date</label><input id="primaryEnd" type="date"></div></div><div class="field" style="margin-top:12px"><label>Remark</label><textarea id="primaryRemark" placeholder="Optional assignment instruction"></textarea></div><div style="display:flex;justify-content:flex-end;margin-top:14px"><button class="btn primary lg" data-act="create-primary">Create Primary Assignment</button></div>`}
+function renderPrimaryForm(p,d,existing){if(existing)return `<div class="notice good" style="margin-top:14px"><strong>Primary assignment already exists.</strong><br>${h(d.name)} for Project ${h(p.code)} is assigned to ${h(assignmentDisplayUser(existing))}. No duplicate primary record will be created.<div style="margin-top:10px"><button class="btn primary" data-open-assignment="${h(idOf(existing))}">Open existing structure</button></div></div>`;return `<div class="notice good" style="margin-top:14px"><strong>Primary responsibility = Entire Project ${h(p.code)}</strong>. Further division is optional and starts from the user who receives it.</div><div class="grid3" style="margin-top:14px"><div class="field"><label>Assigned To *</label><select id="primaryUser">${employeeOptions()}</select><div class="tiny muted" style="margin-top:4px">Selected Employee Name is resolved to the normal <b>Email</b> from Employee Details; the assignment email is sent there automatically.</div></div><div class="field"><label>Priority</label><select id="primaryPriority">${PRIORITIES.map(p=>`<option ${p==="Medium"?"selected":""}>${h(p)}</option>`).join("")}</select></div><div class="field"><label>Status</label><select id="primaryStatus">${ASSIGNMENT_STATUSES.map(s=>`<option>${h(s)}</option>`).join("")}</select></div></div><div class="grid3" style="margin-top:12px"><div class="field"><label>Start Date *</label><input id="primaryStart" type="date" value="${todayIso()}"></div><div class="field"><label>Target Date *</label><input id="primaryTarget" type="date"></div><div class="field"><label>End Date</label><input id="primaryEnd" type="date"></div></div><div class="field" style="margin-top:12px"><label>Remark</label><textarea id="primaryRemark" placeholder="Optional assignment instruction"></textarea></div><div style="display:flex;justify-content:flex-end;margin-top:14px"><button class="btn primary lg" data-act="create-primary">Create Primary Assignment</button></div>`}
 
 async function openGroup(key){const g=groupAssignments().find(x=>x.key===key);if(!g||!g.root){toast("Primary assignment is not available for this drawing.","error");return}return openAssignment(idOf(g.root))}
 async function openGroupPds(key){const g=groupAssignments().find(x=>x.key===key);if(!g||!g.root){toast("Primary assignment is not available for this drawing.","error");return}await openAssignment(idOf(g.root));S.detailTab="pds";renderView()}
@@ -1468,7 +1659,7 @@ function renderDetailTab(){if(S.detailTab==="activity")return renderActivityAler
 function renderActivityAlertsTab(){const a=S.current;return `<div class="tab-card"><div class="section-row" style="margin-top:0"><div><h2>Smart alerts</h2><p>Calculated from Target Date, work status and current revision.</p></div></div>${renderAlertList(a)}<div class="section-row"><div><h2>Activity timeline</h2><p>Persistent when Activity_Log exists; older records also show inferred Creator events.</p></div></div>${renderActivityTimeline(a)}</div>`}
 function renderOverviewTab(){const a=S.current,k=childStats(a),r=currentRevision(a),canEdit=true; /* POC OPEN ACCESS: show update/delegate controls to any permitted Creator user. */ return `<div class="tab-card"><div class="scope-box"><div class="k">RESPONSIBILITY</div><div class="v">${h(scopeSummary(a))}</div></div><div class="summary"><div class="summary-item"><div class="k">ASSIGNED TO</div><div class="v">${h(assignmentDisplayUser(a))}</div></div><div class="summary-item"><div class="k">ASSIGNED BY</div><div class="v">${h(assignmentByDisplay(a))}</div></div><div class="summary-item"><div class="k">START DATE</div><div class="v">${h(displayDate(a[AF.startDate]))}</div></div><div class="summary-item"><div class="k">TARGET DATE</div><div class="v">${h(displayDate(a[AF.targetDate]))}</div></div><div class="summary-item"><div class="k">STATUS</div><div class="v">${statusPill(scalar(a[AF.status]))}</div></div><div class="summary-item"><div class="k">PROGRESS</div><div class="v">${num(a[AF.progress])}%</div></div><div class="summary-item"><div class="k">CRITERIA</div><div class="v">${h(assignmentCriteria(a))}</div></div><div class="summary-item"><div class="k">END DATE</div><div class="v">${h(displayDate(a[AF.endDate]))}</div></div></div><div class="two-col"><div><div class="section-row" style="margin-top:0"><div><h2>Design execution</h2><p>Files, workflow and current revision for this responsibility.</p></div></div>${r?`<div class="exec-hero"><div class="exec-rev"><div class="rev-circle">${h(scalar(r[AF.revision])||"R0")}</div><div><h3>${h(scalar(r[AF.status])||"Not Started")}</h3><p>${h(scalar(r[AF.revisionDescription])||"No revision description")}</p></div></div><button class="btn sm primary" data-detail-tab="files">Open design</button></div>`:`<div class="empty compact"><strong>No design revision started</strong>${canEdit?`<div style="margin-top:9px"><button class="btn sm primary" data-detail-tab="files">Start R0</button></div>`:"The assignee can start R0 from Design Files."}</div>`}</div><div><div class="section-row" style="margin-top:0"><div><h2>Further assignments</h2><p>${k.total} responsibility${k.total===1?"":"ies"} below this node.</p></div>${canEdit?'<button class="btn sm soft" data-detail-tab="delegate">Assign Further</button>':""}</div>${k.total?`<div class="child-list">${assignmentChildren(idOf(a)).slice(0,5).map(c=>`<div class="child-row"><div class="avatar">${h(initials(assignmentDisplayUser(c)))}</div><div class="main"><div class="name">${h(assignmentDisplayUser(c))}</div><div class="sc">${h(scopeSummary(c))}</div></div>${statusPill(scalar(c[AF.status]))}</div>`).join("")}</div>`:`<div class="empty compact"><strong>No further assignment</strong>This responsibility has not been divided further.</div>`}</div></div><div class="actions" style="margin-top:14px">${canEdit?'<button class="btn" data-act="edit-assignment">Update status / progress</button>':""}<button class="btn" data-detail-tab="revisions">Revision history (${revisionsForAssignment(a).length})</button></div></div>`}
 
-/* ================= V17.13: RIGHT-SIDE DETAIL DRAWER ================= */
+/* ================= V17.14: RIGHT-SIDE DETAIL DRAWER ================= */
 function drawerAssignment(){return assignmentById(S.drawer.assignmentId)}
 function openDetailDrawer(id,tab="overview"){const a=assignmentById(id);if(!a)return;S.drawer={open:true,assignmentId:String(id),tab};renderDetailDrawer()}
 function closeDetailDrawer(){S.drawer.open=false;S.drawer.assignmentId="";const d=$("detailDrawer"),b=$("drawerBackdrop");if(d)d.classList.remove("open");if(b)b.classList.remove("open");if(d)d.setAttribute("aria-hidden","true")}
@@ -1710,10 +1901,10 @@ function collectBulk(){S.bulk={user:$("bulkUser")?.value||"",priority:$("bulkPri
 function responsibilityFromData(data){const bits=[`Project ${scalar(data[AF.projectCode])||S.project?.code||""}`],s=scalar(data[AF.plantSection]),st=scalar(data[AF.plantSectionType]),g=scalar(data[AF.groupCode]),d=scalar(data[AF.department]),c=scalar(data[AF.equipmentCategory]),t=scalar(data[AF.equipmentType]),tag=scalar(data[AF.tagNo]),name=scalar(data[AF.equipmentName]);if(s)bits.push(s);if(st)bits.push(st);if(g)bits.push(`Group: ${g}`);if(d)bits.push(`Department: ${d}`);if(c)bits.push(`Category: ${c}`);if(t)bits.push(`Type: ${t}`);if(tag||name)bits.push(`Tag: ${[tag,name].filter(Boolean).join(" — ")}`);return bits.filter(Boolean).join(" › ")}
 function assignmentCriteriaPayload(labels){return (Array.isArray(labels)?labels:String(labels||"").split(",")).map(x=>String(x||"").trim()).filter(Boolean).join(", ")}
 // buildChildPayload(): creates one independent child assignment payload linked by Assigned_From_ID.
-function buildChildPayload(parent,row,draft){const d=drawingForAssignment(parent),criteriaLabels=[...S.selectedCriteria].map(k=>CRITERIA.find(c=>c.key===k).label),data={
+function buildChildPayload(parent,row,draft){const recipient=requireAssignmentRecipient(draft.user);draft={...draft,user:recipient.email};const d=drawingForAssignment(parent),criteriaLabels=[...S.selectedCriteria].map(k=>CRITERIA.find(c=>c.key===k).label),data={
   [AF.projectCode]:scalar(parent[AF.projectCode]),[AF.projectRecordId]:scalar(parent[AF.projectRecordId]),[AF.drawingDocument]:d.name,[AF.drawingMasterId]:d.id,[AF.shortName]:d.short||"",
   [AF.primaryAssignment]:scalar(parent[AF.primaryAssignment])||idOf(primaryForRows(groupForAssignment(parent)?.rows||[])),[AF.assignedFrom]:idOf(parent),[AF.assignmentLevel]:num(parent[AF.assignmentLevel])+1,
-  [AF.assignedBy]:S.user||assignmentUser(parent),[AF.assignedTo]:draft.user,[AF.assignedEmployeeName]:employeeNameFor(draft.user),[AF.criteria]:assignmentCriteriaPayload(criteriaLabels),
+  [AF.assignedBy]:S.user||assignmentUser(parent),[AF.assignedTo]:recipient.email,[AF.assignedEmployeeName]:recipient.name,[AF.criteria]:assignmentCriteriaPayload(criteriaLabels),
   [AF.startDate]:toCreatorDate(draft.start),[AF.targetDate]:toCreatorDate(draft.target),[AF.endDate]:toCreatorDate(draft.end),[AF.priority]:draft.priority||scalar(parent[AF.priority])||"Medium",[AF.status]:"Not Started",[AF.progress]:0,[AF.remark]:draft.remark||"",[AF.activityLog]:initialActivity("Assignment Created",`${employeeNameFor(draft.user)} received ${targetLabel(row)}.`,{kind:"assignment",assignedTo:employeeEmailFor(draft.user)})
 };
 
@@ -1778,11 +1969,60 @@ function buildChildPayload(parent,row,draft){const d=drawingForAssignment(parent
 // createPrimary():
 // NOTIFICATION READY: Creator workflow can email Assigned_To.
 // Assigned_To is the employee normal Email value from Employ_to_Create_ticket_Report. creates the first Project + Drawing responsibility.
-async function createPrimary(){const p=S.projects.find(x=>x.id===S.newProjectId),d=S.drawings.find(x=>x.id===S.newDrawingId),user=$("primaryUser")?.value,priority=$("primaryPriority")?.value||"Medium",start=$("primaryStart")?.value,target=$("primaryTarget")?.value,end=$("primaryEnd")?.value,remark=$("primaryRemark")?.value.trim()||"",status=$("primaryStatus")?.value||"Not Started";if(!p||!d)throw new Error("Select Project and Drawing first.");if(!user||!start||!target)throw new Error("Assigned To, Start Date and Target Date are required.");if(end&&end<start)throw new Error("End Date cannot be before Start Date.");if(primaryAssignmentFor(p,d))throw new Error("Primary Assignment already exists for this Project + Drawing.");busy("Creating primary assignment…");try{const data={[AF.projectCode]:p.code,[AF.projectRecordId]:p.id||"",[AF.drawingDocument]:d.name,[AF.drawingMasterId]:d.id,[AF.shortName]:d.short||"",[AF.assignmentLevel]:0,[AF.assignedBy]:S.user||user,[AF.assignedTo]:user,[AF.assignedEmployeeName]:employeeNameFor(user),[AF.criteria]:"Project",[AF.responsibility]:`Entire Project ${p.code}`,[AF.logicalTaskKey]:`ASSIGN::${nk(p.code)}::${nk(d.id||d.short||d.name)}::PROJECT`,[AF.startDate]:toCreatorDate(start),[AF.targetDate]:toCreatorDate(target),[AF.endDate]:toCreatorDate(end),[AF.priority]:priority,[AF.status]:status,[AF.progress]:status==="Completed"?100:0,[AF.remark]:remark,[AF.activityLog]:initialActivity("Primary Assignment Created",`${employeeNameFor(user)} assigned entire Project ${p.code} / ${d.name}.`,{kind:"assignment",assignedTo:employeeEmailFor(user)})};const id=await addRecord(data);if(!id)throw new Error("Creator did not return the new assignment ID.");await updateRecord(id,{[AF.primaryAssignment]:id});const record={ID:id,...data,[AF.primaryAssignment]:id};S.records.push(record);S.assignments.push(record);toast("Primary assignment created.","good");openAssignment(id)}finally{idle()}}
+async function createPrimary(){
+  const p=S.projects.find(x=>x.id===S.newProjectId),d=S.drawings.find(x=>x.id===S.newDrawingId);
+  const selectedUser=$("primaryUser")?.value;
+  const priority=$("primaryPriority")?.value||"Medium",start=$("primaryStart")?.value,target=$("primaryTarget")?.value,end=$("primaryEnd")?.value,remark=$("primaryRemark")?.value.trim()||"",status=$("primaryStatus")?.value||"Not Started";
+  if(!p||!d)throw new Error("Select Project and Drawing first.");
+  if(!selectedUser||!start||!target)throw new Error("Assigned To, Start Date and Target Date are required.");
+  if(end&&end<start)throw new Error("End Date cannot be before Start Date.");
+  if(primaryAssignmentFor(p,d))throw new Error("Primary Assignment already exists for this Project + Drawing.");
+
+  // Employee Name -> normal Email from Employ_to_Create_ticket_Report.
+  const recipient=requireAssignmentRecipient(selectedUser);
+
+  busy("Creating primary assignment…");
+  try{
+    const data={
+      [AF.projectCode]:p.code,[AF.projectRecordId]:p.id||"",[AF.drawingDocument]:d.name,[AF.drawingMasterId]:d.id,[AF.shortName]:d.short||"",
+      [AF.assignmentLevel]:0,[AF.assignedBy]:S.user||recipient.email,[AF.assignedTo]:recipient.email,[AF.assignedEmployeeName]:recipient.name,[AF.criteria]:"Project",
+      [AF.responsibility]:`Entire Project ${p.code}`,[AF.logicalTaskKey]:`ASSIGN::${nk(p.code)}::${nk(d.id||d.short||d.name)}::PROJECT`,
+      [AF.startDate]:toCreatorDate(start),[AF.targetDate]:toCreatorDate(target),[AF.endDate]:toCreatorDate(end),[AF.priority]:priority,[AF.status]:status,[AF.progress]:status==="Completed"?100:0,[AF.remark]:remark,
+      [AF.activityLog]:initialActivity("Primary Assignment Created",`${recipient.name} assigned entire Project ${p.code} / ${d.name}.`,{kind:"assignment",assignedTo:recipient.email})
+    };
+    const id=await addRecord(data);
+    if(!id)throw new Error("Creator did not return the new assignment ID.");
+    await updateRecord(id,{[AF.primaryAssignment]:id});
+    const record={ID:id,...data,[AF.primaryAssignment]:id};
+    S.records.push(record);S.assignments.push(record);
+
+    // Notify only after the assignment exists safely in Creator.
+    await notifyCreatedAssignments([record]);
+
+    toast(`Primary assignment created for ${recipient.name}.`,"good");
+    openAssignment(id);
+  }finally{idle()}
+}
 async function reviewBulk(){const d=collectBulk();if(!d.user)throw new Error("Select Assigned To.");if(!d.start||!d.target)throw new Error("Start Date and Target Date are required.");if(d.end&&d.end<d.start)throw new Error("End Date cannot be before Start Date.");const parentTarget=toInputDate(S.current[AF.targetDate]),late=parentTarget&&d.target>parentTarget;if(late&&!d.remark.trim())throw new Error("Target Date is later than the received responsibility. Add a Remark to continue.");const rows=S.targetRows.filter(r=>S.selectedTargets.has(targetKey(r))&&!existingChildForTarget(S.current,r));if(!rows.length)throw new Error("No new responsibilities are selected.");openModal("Review Further Assignment",`${rows.length} independent responsibilities will be created under ${assignmentDisplayUser(S.current)}.`,reviewBulkHtml(rows,d,late),`<button class="btn" data-modal="close">Back</button><button class="btn primary" data-modal="confirm-bulk">Create ${rows.length} Assignments</button>`)}
 function reviewBulkHtml(rows,d,late){return `<div class="review-grid"><div class="review-metric"><div class="n">${rows.length}</div><div class="l">NEW ASSIGNMENTS</div></div><div class="review-metric"><div class="n">${h(employeeNameFor(d.user))}</div><div class="l">ASSIGNED TO</div></div><div class="review-metric"><div class="n">Level ${num(S.current[AF.assignmentLevel])+1}</div><div class="l">NEXT LEVEL • ${h(d.priority||"Medium")}</div></div></div>${late?'<div class="notice warn"><b>Date warning:</b> child Target Date is later than your received Target Date. Your remark will be stored with the assignment.</div>':""}<div class="notice warn" style="margin-top:8px"><b>POC open-scope mode:</b> received Section / Section Type / Tag / Group / Department / Category / Type restrictions are not enforced.</div><div class="table-wrap" style="margin-top:12px"><table><thead><tr><th>#</th><th>Responsibility</th><th>Assigned To</th><th>Start</th><th>Target</th></tr></thead><tbody>${rows.map((r,i)=>`<tr><td>${i+1}</td><td>${h(targetLabel(r))}</td><td>${h(employeeNameFor(d.user))}</td><td>${h(d.start)}</td><td>${h(d.target)}</td></tr>`).join("")}</tbody></table></div>`}
 // confirmBulk(): creates one Design_Tracking record for every selected bulk target.
-async function confirmBulk(){const d=S.bulk,rows=S.targetRows.filter(r=>S.selectedTargets.has(targetKey(r))&&!existingChildForTarget(S.current,r));if(rows.length>CONFIG.MAX_BATCH)throw new Error(`Maximum ${CONFIG.MAX_BATCH} assignments can be created in one batch.`);busy(`Creating ${rows.length} assignments…`);let ok=0,fail=0;try{for(const row of rows){try{const data=buildChildPayload(S.current,row,d),id=await addRecord(data);const rec={ID:id,...data};S.records.push(rec);S.assignments.push(rec);ok++}catch(e){console.error(e);fail++}}closeModal();S.selectedTargets.clear();S.selectedCriteria.clear();S.bulk={};S.detailTab="overview";renderView();toast(`${ok} assignment${ok===1?"":"s"} created${fail?`, ${fail} failed`:""}.`,fail?"warn":"good")}finally{idle()}}
+async function confirmBulk(){
+  const d=S.bulk,rows=S.targetRows.filter(r=>S.selectedTargets.has(targetKey(r))&&!existingChildForTarget(S.current,r));
+  if(rows.length>CONFIG.MAX_BATCH)throw new Error(`Maximum ${CONFIG.MAX_BATCH} assignments can be created in one batch.`);
+  busy(`Creating ${rows.length} assignments…`);
+  let ok=0,fail=0;const created=[];
+  try{
+    for(const row of rows){
+      try{
+        const data=buildChildPayload(S.current,row,d),id=await addRecord(data),rec={ID:id,...data};
+        S.records.push(rec);S.assignments.push(rec);created.push(rec);ok++;
+      }catch(e){console.error(e);fail++;}
+    }
+    if(created.length)await notifyCreatedAssignments(created);
+    closeModal();S.selectedTargets.clear();S.selectedCriteria.clear();S.bulk={};S.detailTab="overview";renderView();
+    toast(`${ok} assignment${ok===1?"":"s"} created${fail?`, ${fail} failed`:""}.`,fail?"warn":"good");
+  }finally{idle()}
+}
 
 /* ================= SECTION 15: REVISION MANAGEMENT =====================
    Creates/saves R0, R1, R2... and keeps Parent_Design_ID only for revisions.
@@ -1920,7 +2160,7 @@ async function saveAssignmentStatus(){const a=S.current,s=$("assignmentStatusEdi
 // openModal(): opens the reusable dialog shell.
 function openModal(title,sub,body,foot){$("modalTitle").textContent=title;$("modalSub").textContent=sub||"";$("modalBody").innerHTML=body||"";$("modalFoot").innerHTML=foot||"";$("modalBackdrop").classList.remove("hidden")}
 function closeModal(){$("modalBackdrop").classList.add("hidden")}
-function setupModal(){openModal("V17.12 One-Form Logical Work Architecture","Assignment + Design Files + Revision History use your existing Design_Tracking form.",`<div class="notice good"><b>No new transaction form is used.</b> Assignment rows and Revision rows are both stored in Design_Tracking and separated by their backend identity fields.</div><div class="section-row"><div><h2>Assignment hierarchy</h2><p>Already added to your form.</p></div></div><div class="table-wrap"><table><thead><tr><th>Field</th><th>Link Name</th><th>Purpose</th></tr></thead><tbody><tr><td>Primary Assignment ID</td><td>Primary_Assignment_ID</td><td>First project-level assignment</td></tr><tr><td>Assigned From ID</td><td>Assigned_From_ID</td><td>Immediate previous responsibility</td></tr><tr><td>Assignment Level</td><td>Assignment_Level</td><td>0, 1, 2, 3… N</td></tr><tr><td>Assignment Criteria</td><td>Assignment_Criteria</td><td>Single Line</td></tr><tr><td>Responsibility</td><td>Responsibility</td><td>Readable scope</td></tr></tbody></table></div><div class="section-row"><div><h2>Design / revision identity</h2><p>Uses fields already visible in your Design_Tracking screenshots.</p></div></div><div class="table-wrap"><table><thead><tr><th>Field</th><th>Link Name</th><th>Use</th></tr></thead><tbody><tr><td>Logical Task Key</td><td>Logical_Task_Key</td><td>EXEC::AssignmentID::R0 / R1 / R2</td></tr><tr><td>Revision Key</td><td>Revision_Key</td><td>Unique revision identity</td></tr><tr><td>Parent Design ID</td><td>Parent_Design_ID</td><td>R0 → R1 → R2 chain</td></tr><tr><td>Revision</td><td>Revision</td><td>R0 / R1 / R2</td></tr><tr><td>Files</td><td>Drawing_File / Native_File / Supporting_File</td><td>Controlled document files</td></tr></tbody></table></div><div class="notice warn" style="margin-top:12px"><b>Do not use Parent_Design_ID for assignment hierarchy.</b> It is reserved only for revision history. Further_Assigned and Active are not written by the widget because this Creator app rejected Decision Box API values; children are derived from Assigned_From_ID.</div><div class="section-row"><div><h2>V17.13 Activity / Notification Readiness</h2><p>Add one field to persist the timeline.</p></div></div><div class="table-wrap"><table><thead><tr><th>Field</th><th>Link Name</th><th>Type</th><th>Use</th></tr></thead><tbody><tr><td>Activity Log</td><td>Activity_Log</td><td>Multi Line</td><td>Assignment, revision, upload and workflow event history.</td></tr></tbody></table></div><div class="notice good" style="margin-top:10px"><b>Email source:</b> the widget uses the normal <b>Email</b> field in Employ_to_Create_ticket_Report. Assigned_To stores that email, which is ready for Creator On Success / On Update email workflows.</div><div class="notice good" style="margin-top:10px"><b>Performance:</b> Project, Drawing and Employee masters load at startup. Equipment loads only for the opened Project and is cached. PDS reports remain lazy and cached after first use.</div><div class="notice good" style="margin-top:10px"><b>PDS Workspace:</b> When the selected Drawing is PDS, the widget reads existing All_PD_Sheet plus Equipment / Nozzle / Structure / Piping / Bought Out / Consumable / E&amp;I PDS reports as read-only source data. V17.12 uses logical-work architecture and can bulk-assign Tag + PDS Type responsibilities; each assignment is a separate Design_Tracking row, while the source PDS report itself is never modified or copied.</div>`,`<button class="btn primary" data-modal="close">Close</button>`)}
+function setupModal(){openModal("V17.14 One-Form + Employee Email Notification","Assignment + Design Files + Revision History use your existing Design_Tracking form.",`<div class="notice good"><b>No new transaction form is used.</b> Assignment rows and Revision rows are both stored in Design_Tracking and separated by their backend identity fields.</div><div class="section-row"><div><h2>Assignment hierarchy</h2><p>Already added to your form.</p></div></div><div class="table-wrap"><table><thead><tr><th>Field</th><th>Link Name</th><th>Purpose</th></tr></thead><tbody><tr><td>Primary Assignment ID</td><td>Primary_Assignment_ID</td><td>First project-level assignment</td></tr><tr><td>Assigned From ID</td><td>Assigned_From_ID</td><td>Immediate previous responsibility</td></tr><tr><td>Assignment Level</td><td>Assignment_Level</td><td>0, 1, 2, 3… N</td></tr><tr><td>Assignment Criteria</td><td>Assignment_Criteria</td><td>Single Line</td></tr><tr><td>Responsibility</td><td>Responsibility</td><td>Readable scope</td></tr></tbody></table></div><div class="section-row"><div><h2>Design / revision identity</h2><p>Uses fields already visible in your Design_Tracking screenshots.</p></div></div><div class="table-wrap"><table><thead><tr><th>Field</th><th>Link Name</th><th>Use</th></tr></thead><tbody><tr><td>Logical Task Key</td><td>Logical_Task_Key</td><td>EXEC::AssignmentID::R0 / R1 / R2</td></tr><tr><td>Revision Key</td><td>Revision_Key</td><td>Unique revision identity</td></tr><tr><td>Parent Design ID</td><td>Parent_Design_ID</td><td>R0 → R1 → R2 chain</td></tr><tr><td>Revision</td><td>Revision</td><td>R0 / R1 / R2</td></tr><tr><td>Files</td><td>Drawing_File / Native_File / Supporting_File</td><td>Controlled document files</td></tr></tbody></table></div><div class="notice warn" style="margin-top:12px"><b>Do not use Parent_Design_ID for assignment hierarchy.</b> It is reserved only for revision history. Further_Assigned and Active are not written by the widget because this Creator app rejected Decision Box API values; children are derived from Assigned_From_ID.</div><div class="section-row"><div><h2>V17.14 Employee Email Notification</h2><p>Add one field to persist the timeline.</p></div></div><div class="table-wrap"><table><thead><tr><th>Field</th><th>Link Name</th><th>Type</th><th>Use</th></tr></thead><tbody><tr><td>Activity Log</td><td>Activity_Log</td><td>Multi Line</td><td>Assignment, revision, upload and workflow event history.</td></tr></tbody></table></div><div class="notice good" style="margin-top:10px"><b>Email source:</b> selected Employee Name is resolved against Employ_to_Create_ticket_Report and the normal <b>Email</b> is written to Assigned_To.</div><div class="notice good" style="margin-top:10px"><b>Automatic assignment email:</b> after save, the widget invokes Creator Custom API <b>send_design_assignment_email</b>. Single = one mail. Bulk = one summary mail per person.</div><div class="notice good" style="margin-top:10px"><b>Performance:</b> Project, Drawing and Employee masters load at startup. Equipment loads only for the opened Project and is cached. PDS reports remain lazy and cached after first use.</div><div class="notice good" style="margin-top:10px"><b>PDS Workspace:</b> When the selected Drawing is PDS, the widget reads existing All_PD_Sheet plus Equipment / Nozzle / Structure / Piping / Bought Out / Consumable / E&amp;I PDS reports as read-only source data. V17.12 uses logical-work architecture and can bulk-assign Tag + PDS Type responsibilities; each assignment is a separate Design_Tracking row, while the source PDS report itself is never modified or copied.</div>`,`<button class="btn primary" data-modal="close">Close</button>`)}
 
 async function handleAction(act){if(act==="create-primary")return createPrimary();if(act==="edit-assignment")return editAssignmentModal();if(act==="start-r0")return startR0();if(act==="save-revision")return saveRevision();if(act==="new-revision")return openNewRevisionModal();if(act==="select-next-10"){const rows=S.targetRows.filter(r=>!existingChildForTarget(S.current,r)&&!S.selectedTargets.has(targetKey(r))).slice(0,10);rows.forEach(r=>S.selectedTargets.add(targetKey(r)));return renderView()}if(act==="select-all-targets"){S.targetRows.filter(r=>!existingChildForTarget(S.current,r)).forEach(r=>S.selectedTargets.add(targetKey(r)));return renderView()}if(act==="clear-targets"){S.selectedTargets.clear();return renderView()}if(act==="review-bulk")return reviewBulk()}
 async function handleModal(act,el){if(act==="close")return closeModal();if(act==="confirm-bulk")return confirmBulk();if(act==="confirm-pds-bulk")return confirmPdsBulk();if(act==="save-assignment-status")return saveAssignmentStatus();if(act==="confirm-return")return confirmReturn();if(act==="confirm-new-revision")return confirmNewRevision(el.dataset.nextRev)}
