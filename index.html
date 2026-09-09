@@ -2247,35 +2247,119 @@ async function uploadRevisionFiles(id,fileGroups,record){
   return uploaded;
 }
 
+// creatorFileResponseToBlob(): normalizes the different binary response shapes
+// returned by Creator FILE.readFile across browsers / SDK builds.
+// IMPORTANT: Typed arrays are objects in JavaScript, so they MUST be handled
+// before the generic object-wrapper branch. V17.15 checked generic objects first,
+// which is why a valid Uint8Array response was rejected as "unexpected object".
+async function creatorFileResponseToBlob(value,fileName,depth=0){
+  if(depth>8)throw new Error("Creator file response nesting is too deep.");
+  if(value===null||value===undefined)throw new Error("Creator returned an empty file response.");
+
+  const mime=mimeTypeForFile(fileName);
+
+  // Native browser Blob.
+  if(value instanceof Blob)return value;
+
+  // Raw ArrayBuffer.
+  if(value instanceof ArrayBuffer)return new Blob([value],{type:mime});
+
+  // Uint8Array / Int8Array / DataView / other typed-array views.
+  // Slice only the active byte range; using the entire backing buffer can add
+  // unwanted bytes when byteOffset / byteLength do not cover the whole buffer.
+  if(ArrayBuffer.isView(value)){
+    const bytes=new Uint8Array(value.buffer,value.byteOffset,value.byteLength);
+    return new Blob([bytes],{type:mime});
+  }
+
+  // Some SDK/browser combinations may expose a Fetch Response-like object.
+  if(typeof Response!=="undefined"&&value instanceof Response){
+    return await value.blob();
+  }
+
+  // Creator documentation describes readFile response as "filecontent".
+  // In practice this can be a raw binary string.
+  if(typeof value==="string"){
+    if(value.startsWith("data:"))return await (await fetch(value)).blob();
+    return binaryStringToBlob(value,mime);
+  }
+
+  // Numeric byte array.
+  if(Array.isArray(value)){
+    if(value.every(x=>Number.isInteger(Number(x))&&Number(x)>=0&&Number(x)<=255)){
+      return new Blob([new Uint8Array(value.map(Number))],{type:mime});
+    }
+    if(value.length===1)return await creatorFileResponseToBlob(value[0],fileName,depth+1);
+  }
+
+  if(typeof value==="object"){
+    // Node/SDK Buffer JSON shape: { type:"Buffer", data:[...] }
+    if(value.type==="Buffer"&&Array.isArray(value.data)){
+      return new Blob([new Uint8Array(value.data)],{type:mime});
+    }
+
+    // Axios / SDK / Creator wrapper variants. Recursively unwrap instead of
+    // assuming response.data is already a string.
+    const wrapperKeys=[
+      "data","filecontent","file_content","value","result","response",
+      "body","content","file","blob","payload"
+    ];
+    for(const key of wrapperKeys){
+      if(Object.prototype.hasOwnProperty.call(value,key)&&value[key]!==value&&value[key]!=null){
+        try{return await creatorFileResponseToBlob(value[key],fileName,depth+1)}catch(_){ }
+      }
+    }
+
+    // XMLHttpRequest-like response.
+    if(value.response!==undefined&&value.response!==value){
+      return await creatorFileResponseToBlob(value.response,fileName,depth+1);
+    }
+    if(typeof value.responseText==="string"&&value.responseText){
+      return binaryStringToBlob(value.responseText,mime);
+    }
+
+    // A few SDK builds expose byte content as an object with numeric keys:
+    // {0:37,1:80,2:68,3:70,...}
+    const keys=Object.keys(value);
+    if(keys.length&&keys.every(k=>/^\d+$/.test(k))){
+      const ordered=keys.sort((a,b)=>Number(a)-Number(b)).map(k=>Number(value[k]));
+      if(ordered.every(x=>Number.isInteger(x)&&x>=0&&x<=255)){
+        return new Blob([new Uint8Array(ordered)],{type:mime});
+      }
+    }
+
+    console.error("Unrecognized Creator readFile response",value);
+    throw new Error(
+      `Creator returned an unsupported file response (${Object.prototype.toString.call(value)}). `+
+      `Open browser console and check "Unrecognized Creator readFile response" if this continues.`
+    );
+  }
+
+  throw new Error(`Unsupported Creator file response type: ${typeof value}.`);
+}
+
 // downloadRevisionFile(): downloads ONE real stored file using its exact
-// Creator file_path and original display filename. This prevents [object Object]
-// files and preserves PDF/DWG/DXF/XLSX/ZIP/etc. extensions.
+// Creator file_path and original display filename. This preserves the original
+// PDF/DWG/DXF/XLSX/ZIP/etc. file instead of writing [object Object].
 async function downloadRevisionFile(id,field,filePath,fileName){
   const name=safeFileName(fileName,"download");
   busy(`Downloading ${name}…`);
   try{
     const response=await readFile(id,field,filePath);
-    let content=response;
-    if(response&&typeof response==="object"&&!(response instanceof Blob)&&!(response instanceof ArrayBuffer)){
-      if(response.data!==undefined)content=response.data;
-      else if(response.filecontent!==undefined)content=response.filecontent;
-      else if(response.file_content!==undefined)content=response.file_content;
-      else if(response.value!==undefined)content=response.value;
-      else throw new Error("Creator returned an unexpected file response. Download stopped to prevent an invalid [object Object] file.");
+    const blob=await creatorFileResponseToBlob(response,name);
+
+    if(!blob||!blob.size){
+      throw new Error("Creator returned an empty file.");
     }
 
-    let blob;
-    if(content instanceof Blob)blob=content;
-    else if(content instanceof ArrayBuffer)blob=new Blob([content],{type:mimeTypeForFile(name)});
-    else if(ArrayBuffer.isView(content))blob=new Blob([content.buffer],{type:mimeTypeForFile(name)});
-    else if(typeof content==="string"){
-      if(content.startsWith("data:"))blob=await (await fetch(content)).blob();
-      else blob=binaryStringToBlob(content,mimeTypeForFile(name));
-    }else throw new Error("Unsupported Creator file response.");
-
     const url=URL.createObjectURL(blob),a=document.createElement("a");
-    a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();
-    setTimeout(()=>URL.revokeObjectURL(url),3000);
+    a.href=url;
+    a.download=name;
+    a.style.display="none";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),5000);
   }finally{idle()}
 }
 // validateWorkflowPrereq(): production role-field prerequisites are disabled for POC.
